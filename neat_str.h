@@ -257,21 +257,32 @@ _Generic(str, \
     ); \
 })
 
-#define vstring_assign(vstring, strlit) \
+#define vstring_assign(vstring, src) \
 ({ \
     _Static_assert(neat_has_type(vstring, VString*), "arg 1 must have type VString*"); \
     _Static_assert( \
-        neat_has_type((typeof(strlit)*){0}, char(*)[sizeof(strlit)]) || \
-        neat_has_type((typeof(strlit)*){0}, char**), \
-        "arg 2 must be a string literal/array or a char*" \
+        neat_has_type((typeof(src)*){0}, char(*)[sizeof(typeof(src))]) || \
+        neat_has_type((typeof(src)*){0}, char**) || \
+        neat_has_type(src, VString*), \
+        "arg 2 must be a string literal/array or a VString* or a char*" \
     ); \
-    typeof(strlit) neat_strlit; \
-    memcpy(&neat_strlit, &strlit, sizeof(typeof(strlit))); \
-    vstring->len = strlen(neat_strlit); \
-    memcpy(vstring->chars, neat_strlit, vstring->len); \
+    typeof(src) neat_src; \
+    memcpy(&neat_src, &src, sizeof(typeof(src))); \
+    VString *neat_dst = vstring; \
+    _Generic(neat_src, \
+        char*: ({ \
+            char *neat_src_char = neat_gurantee(neat_src, char*); \
+            neat_dst->len = strlen(neat_src_char); \
+            memcpy(neat_dst->chars, neat_src_char, neat_dst->len + 1); \
+        }), \
+        VString*: ({ \
+            VString *neat_src_vstring = neat_gurantee(neat_src, VString*); \
+            neat_dst->len = neat_src_vstring->len; \
+            memcpy(neat_dst->chars, neat_src_vstring->chars, neat_src_vstring->len + 1); \
+        }) \
+    ); \
 })
 
-// maybe make this into 1 and 2
 #define vstring_alloc(nb_chars, ...) \
 NEAT_APPEND_NARG(vstring_alloc, nb_chars, ##__VA_ARGS__)(nb_chars, ##__VA_ARGS__)
 
@@ -284,11 +295,23 @@ neat_vstring_alloc_(nb_chars, allocator)
 #define neat_string_copy(dst, src) \
 (memcpy(dst->chars, src->chars, src->len), dst->len = src->len)
 
-#define neat_print(s) \
+#define neat_fprint(f, s) \
 ({ \
     typeof(s) neat_s = s; \
-    fwrite(neat_s->chars, sizeof(unsigned char), neat_s->len, stdout); \
+    fwrite(neat_s->chars, sizeof(unsigned char), neat_s->len, f); \
 })
+
+#define neat_print(s) \
+neat_fprint(stdout, s)
+
+#define neat_fprintln(f, s) \
+({ \
+    neat_fprint(f, s); \
+    fputc('\n', f); \
+})
+
+#define neat_println(s) \
+neat_fprintln(stdout, s)
 
 VString *neat_vstring_alloc_(size_t nbc_chars, Neat_Allocator allocator);
 
@@ -337,6 +360,12 @@ void neat_default_allocator_deinit(void *context)
 VString *neat_vstring_alloc_(size_t nb_chars, Neat_Allocator allocator)
 {
     VString *ret = allocator.alloc(allocator.context, _Alignof(VString), sizeof(VString) + sizeof(unsigned char) * nb_chars);
+    if(ret)
+    {
+        ret->len = 0;
+        if(nb_chars > 0)
+            ret->chars[0] = '\0';
+    }
     return ret;
 }
 
