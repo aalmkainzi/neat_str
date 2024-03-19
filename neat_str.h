@@ -85,7 +85,7 @@ allocator.dealloc(allocator.context, ptr, n)
 allocator.realloc(allocator.context, ptr, _Alignof(max_align_t), old_n, new_n)
 
 #define neat_static_assertx(exp, msg) \
-sizeof(struct { _Static_assert(exp, msg); int dummy; })
+((void)sizeof(struct { _Static_assert(exp, msg); int dummy; }))
 
 #define neat_has_type(exp, t) \
 _Generic(exp, t: 1, default: 0)
@@ -186,55 +186,14 @@ _Generic(exp, \
 
 #endif /* NEAT_COMMON_UTILS */
 
-#define to_vstring1(str) \
-({ \
-_Generic(str, \
-        char*: ({ \
-            size_t len = strlen(neat_gurantee(str, char*)); \
-            VString *ret = malloc(sizeof(VString) + len); \
-            ret->len = len + 1; \
-            memcpy(ret->chars, neat_gurantee(str, char*), len + 1); \
-            ret; \
-        }), \
-        String_View: ({ \
-            size_t len = neat_gurantee(str, String_View).len; \
-            VString *ret = malloc(sizeof(VString) + len); \
-            ret->len = len + 1; \
-            memcpy(ret->chars, neat_gurantee(str, String_View).chars, len + 1); \
-            ret; \
-        }), \
-        VString: str \
-); \
-})
-
-#define to_vstring2(str, buf_or_allocator) \
-({ \
-_Static_assert(neat_has_type(buf_or_allocator, Neat_Allocator) || neat_has_type(buf_or_allocator, void*) || neat_has_type(buf_or_allocator, char*) || neat_has_type(buf_or_allocator, VString*), "arg 2 must be a Neat_Allocator or a buffer"); \
-Neat_Allocator allocator = neat_gurantee_fallback(buf_or_allocator, Neat_Allocator, neat_get_default_allocator()); \
-_Generic(str, \
-        char*: ({ \
-            size_t len = strlen(neat_gurantee(str, char*)); \
-            VString *ret = neat_alloc_bytes(allocator, sizeof(VString) + len); \
-            ret->len = len + 1; \
-            memcpy(ret->chars, neat_gurantee(str, char*), len + 1); \
-            ret; \
-        }), \
-        String_View: ({ \
-            size_t len = neat_gurantee(str, String_View).len; \
-            VString *ret = neat_alloc_bytes(allocator, sizeof(VString) + len); \
-            ret->len = len + 1; \
-            memcpy(ret->chars, neat_gurantee(str, String_View).chars, len + 1); \
-            ret; \
-        }), \
-        VString: str \
-); \
-})
-
+// TODO the same macro should call char16_t and char32_t just _Generic on .chars
 #define sstring_assign(sstring, src) \
 ({ \
     _Static_assert( \
         neat_has_type((typeof(src)*){0}, char(*)[sizeof(typeof(src))]) || \
-        neat_has_type((typeof(src)*){0}, char**) || \
+        neat_has_type(src, char*) || \
+        neat_has_type(src, unsigned char*) || \
+        neat_has_type(src, signed char*) || \
         neat_has_type(src, VString*), \
         "arg 2 must be a string literal/array or a VString* or a char*" \
     ); \
@@ -242,6 +201,18 @@ _Generic(str, \
     memcpy(&neat_src, &src, sizeof(typeof(src))); \
     typeof(sstring) *neat_dst = &(sstring); \
     _Generic(neat_src, \
+        unsigned char*: ({ \
+            unsigned char *neat_src_char = neat_gurantee(neat_src, unsigned char*); \
+            neat_dst->len = strlen(neat_src_char); \
+            assert((neat_dst->len + 1) * sizeof(unsigned char) <= sizeof(neat_dst->chars)); \
+            memcpy(neat_dst->chars, neat_src_char, neat_dst->len + 1); \
+        }), \
+        signed char*: ({ \
+            signed char *neat_src_char = neat_gurantee(neat_src, signed char*); \
+            neat_dst->len = strlen(neat_src_char); \
+            assert((neat_dst->len + 1) * sizeof(unsigned char) <= sizeof(neat_dst->chars)); \
+            memcpy(neat_dst->chars, neat_src_char, neat_dst->len + 1); \
+        }), \
         char*: ({ \
             char *neat_src_char = neat_gurantee(neat_src, char*); \
             neat_dst->len = strlen(neat_src_char); \
