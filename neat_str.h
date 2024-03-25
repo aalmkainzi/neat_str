@@ -584,9 +584,12 @@ NEAT_DEFAULT_STRINGABLE_TYPES
 typedef neat_func_ptr(SString(1), neat_fail_type*) neat_tostr_fail;
 
 #define neat_get_tostr_func(ty) \
-(neat_static_assertx(neat_is_stringable(ty), "type not stringable"), _Generic((ty){0}, \
-    NEAT_ALL_STRINGABLE_TYPES \
-))
+({ \
+    _Static_assert(neat_is_stringable(ty), "type not stringable"); \
+    _Generic((ty){0}, \
+        NEAT_ALL_STRINGABLE_TYPES \
+    ); \
+})
 
 #define neat_get_tostr_func_ft(ty) \
 _Generic((ty){0}, \
@@ -627,8 +630,12 @@ neat_fprintln(stdout, s)
 typedef NEAT_ARG1(ADD_TOSTR) neat_tostr_type_##n; \
 static inline typeof(NEAT_ARG2(ADD_TOSTR)(0)) neat_tostr_func_##n (neat_tostr_type_##n *obj) \
 { \
-    typeof(NEAT_ARG2(ADD_TOSTR)(0)) totest; \
-    _Static_assert(); \
+    typeof(NEAT_ARG2(ADD_TOSTR)(0)) *totest; \
+    _Static_assert( \
+        neat_has_type(totest, DString*) || \
+        NEAT_IS_SSTRING_PTR(totest), \
+        "function '" NEAT_STRINGIIFY(NEAT_ARG1(ADD_TOSTR)) "' has wrong type. Must be 'SString(N)/DString (" NEAT_STRINGIIFY(NEAT_ARG1(ADD_TOSTR)) ")" \
+    ); \
     (void)neat_get_tostr_func_ft(typeof(*obj)); /* this is to cause an error if type already added */ \
     return NEAT_ARG2(ADD_TOSTR)(obj); \
 }
@@ -715,9 +722,9 @@ VString *neat_make_new_vstring(size_t nb_chars, Neat_Allocator allocator)
 
 DString neat_make_new_dstring(size_t cap, Neat_Allocator allocator)
 {
-    DString ret = {.cap = cap, .allocator = allocator};
+    DString ret = {.cap = cap + 1, .allocator = allocator};
     ret.allocator.init(&ret.allocator.ctx);
-    ret.chars = neat_alloc(ret.allocator, unsigned char, cap);
+    ret.chars = neat_alloc(ret.allocator, unsigned char, ret.cap);
     if(ret.chars != NULL)
     {
         ret.chars[0] = '\0';
@@ -735,7 +742,8 @@ SString(5) neat_tostr_bool(bool *obj)
 DString neat_tostr_str(char **obj)
 {
     DString ret = neat_make_new_dstring(strlen(*obj), neat_get_default_allocator());
-    memmove(ret.chars, *obj, ret.cap);
+    ret.len = ret.cap;
+    memmove(ret.chars, *obj, ret.len + 1);
     return ret;
 }
 
