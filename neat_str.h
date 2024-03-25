@@ -41,13 +41,22 @@ void *neat_default_allocator_realloc(void *ctx, void *ptr, size_t alignment, siz
 void neat_default_allocator_init(void **ctx);
 void neat_default_allocator_deinit(void *ctx);
 
-#define neat_get_default_allocator() ((void)0,     \
-(Neat_Allocator){                                  \
+#define neat_get_default_allocator() ((void)0, \
+(Neat_Allocator){                              \
     .alloc   = neat_default_allocator_alloc,   \
     .dealloc = neat_default_allocator_dealloc, \
     .realloc = neat_default_allocator_realloc, \
     .init    = neat_default_allocator_init,    \
     .deinit  = neat_default_allocator_deinit,  \
+})
+
+#define neat_get_noop_allocator() ((void)0, \
+(Neat_Allocator){                           \
+    .alloc   = neat_noop_allocator_alloc,   \
+    .dealloc = neat_noop_allocator_dealloc, \
+    .realloc = neat_noop_allocator_realloc, \
+    .init    = neat_noop_allocator_init,    \
+    .deinit  = neat_noop_allocator_deinit,  \
 })
 
 #define neat_alloc(allocator, T, n) \
@@ -153,6 +162,9 @@ _Generic(exp, \
     unsigned long long int: exp, \
     default: fallback \
 )
+
+#define neat_as_pointer(scalar) \
+(&(struct {typeof(scalar) t;}){.t=scalar}.t)
 // gurantee stuff end
 
 #define NEAT_CARR_LEN(carr) (sizeof(carr) / sizeof(carr[0]))
@@ -169,6 +181,23 @@ _Generic(exp, \
 #define NEAT_STRINGIIFY(X)        NEAT_STRINGIIFY_(X)
 #define NEAT_STRINGIIFY_(X)       #X
 // IF_DEF and ARG_n stuff end
+
+// FOREACH stuff
+#define NEAT_PARENS ()
+
+#define NEAT_EXPAND(...)  NEAT_EXPAND4(NEAT_EXPAND4(NEAT_EXPAND4(NEAT_EXPAND4(__VA_ARGS__))))
+#define NEAT_EXPAND4(...) NEAT_EXPAND3(NEAT_EXPAND3(NEAT_EXPAND3(NEAT_EXPAND3(__VA_ARGS__))))
+#define NEAT_EXPAND3(...) NEAT_EXPAND2(NEAT_EXPAND2(NEAT_EXPAND2(NEAT_EXPAND2(__VA_ARGS__))))
+#define NEAT_EXPAND2(...) NEAT_EXPAND1(NEAT_EXPAND1(NEAT_EXPAND1(NEAT_EXPAND1(__VA_ARGS__))))
+#define NEAT_EXPAND1(...) __VA_ARGS__
+
+#define NEAT_FOREACH(macro, ...)                                    \
+  __VA_OPT__(NEAT_EXPAND(NEAT_FOREACH_HELPER(macro, __VA_ARGS__)))
+#define NEAT_FOREACH_HELPER(macro, a1, ...)                         \
+  macro(a1)                                                     \
+  __VA_OPT__(NEAT_FOREACH_REPEAT NEAT_PARENS (macro, __VA_ARGS__))
+#define NEAT_FOREACH_REPEAT() NEAT_FOREACH_HELPER
+// FOREACH stuff end
 
 #endif /* NEAT_COMMON_UTILS */
 
@@ -194,6 +223,7 @@ typedef struct String_View
 
 // in C23 structs can be defined multiple times with the same tag and members, in C23 DECL_SSTRING is useless, older versions require it.
 #if __STDC_VERSION__ >= 202311L
+
     #define SString(nb_chars) \
     struct SString##nb_chars \
     { \
@@ -204,6 +234,7 @@ typedef struct String_View
     
     #define DECL_SSTRING(nb_chars)
 #else
+
     #define SString(nb_chars) \
     struct SString##nb_chars
     
@@ -278,7 +309,7 @@ default: _Generic((typeof((exp)->chars)*){0}, \
     ); \
     typeof(sstring) neat_sstring = sstring; \
     typeof((cstring)[0]) *neat_dst = cstring; \
-    size_t neat_nb_chars_to_cpy = NEAT_VA_OR(strlen(neat_dst), __VA_ARGS__); \
+    uint64_t neat_nb_chars_to_cpy = NEAT_VA_OR(strlen(neat_dst), __VA_ARGS__); \
     assert(neat_nb_chars_to_cpy + 1 <= sizeof(neat_sstring->chars)); \
     __VA_OPT__( assert(strlen(neat_dst) >= neat_nb_chars_to_cpy) ); \
     memmove(neat_sstring->chars, neat_dst, neat_nb_chars_to_cpy + 1); \
@@ -332,7 +363,7 @@ default: _Generic((typeof((exp)->chars)*){0}, \
     ); \
     VString *neat_vstring = vstring; \
     typeof(cstring[0]) *neat_dst = cstring; \
-    size_t neat_nb_chars_to_cpy = NEAT_VA_OR(strlen(neat_dst), __VA_ARGS__); \
+    uint64_t neat_nb_chars_to_cpy = NEAT_VA_OR(strlen(neat_dst), __VA_ARGS__); \
     __VA_OPT__( assert(strlen(neat_dst) >= neat_nb_chars_to_cpy) ); \
     memmove(neat_vstring->chars, neat_dst, neat_nb_chars_to_cpy + 1); \
     neat_vstring->len = neat_nb_chars_to_cpy; \
@@ -358,7 +389,7 @@ default: _Generic((typeof((exp)->chars)*){0}, \
         "no such version of vstring_assign" \
     ); \
     typeof(src) neat_src = src; \
-    size_t neat_nb_chars_to_cpy = NEAT_VA_OR(neat_src->len, __VA_ARGS__); \
+    uint64_t neat_nb_chars_to_cpy = NEAT_VA_OR(neat_src->len, __VA_ARGS__); \
     VString *neat_dst = vstring; \
     memmove(neat_dst->chars, neat_src->chars, neat_nb_chars_to_cpy); \
 })
@@ -499,7 +530,7 @@ NEAT_APPEND_NARG(neat_string_view_into, string __VA_OPT__(,) __VA_ARGS__)(string
     neat_ret; \
 })
 
-#define new_vstring(nb_chars, ...) \
+#define vstring_new(nb_chars, ...) \
 ({ \
     _Static_assert( \
         neat_is_integer(nb_chars), \
@@ -512,7 +543,7 @@ NEAT_APPEND_NARG(neat_string_view_into, string __VA_OPT__(,) __VA_ARGS__)(string
     neat_make_new_vstring(nb_chars, NEAT_VA_OR(neat_get_default_allocator(), __VA_ARGS__)); \
 })
 
-#define new_dstring(cap, ...) \
+#define dstring_new(cap, ...) \
 ({ \
     _Static_assert( \
         neat_is_integer(cap), \
@@ -529,22 +560,65 @@ NEAT_APPEND_NARG(neat_string_view_into, string __VA_OPT__(,) __VA_ARGS__)(string
     neat_make_new_dstring(cap, NEAT_VA_OR(neat_get_default_allocator(), __VA_ARGS__)); \
 })
 
-#define NEAT_DEFAULT_STRINGABLE_TYPES  \
-bool:               neat_tostr_bool,   \
-char*:              neat_tostr_str,    \
-char:               neat_tostr_char,   \
-signed char:        neat_tostr_schar,  \
-unsigned char:      neat_tostr_uchar,  \
-short:              neat_tostr_short,  \
-unsigned short:     neat_tostr_ushort, \
-int:                neat_tostr_int,    \
-unsigned int:       neat_tostr_uint,   \
-long:               neat_tostr_long,   \
-unsigned long:      neat_tostr_ulong,  \
-long long:          neat_tostr_llong,  \
-unsigned long long: neat_tostr_ullong, \
-float:              neat_tostr_float,  \
-double:             neat_tostr_double
+#define dstring_deinit(dstring) \
+({ \
+    DString *neat_tofree = dstring; \
+    neat_dealloc(neat_tofree->allocator, neat_tofree->chars, unsigned char, neat_tofree->cap); \
+});
+
+#define dstring_assign(dstring, src, ...)
+
+#define dstring_append(dstring)
+
+#define dstring_prepend
+
+#define neat_fprint(f, ...) \
+({ \
+    FILE *neat_file = f; \
+    (void) neat_file; \
+    NEAT_FOREACH(neat_fprint_, __VA_ARGS__); \
+})
+
+#define neat_fprint_(x) \
+({ \
+    typeof(neat_to_string(x)) neat_str = neat_to_string(x); \
+    fwrite(neat_str.chars, sizeof(neat_str.chars[0]), neat_str.len, neat_file); \
+})
+
+#define neat_print(...) \
+neat_fprint(stdout, __VA_ARGS__)
+
+#define neat_fprintln(f, ...) \
+({ \
+    neat_fprint(f, __VA_ARGS__); \
+    fputc('\n', f); \
+    (void) 0; \
+})
+
+#define neat_println(s) \
+neat_fprintln(stdout, s)
+
+#define NEAT_DEFAULT_STRINGABLE_TYPES       \
+bool:               neat_tostr_bool,        \
+char*:              neat_tostr_str,         \
+char:               neat_tostr_char,        \
+signed char:        neat_tostr_schar,       \
+unsigned char:      neat_tostr_uchar,       \
+short:              neat_tostr_short,       \
+unsigned short:     neat_tostr_ushort,      \
+int:                neat_tostr_int,         \
+unsigned int:       neat_tostr_uint,        \
+long:               neat_tostr_long,        \
+unsigned long:      neat_tostr_ulong,       \
+long long:          neat_tostr_llong,       \
+unsigned long long: neat_tostr_ullong,      \
+float:              neat_tostr_float,       \
+double:             neat_tostr_double,      \
+VString*:           neat_tostr_vstring,     \
+DString:            neat_tostr_dstring,     \
+DString*:           neat_tostr_dstring_ptr, \
+String_View:        neat_tostr_string_view, \
+String_View*:       neat_tostr_string_view_ptr
 
 #define NEAT_ALL_STRINGABLE_TYPES \
 NEAT_IF_DEF(NEAT_TOSTR1)(neat_tostr_type_1: neat_tostr_func_1,)    \
@@ -598,7 +672,7 @@ _Generic((ty){0}, \
 )
 
 #define neat_to_string(x) \
-neat_get_tostr_func(typeof(*(x)))(x)
+neat_get_tostr_func(typeof(x))(neat_as_pointer(x))
 
 #define neat_is_stringable(ty) \
 (!neat_has_type(neat_get_tostr_func_ft(ty), neat_tostr_fail))
@@ -606,25 +680,7 @@ neat_get_tostr_func(typeof(*(x)))(x)
 #define neat_tostr_ret(ty) \
 typeof(neat_get_tostr_func(ty)(0))
 
-// TODO WE CAN TOTALLY DO THE OLD neat_tostr println !!! WE CAN DETECT SString like we did above....shit we can't.. cuz the above assumes a Neat string
-#define neat_fprint(f, s) \
-({ \
-    typeof(s) neat_s = s; \
-    fwrite(neat_s->chars, sizeof(unsigned char), neat_s->len, f); \
-})
-
-#define neat_print(s) \
-neat_fprint(stdout, s)
-
-#define neat_fprintln(f, s) \
-({ \
-    neat_fprint(f, s); \
-    fputc('\n', f); \
-    (void) 0; \
-})
-
-#define neat_println(s) \
-neat_fprintln(stdout, s)
+// TODO WE CAN TOTALLY DO THE OLD neat_tostr println !!! WE CAN DETECT SString like we did above....shit we can't.. cuz the above assumes a Neat string.
 
 #define NEAT_DECL_TOSTR_FUNC(n) \
 typedef NEAT_ARG1(ADD_TOSTR) neat_tostr_type_##n; \
@@ -633,6 +689,7 @@ static inline typeof(NEAT_ARG2(ADD_TOSTR)(0)) neat_tostr_func_##n (neat_tostr_ty
     typeof(NEAT_ARG2(ADD_TOSTR)(0)) *totest; \
     _Static_assert( \
         neat_has_type(totest, DString*) || \
+        neat_has_type(totest, String_View*) || \
         NEAT_IS_SSTRING_PTR(totest), \
         "function '" NEAT_STRINGIIFY(NEAT_ARG1(ADD_TOSTR)) "' has wrong type. Must be 'SString(N)/DString (" NEAT_STRINGIIFY(NEAT_ARG1(ADD_TOSTR)) ")" \
     ); \
@@ -648,7 +705,12 @@ DECL_SSTRING(10)
 DECL_SSTRING(20)
 DECL_SSTRING(30)
 
-VString *neat_make_new_vstring(size_t nb_chars, Neat_Allocator allocator);
+VString *neat_make_new_vstring(uint64_t nb_chars, Neat_Allocator allocator);
+DString neat_make_new_dstring(uint64_t cap, Neat_Allocator allocator);
+String_View neat_tostr_vstring(VString **obj);
+DString neat_tostr_dstring(DString *obj);
+String_View neat_tostr_string_view_ptr(String_View **obj);
+
 SString(5) neat_tostr_bool(bool *obj); 
 DString neat_tostr_str(char **obj);  
 SString(1) neat_tostr_char(char *obj); 
@@ -706,9 +768,44 @@ void neat_default_allocator_deinit(void *ctx)
     return;
 }
 
+void *neat_noop_allocator_alloc(void *ctx, size_t alignment, size_t n)
+{
+    (void)ctx;
+    (void)alignment;
+    (void)n;
+    return NULL;
+}
+
+void neat_noop_allocator_dealloc(void *ctx, void *ptr, size_t n)
+{
+    (void)ctx;
+    (void)ptr;
+    (void)n;
+}
+
+void *neat_noop_allocator_realloc(void *ctx, void *ptr, size_t alignment, size_t old_size, size_t new_size)
+{
+    (void)ctx;
+    (void)ptr;
+    (void)alignment;
+    (void)old_size;
+    (void)new_size;
+    return NULL;
+}
+
+void neat_noop_allocator_init(void **ctx)
+{
+    (void)ctx;
+}
+
+void neat_noop_allocator_deinit(void *ctx)
+{
+    (void)ctx;
+}
+
 #endif /* NEAT_COMMON_UTILS_IMPLED */
 
-VString *neat_make_new_vstring(size_t nb_chars, Neat_Allocator allocator)
+VString *neat_make_new_vstring(uint64_t nb_chars, Neat_Allocator allocator)
 {
     VString *ret = allocator.alloc(allocator.ctx, _Alignof(VString), sizeof(VString) + sizeof(unsigned char) * nb_chars);
     if(ret != NULL)
@@ -720,7 +817,7 @@ VString *neat_make_new_vstring(size_t nb_chars, Neat_Allocator allocator)
     return ret;
 }
 
-DString neat_make_new_dstring(size_t cap, Neat_Allocator allocator)
+DString neat_make_new_dstring(uint64_t cap, Neat_Allocator allocator)
 {
     DString ret = {.cap = cap + 1, .allocator = allocator};
     ret.allocator.init(&ret.allocator.ctx);
@@ -732,6 +829,32 @@ DString neat_make_new_dstring(size_t cap, Neat_Allocator allocator)
     return ret;
 }
 
+String_View neat_tostr_vstring(VString **obj)
+{
+    String_View ret = {.len = (*obj)->len, .chars = (*obj)->chars};
+    return ret;
+}
+
+DString neat_tostr_dstring(DString *obj)
+{
+    return *obj;
+}
+
+DString neat_tostr_dstring_ptr(DString **obj)
+{
+    return **obj;
+}
+
+String_View neat_tostr_string_view(String_View *obj)
+{
+    return *obj;
+}
+
+String_View neat_tostr_string_view_ptr(String_View **obj)
+{
+    return **obj;
+}
+
 SString(5) neat_tostr_bool(bool *obj)
 {
     SString(5) ret = { 0 };
@@ -741,8 +864,9 @@ SString(5) neat_tostr_bool(bool *obj)
 
 DString neat_tostr_str(char **obj)
 {
-    DString ret = neat_make_new_dstring(strlen(*obj), neat_get_default_allocator());
-    ret.len = ret.cap;
+    size_t len = strlen(*obj);
+    DString ret = neat_make_new_dstring(len, neat_get_default_allocator());
+    ret.len = len;
     memmove(ret.chars, *obj, ret.len + 1);
     return ret;
 }
