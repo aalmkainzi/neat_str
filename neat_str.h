@@ -552,27 +552,27 @@ NEAT_APPEND_NARG(neat_string_view_into, string __VA_OPT__(,) __VA_ARGS__)(string
         neat_has_type(dstring, DString*), \
         "arg 1 must have type DString*" \
     ); \
-    DString *neat_dst = dstring; \
-    if(neat_dst->cap - neat_dst->len <= needed) \
+    DString *neat_to_grow = dstring; \
+    if(neat_to_grow->cap - neat_to_grow->len <= needed) \
     { \
         uint64_t neat_newcap; \
-        if(neat_dst->cap * 2 < neat_dst->len + needed + 1) \
+        if(neat_to_grow->cap * 2 < neat_to_grow->len + needed + 1) \
         { \
-            neat_newcap = neat_dst->len + needed + 1; \
+            neat_newcap = neat_to_grow->len + needed + 1; \
         } \
         else \
         { \
-            neat_newcap = neat_dst->cap * 2; \
+            neat_newcap = neat_to_grow->cap * 2; \
         } \
-        neat_dst->chars = \
+        neat_to_grow->chars = \
             neat_realloc( \
-                neat_dst->allocator, \
-                neat_dst->chars, \
-                typeof(neat_dst->chars[0]), \
-                neat_dst->cap, \
+                neat_to_grow->allocator, \
+                neat_to_grow->chars, \
+                typeof(neat_to_grow->chars[0]), \
+                neat_to_grow->cap, \
                 neat_newcap \
             ); \
-        neat_dst->cap = neat_newcap; \
+        neat_to_grow->cap = neat_newcap; \
     } \
 })
 
@@ -584,12 +584,12 @@ NEAT_APPEND_NARG(neat_string_view_into, string __VA_OPT__(,) __VA_ARGS__)(string
         neat_has_type(dstring, DString*), \
         "arg 1 must have type DString*" \
     ); \
-    DString *neat_dst = dstring; \
+    DString *neat_dst_to_append = dstring; \
     typeof(neat_to_string(src)) neat_src = neat_to_string(src); \
-    dstring_maybe_grow(neat_dst, neat_src.len); \
-    memmove(neat_dst->chars + neat_dst->len, neat_src.chars, neat_src.len); \
-    neat_dst->len = neat_dst->len + neat_src.len; \
-    neat_dst->chars[ neat_dst->len ] = '\0'; \
+    dstring_maybe_grow(neat_dst_to_append, neat_src.len); \
+    memmove(neat_dst_to_append->chars + neat_dst_to_append->len, neat_src.chars, neat_src.len); \
+    neat_dst_to_append->len = neat_dst_to_append->len + neat_src.len; \
+    neat_dst_to_append->chars[ neat_dst_to_append->len ] = '\0'; \
     (void) _Generic(neat_src, \
         DString: dstring_deinit(neat_gurantee(neat_src, DString*)), \
         default: 0 \
