@@ -307,7 +307,7 @@ _Alignof(typeof(*(to_test))) == _Alignof(typeof(NEAT_SSTRING_NO_TAG(sizeof((to_t
     _Static_assert( \
         neat_has_type(src, VString*) || \
         neat_has_type(src, String_View*) || \
-        neat_has_type(string, DString*) || \
+        neat_has_type(src, DString*) || \
         NEAT_IS_SSTRING_PTR(src), \
         "arg 1 must have type VString* or String_View* or DString* or SString*" \
     ); \
