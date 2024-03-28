@@ -608,12 +608,20 @@ NEAT_APPEND_NARG(neat_string_view_into, string __VA_OPT__(,) __VA_ARGS__)(string
 
 #define neat_fprint_(x) \
 ({ \
-    typeof(neat_to_string(x)) neat_str = neat_to_string(x); \
-    fwrite(neat_str.chars, sizeof(neat_str.chars[0]), neat_str.len, neat_file); \
+    typeof(neat_to_string(x)) neat_tostring_test = neat_to_string(x); \
+    typeof(_Generic(neat_tostring_test, \
+        VString*: (VString*){0}, \
+        default: &(typeof(neat_tostring_test)){0} \
+    )) neat_str; \
+    neat_str = _Generic(neat_tostring_test, \
+        VString*: neat_tostring_test, \
+        default: neat_as_pointer(neat_tostring_test) \
+    ); \
+    fwrite(neat_str->chars, sizeof(neat_str->chars[0]), neat_str->len, neat_file); \
     (void)_Generic(neat_str, \
-        DString: ({ \
-            DString neat_as_dstring = neat_gurantee(neat_str, DString); \
-            neat_dealloc(neat_as_dstring.allocator, neat_as_dstring.chars, typeof(neat_as_dstring.chars[0]), neat_as_dstring.cap); \
+        DString*: ({ \
+            DString *neat_as_dstring = neat_gurantee(neat_str, DString*); \
+            neat_dealloc(neat_as_dstring->allocator, neat_as_dstring->chars, typeof(neat_as_dstring->chars[0]), neat_as_dstring->cap); \
         }), \
         default: 0 \
     ); \
@@ -720,10 +728,14 @@ typeof(neat_get_tostr_func(ty)(0))
 typedef NEAT_ARG1(ADD_TOSTR) neat_tostr_type_##n; \
 static inline typeof(NEAT_ARG2(ADD_TOSTR)(0)) neat_tostr_func_##n (neat_tostr_type_##n *obj) \
 { \
-    typeof(NEAT_ARG2(ADD_TOSTR)(0)) *totest; \
+    typeof(_Generic(NEAT_ARG2(ADD_TOSTR)(0), \
+        VString*: (typeof(NEAT_ARG2(ADD_TOSTR)(0))){0}, \
+        default: (typeof(NEAT_ARG2(ADD_TOSTR)(0))*){0} \
+    )) totest; \
     _Static_assert( \
         neat_has_type(totest, DString*) || \
         neat_has_type(totest, String_View*) || \
+        neat_has_type(totest, VString*) || \
         NEAT_IS_SSTRING_PTR(totest), \
         "function '" NEAT_STRINGIIFY(NEAT_ARG1(ADD_TOSTR)) "' has wrong type. Must be 'SString(N)/DString (" NEAT_STRINGIIFY(NEAT_ARG1(ADD_TOSTR)) ")" \
     ); \
