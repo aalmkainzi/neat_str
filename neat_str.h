@@ -169,7 +169,7 @@ _Generic(exp, \
 )
 
 #define neat_as_pointer(scalar) \
-&(struct { typeof((void)0,scalar) t; }){.t=scalar}.t
+&(struct { typeof((void)0,scalar) t; }){scalar}.t
 
 #define NEAT_CARR_LEN(carr) (sizeof(carr) / sizeof(carr[0]))
 
@@ -596,16 +596,18 @@ NEAT_APPEND_NARG(neat_string_view_into, string __VA_OPT__(,) __VA_ARGS__)(string
         neat_has_type(dstring, DString*), \
         "arg 1 must have type DString*" \
     ); \
-    typeof(neat_gurantee_not(src, VString*, String_View*)) neat_src_not_vstring; \
+    typeof(src) neat_src_temp = src; \
+    typeof(_Generic(neat_src_temp, VString*: (VString*){0}, default: &(typeof(neat_src_temp)){0} )) neat_src = \
+    _Generic(neat_src_temp, VString*: neat_src_temp, default: neat_as_pointer(neat_src_temp)); \
+    typeof(neat_gurantee_not(neat_src, VString*, String_View*)) neat_src_not_vstring; \
     _Static_assert( \
-        neat_has_type(src, DString*) || \
-        neat_has_type(src, String_View*) || \
-        neat_has_type(src, VString*) || \
+        neat_has_type(neat_src, DString*) || \
+        neat_has_type(neat_src, String_View*) || \
+        neat_has_type(neat_src, VString*) || \
         NEAT_IS_SSTRING_PTR(neat_src_not_vstring), \
         "arg 1 must have type VString*, SString(N)*, String_View*, or DString*" \
     ); \
     DString *neat_dst_to_append = dstring; \
-    typeof(src) neat_src = src; \
     dstring_maybe_grow(neat_dst_to_append, neat_src->len); \
     memmove(neat_dst_to_append->chars + neat_dst_to_append->len, neat_src->chars, neat_src->len); \
     neat_dst_to_append->len = neat_dst_to_append->len + neat_src->len; \
