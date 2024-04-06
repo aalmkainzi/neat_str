@@ -590,16 +590,16 @@ NEAT_APPEND_NARG(neat_string_view_into, string __VA_OPT__(,) __VA_ARGS__)(string
 
 #define dstring_assign(dstring, src, ...)
 
+// src allowed to be:
+// SString(N), SString(N)*, VString*, DString, DString*, String_View, String_View*
 #define dstring_append(dstring, src) \
 ({ \
     _Static_assert( \
         neat_has_type(dstring, DString*), \
         "arg 1 must have type DString*" \
     ); \
-    typeof(src) neat_src_temp = src; \
-    typeof(_Generic(neat_src_temp, VString*: (VString*){0}, default: &(typeof(neat_src_temp)){0} )) neat_src = \
-    _Generic(neat_src_temp, VString*: neat_src_temp, default: neat_as_pointer(neat_src_temp)); \
-    typeof(neat_gurantee_not(neat_src, VString*, String_View*)) neat_src_not_vstring; \
+    typeof(neat_gurantee_not(src, VString*, String_View*)) neat_src_not_vstring; \
+    typeof(_Generic( (char(*)[ NEAT_IS_SSTRING_PTR(neat_src_not_vstring) + 1 ]){0}, char(*)[1]: src, char(*)[2]: neat_as_pointer(src))) neat_src = _Generic( (char(*)[ NEAT_IS_SSTRING_PTR(neat_src_not_vstring) + 1 ]){0}, char(*)[1]: src, char(*)[2]: neat_as_pointer(src)); \
     _Static_assert( \
         neat_has_type(neat_src, DString*) || \
         neat_has_type(neat_src, String_View*) || \
