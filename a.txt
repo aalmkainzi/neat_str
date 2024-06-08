@@ -1,4 +1,0 @@
-test.c: In function 'main':
-test.c:37:17: warning: unused variable 'ds' [-Wunused-variable]
-   37 |     SString(12) ds = neat_to_string(u);
-      |                 ^~
