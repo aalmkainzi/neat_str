@@ -101,7 +101,7 @@ NEAT_NARG_(__VA_OPT__(__VA_ARGS__,)NEAT_5SEQ())
 #define NEAT_NARG_(...) \
 NEAT_ARG_N(__VA_ARGS__)
 
-// increase SEQ ?
+// increase SEQ ? work towards getting rid of this shit
 
 #define NEAT_ARG_N(_1, _2, _3, _4, _5, N,...) N
 
@@ -112,6 +112,7 @@ NEAT_ARG_N(__VA_ARGS__)
 
 // append to this '(__VA_ARGS__)'
 #define NEAT_APPEND_NARG(macro, ...) NEAT_CAT(macro, NEAT_NARG(__VA_ARGS__))
+
 // NARG stuff end
 
 // gurantee stuff
@@ -162,6 +163,23 @@ _Generic(exp, \
     default: exp \
 )
 
+#define neat_gurantee_not_integer(exp, fallback_ty) \
+_Generic(exp, \
+    bool:                   (fallback_ty){0}, \
+    char:                   (fallback_ty){0}, \
+    signed char:            (fallback_ty){0}, \
+    short int:              (fallback_ty){0}, \
+    int:                    (fallback_ty){0}, \
+    long int:               (fallback_ty){0}, \
+    long long int:          (fallback_ty){0}, \
+    unsigned char:          (fallback_ty){0}, \
+    unsigned short int:     (fallback_ty){0}, \
+    unsigned int:           (fallback_ty){0}, \
+    unsigned long int:      (fallback_ty){0}, \
+    unsigned long long int: (fallback_ty){0}, \
+    default: exp \
+)
+
 #define neat_as_pointer(scalar) \
 &(struct { typeof((void)0,scalar) t; }){scalar}.t
 
@@ -175,6 +193,7 @@ _Generic(exp, \
 #define NEAT_ARG2( ... )          NEAT_ARG2_( __VA_ARGS__ )
 #define NEAT_INCL( ... )          __VA_ARGS__
 #define NEAT_OMIT( ... )
+#define NEAT_OMIT1(a, ...)        __VA_ARGS__
 #define NEAT_IF_DEF( macro )      NEAT_ARG2( NEAT_COMMA macro () NEAT_INCL, NEAT_OMIT, )
 #define NEAT_STRINGIIFY(X)        NEAT_STRINGIIFY_(X)
 #define NEAT_STRINGIIFY_(X)       #X
@@ -207,6 +226,12 @@ _Generic(exp, \
 (1 __VA_OPT__(* 0))
 
 #define NEAT_VA_OR(otherwise, ...) \
-(0 __VA_OPT__(+ 1) ? (__VA_OPT__((void)) (typeof(otherwise)){0} __VA_OPT__(,) __VA_ARGS__) : otherwise)
+__VA_ARGS__ NEAT_IF_EMPTY(otherwise, __VA_ARGS__)
+
+#define NEAT_IF_EMPTY(then, ...) \
+NEAT_IF_EMPTY_##__VA_OPT__(0)(then)
+
+#define NEAT_IF_EMPTY_(then) then
+#define NEAT_IF_EMPTY_0(then)
 
 #endif /* NEAT_CORE_H */
