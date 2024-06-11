@@ -234,4 +234,10 @@ NEAT_IF_EMPTY_##__VA_OPT__(0)(then)
 #define NEAT_IF_EMPTY_(then) then
 #define NEAT_IF_EMPTY_0(then)
 
+#define Neat_Result_Ty(api_call) \
+Neat_Err_##api_call
+
+#define NEAT_STR_ERRORABLE_FUNCTIONS
+#define NEAT_DS_ERRORABLE_FUNCTIONS
+
 #endif /* NEAT_CORE_H */

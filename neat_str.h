@@ -153,6 +153,9 @@ _Generic(str, \
     Any_String_Ref: 1 \
 )
 
+// TODO idea: delete SString and keep only SString_Ref, u use it like:
+// SString_Ref ref = sstr_ref(10); // makes an SString on the stack
+
 // TODO make this fail with String_View
 #define str_concat(any_str_dst, any_str_src) \
 ( \
@@ -216,22 +219,13 @@ neat_sstr_ref_from_sstr_ptr(sstr_ptr, sizeof(sstr_ptr->chars)) \
     .sstring=(NEAT_SSTRING_NTAG(nb)){ 0 } \
 };
 
-#define sstr(sstr_ref, rhs)                     \
-_Generic(rhs,                                   \
-    char*         : neat_sstr_ref_copy_cstr,    \
-    unsigned char*: neat_sstr_ref_copy_cstr,    \
-    DString*      : neat_sstr_ref_copy_dstr,    \
-    String_View*  : neat_sstr_ref_copy_strv,    \
-    String_Buffer*: neat_sstr_ref_copy_strbuf,  \
-    SString_Ref   : neat_sstr_ref_from_sstr_ref \
-)(sstr_ref, rhs)
-
 #define strv(any_str, ...) \
 NEAT_CAT(any_str, NEAT_NARG(any_str, __VA_ARGS__))(any_str, __VA_ARGS__)
 
 #define strv1(any_str) \
 strv2(any_str, 0)
 
+// TODO consider adding branch for NEAT_SSTRING_PTR_GENERIC_CASE
 #define strv2(any_str, start)             \
 _Generic(src,                             \
     char*         : neat_strv_cstr2,      \
@@ -471,39 +465,30 @@ static inline typeof( \
     ); \
 }
 
-DString neat_dstring_new_(uint64_t cap, Neat_Allocator allocator);
-void neat_string_assign(String_Buffer *dst, String_Buffer *src);
+DString neat_dstr_new(uint64_t cap, Neat_Allocator allocator);
 
-/*
-DString neat_tostr_dstring(DString *obj, String_View sv);
-DString neat_tostr_dstring_ptr(DString **obj, String_View sv);
-DString neat_tostr_string_view(String_View *obj, String_View sv);
-DString neat_tostr_string_view_ptr(String_View **obj, String_View sv);
-*/
-
-DString neat_tostr_bool(bool *obj); 
-DString neat_tostr_str(char **obj);  
-DString neat_tostr_char(char *obj); 
+DString neat_tostr_bool(bool *obj);
+DString neat_tostr_str(char **obj);
+DString neat_tostr_char(char *obj);
 DString neat_tostr_schar(signed char *obj);
 DString neat_tostr_uchar(unsigned char *obj);
 DString neat_tostr_short(short *obj);
 DString neat_tostr_ushort(unsigned short *obj);
-DString neat_tostr_int(int *obj);  
-DString neat_tostr_uint(unsigned int *obj); 
-DString neat_tostr_long(long *obj); 
+DString neat_tostr_int(int *obj);
+DString neat_tostr_uint(unsigned int *obj);
+DString neat_tostr_long(long *obj);
 DString neat_tostr_ulong(unsigned long *obj);
 DString neat_tostr_llong(long long *obj);
 DString neat_tostr_ullong(unsigned long long *obj);
 DString neat_tostr_float(float *obj);
 DString neat_tostr_double(double *obj);
+
 #endif /* NEAT_STR_H */
 
 #define NEAT_STR_IMPL // TODO DELETE THIS LINE
 
 #if defined(NEAT_STR_IMPL) && !defined(NEAT_STR_IMPLED)
 #define NEAT_STR_IMPLED
-
-_Thread_local struct Neat_String_Buffer neat_buffer = { 0 };
 
 #ifndef NEAT_COMMON_UTILS_IMPLED
 #define NEAT_COMMON_UTILS_IMPLED
@@ -577,26 +562,18 @@ void neat_noop_allocator_deinit(void *ctx)
 
 #endif /* NEAT_COMMON_UTILS_IMPLED */
 
-void neat_string_assign(String_Buffer *dst, String_Buffer *src)
-{
-    if(dst->cap <= src->len)
-    {
-        assert(0 && "destination buffer not big enough");
-    }
-    
-    memmove(dst->chars, src->chars, src->len);
-}
-
-DString neat_dstring_new_(uint64_t cap, Neat_Allocator allocator)
+DString neat_dstr_new(uint64_t cap, Neat_Allocator allocator)
 {
     allocator.init(&allocator.ctx);
-    DString ret = (DString) neat_alloc_bytes(allocator, sizeof(*ret) + cap * sizeof(ret->chars[0]));
-    ret->allocator = allocator;
-    ret->len = 0;
-    ret->cap = cap;
-    if(ret != NULL)
+    DString ret = {
+        .allocator = allocator,
+        .cap = cap,
+        .len = 0,
+    };
+    ret.chars = neat_alloc(allocator, unsigned char, cap);
+    if(ret.chars != NULL)
     {
-        ret->chars[0] = '\0';
+        ret.chars[0] = '\0';
     }
     return ret;
 }
@@ -837,47 +814,177 @@ SString(30) neat_tostr_double(double *obj, String_View sv)
     return ret;
 }
 */
-String_Buffer neat_string_buffer_from_cstr(char *cstr)
+
+size_t neat_anystr_ref_copy(Any_String_Ref dst, String_View src)
 {
-    size_t len = strlen(cstr);
+    size_t chars_to_copy = src.len < dst.cap - 1 ? src.len : dst.cap - 1;
+    
+    memmove(dst.chars, src.chars, chars_to_copy);
+    dst.chars[chars_to_copy] = '\0';
+    
+    if(dst.len != NULL)
+        *dst.len = chars_to_copy;
+    
+    return chars_to_copy;
+}
+
+Any_String_Ref neat_anystr_ref_to_cstr(char *str)
+{
+    size_t len = strlen(str);
+    
+    return (Any_String_Ref){
+        .cap   = len,
+        .len   = NULL,
+        .chars = (unsigned char*) str
+    };;
+}
+
+Any_String_Ref neat_anystr_ref_to_dstr(DString *str)
+{
+    return (Any_String_Ref){
+        .cap   = str->cap,
+        .len   = &str->len,
+        .chars = str->chars
+    };
+}
+
+Any_String_Ref neat_anystr_ref_to_strv(String_View *str)
+{
+    return (Any_String_Ref){
+        .cap   = str->len,
+        .len   = &str->len,
+        .chars = str->chars
+    };
+}
+
+Any_String_Ref neat_anystr_ref_to_strbuf(String_Buffer *str)
+{
+    return (Any_String_Ref){
+        .cap   = str->cap,
+        .len   = &str->len,
+        .chars = str->chars
+    };
+}
+
+Any_String_Ref neat_anystr_ref_to_sstr_ref(SString_Ref str)
+{
+    return (Any_String_Ref){
+        .cap   = str.cap,
+        .len   = NULL,
+        .chars = str.sstring->chars
+    };
+}
+
+String_Buffer neat_strbuf_of_cstr(char *str)
+{
+    size_t len = strlen(str);
     return (String_Buffer){
         .cap   = len,
         .len   = len,
-        .chars = (unsigned char*) cstr
+        .chars = (unsigned char*) str
     };
 }
 
-String_Buffer neat_string_buffer_from_dstr(DString dstr)
+String_Buffer neat_strbuf_of_dstr(DString *str)
 {
     return (String_Buffer){
-        .cap   = dstr->cap,
-        .len   = dstr->len,
-        .chars = dstr->chars
+        .cap   = str->cap,
+        .len   = str->len,
+        .chars = str->chars
     };
 }
 
-String_Buffer neat_string_buffer_from_strv(String_View *sv)
+String_Buffer neat_strbuf_of_strv(String_View *str)
 {
     return (String_Buffer){
-        .chars = sv->chars,
-        .cap   = sv->len,
-        .len   = sv->len
+        .cap   = str->len,
+        .len   = str->len,
+        .chars = str->chars
     };
 }
 
-String_Buffer neat_string_buffer_from_bstr(String_Buffer *sb)
+String_Buffer neat_strbuf_of_strbuf(String_Buffer *str)
 {
-    return *sb;
+    return *str;
 }
 
-String_Buffer neat_string_buffer_from_sstring_ref(SString_Ref sstr)
+String_Buffer neat_strbuf_of_sstr_ref(SString_Ref str)
 {
     return (String_Buffer){
-        .cap   = sstr.cap,
-        .len   = sstr.sstring->len,
-        .chars = sstr.sstring->chars
+        .cap   = str.cap,
+        .len   = str.sstring->len,
+        .chars = str.sstring->chars
     };
 }
+
+String_View neat_strv_cstr2(char *str, uint64_t start)
+{
+    size_t len = strlen(str);
+    
+    if(start >= len)
+    {
+        return (String_View){
+            .len   = 0,
+            .chars = NULL
+        };
+    }
+    
+    return (String_View){
+        .len   = len - start,
+        .chars = (unsigned char*) str + start
+    };
+}
+
+String_View neat_strv_dstr2(DString *str, uint64_t start)
+{
+    if(start >= str->len)
+    {
+        return (String_View){
+            .len   = 0,
+            .chars = NULL
+        };
+    }
+    
+    return (String_View){
+        .len   = str->len   - start,
+        .chars = str->chars + start
+    };
+}
+
+String_View neat_strv_strv2(String_View *str, uint64_t start)
+{
+    if(start >= str->len)
+    {
+        return (String_View){
+            .len   = 0,
+            .chars = NULL
+        };
+    }
+    
+    return (String_View){
+        .len   = str->len   - start,
+        .chars = str->chars + start
+    };
+}
+
+String_View neat_strv_strbuf2(String_Buffer *str, uint64_t start)
+{
+    if(start >= str->len)
+    {
+        return (String_View){
+            .len   = 0,
+            .chars = NULL
+        };
+    }
+    
+    return (String_View){
+        .len   = str->len   - start,
+        .chars = str->chars + start
+    };
+}
+
+neat_strv_sstr_ref2()
+neat_strv_anystr_ref2()
 
 #endif /* NEAT_STR_IMPL */
 
