@@ -234,7 +234,21 @@ NEAT_IF_EMPTY_##__VA_OPT__(0)(then)
 #define NEAT_IF_EMPTY_(then) then
 #define NEAT_IF_EMPTY_0(then)
 
-#define NEAT_STR_ERRORABLE_FUNCTIONS
-#define NEAT_DS_ERRORABLE_FUNCTIONS
+#define NEAT_U64_IF_INTEGER(num)                                                   \
+_Generic(num,                                                                      \
+    bool:                   (uint64_t) neat_gurantee(num, bool),                   \
+    char:                   (uint64_t) neat_gurantee(num, char),                   \
+    signed char:            (uint64_t) neat_gurantee(num, signed char),            \
+    short int:              (uint64_t) neat_gurantee(num, short int),              \
+    int:                    (uint64_t) neat_gurantee(num, int),                    \
+    long int:               (uint64_t) neat_gurantee(num, long int),               \
+    long long int:          (uint64_t) neat_gurantee(num, long long int),          \
+    unsigned char:          (uint64_t) neat_gurantee(num, unsigned char),          \
+    unsigned short int:     (uint64_t) neat_gurantee(num, unsigned short int),     \
+    unsigned int:           (uint64_t) neat_gurantee(num, unsigned int),           \
+    unsigned long int:      (uint64_t) neat_gurantee(num, unsigned long int),      \
+    unsigned long long int: (uint64_t) neat_gurantee(num, unsigned long long int), \
+    default: num                                                                   \
+)
 
 #endif /* NEAT_CORE_H */

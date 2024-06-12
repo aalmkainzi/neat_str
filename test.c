@@ -71,8 +71,12 @@ NEAT_DECL_SSTRING(10);
 
 int main()
 {
-    SString(10) a = { .chars = "wow", .len = 3};
+    SString(10) a;
     SString_Ref ref = sstr_ref(&a);
+    
+    str_copy(ref, "hello");
+    
     
     printf("%s\n", ref.sstring->chars);
 }
+
