@@ -51,6 +51,8 @@ void neat_default_allocator_deinit(void *ctx);
     .deinit  = neat_noop_allocator_deinit,  \
 })
 
+
+// TODO THE ALLOCATOR IS EXPANDED MULTIPLE TIMES HERE. BAD. MAKE THESE FUNCTIONS LATER!
 #define neat_alloc(allocator, T, n) \
 ((T*) allocator.alloc(allocator.ctx, _Alignof(T), n * sizeof(T)))
 
@@ -233,6 +235,8 @@ NEAT_IF_EMPTY_##__VA_OPT__(0)(then)
 
 #define NEAT_IF_EMPTY_(then) then
 #define NEAT_IF_EMPTY_0(then)
+
+#define NEAT_IF_NEMPTY(then, ...) __VA_OPT__(then)
 
 #define NEAT_U64_IF_INTEGER(num)                                                   \
 _Generic(num,                                                                      \

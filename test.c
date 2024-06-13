@@ -1,3 +1,4 @@
+#include "neat_core.h"
 #include <stdbool.h>
 #define NEAT_STR_IMPL
 #include "neat_str.h"
@@ -22,8 +23,8 @@ int str_replace(any_str, any_str target, any_str replacement)
 String_View_Array* str_split(any_str, delim)
 String_View_Array* str_split(any_str, delim, allocator)
 DString str_join(delim, ...strs)
-DString str_join(delim, allocator, ...strs)
-
+DString str_join(allocator, delim, ...strs)
+void str_join_into(mut_str, delim, ...strs)
 // *super* basic IO. just calls fread and fwrite
 size_t str_read(any_str, stream) // reads up to any_str cap
 size_t str_read(any_str, stream, nb) // reads up to nb
@@ -69,14 +70,27 @@ AND ALSO ALL THE PRINT AND tostr STUFF
 
 NEAT_DECL_SSTRING(10);
 
+struct FAKE { int d; };
 int main()
 {
-    SString(10) a;
-    SString_Ref ref = sstr_ref(&a);
     
-    str_copy(ref, "hello");
+    DString str = str_join(",", "wow", "hi", "bye");
+    dstr_insert(&str, "OMG", str.len);
+    puts((char*)str.chars);
+    dstr_deinit(&str);
+    
+    struct FAKE f = {3};
     
     
-    printf("%s\n", ref.sstring->chars);
+    DString aa = dstr(10.0f);
+    printf("%llu\n", aa.cap);
+//     for(size_t i = 0 ; i < sva->nb ; i++)
+//     {
+//         fwrite(sva->strs[i].chars, 1, sva->strs[i].len, stdout);
+//         fputc('\n', stdout);
+//         // printf("\n\nbegin: %zu\nlen: %zu", sva->strs[i].chars - (unsigned char*)str, sva->strs[i].len);
+//     }
+//     
+//     free(sva);
 }
 
