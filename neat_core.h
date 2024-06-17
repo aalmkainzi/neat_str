@@ -231,7 +231,7 @@ _Generic(exp, \
 __VA_ARGS__ NEAT_IF_EMPTY(otherwise, __VA_ARGS__)
 
 #define NEAT_IF_EMPTY(then, ...) \
-NEAT_IF_EMPTY_##__VA_OPT__(0)(then)
+NEAT_CAT(NEAT_IF_EMPTY_, __VA_OPT__(0))(then)
 
 #define NEAT_IF_EMPTY_(then) then
 #define NEAT_IF_EMPTY_0(then)
