@@ -192,8 +192,14 @@ neat_anystr_ref_concat_fread_line(neat_anystr_ref(any_str), stdout)
 #define neat_fprint_str(any_str, stream) \
 neat_fprint_strv(neat_strv(any_str), stream)
 
+#define neat_fprintln_str(any_str, stream) \
+neat_fprintln_strv(neat_strv(any_str), stream)
+
 #define neat_print_str(any_str) \
 neat_fprint_str(any_str, stdout)
+
+#define neat_println_str(any_str) \
+neat_fprintln_strv(neat_strv(any_str), stdout)
 
 #define neat_strv_arr(strv_carr, ...)                                                      \
 NEAT_IF_EMPTY(                                                                             \
@@ -280,7 +286,6 @@ _Generic(any_str,                          \
     Any_String_Ref: neat_strv_anystr_ref3, \
 )(any_str, start, end)
 
-// TODO this should have 4 overloads dstr() dstr(cap) dstr(allocator) dstr(cap, allocator)
 #define neat_dstr(...) \
 neat_dstr0##__VA_OPT__(1)(__VA_ARGS__)
 
@@ -342,12 +347,10 @@ dstr_insert(dstr, neat_tostr_p(stringable_ptr), idx)
 // fprint(FILE*, int nb, ...String_View)
 // no. make it do {} while(0) macro
 #define neat_fprint(f, ...) \
-({ \
-    FILE *neat_file = f; \
-    (void) neat_file; \
-    NEAT_FOREACH(neat_fprint_, __VA_ARGS__); \
-    (void) 0; \
-})
+do \
+{ \
+    ; \
+} while(0)
 
 #define neat_fprint_(x) \
 ({ \
@@ -383,37 +386,41 @@ neat_fprint(stdout, __VA_ARGS__)
 #define neat_println(...) \
 neat_fprintln(stdout, __VA_ARGS__)
 
-#define NEAT_DEFAULT_STRINGABLE_TYPES          \
-bool:               neat_tostr_bool,           \
-char*:              neat_tostr_str,            \
-char:               neat_tostr_char,           \
-signed char:        neat_tostr_schar,          \
-unsigned char:      neat_tostr_uchar,          \
-short:              neat_tostr_short,          \
-unsigned short:     neat_tostr_ushort,         \
-int:                neat_tostr_int,            \
-unsigned int:       neat_tostr_uint,           \
-long:               neat_tostr_long,           \
-unsigned long:      neat_tostr_ulong,          \
-long long:          neat_tostr_llong,          \
-unsigned long long: neat_tostr_ullong,         \
-float:              neat_tostr_float,          \
-double:             neat_tostr_double,         \
-DString:            neat_tostr_dstring,        \
-DString*:           neat_tostr_dstring_ptr,    \
-String_View:        neat_tostr_string_view,    \
-String_View*:       neat_tostr_string_view_ptr
+#define NEAT_DEFAULT_TOSTR_TYPES           \
+bool:               neat_tostr_bool,       \
+char*:              neat_tostr_str,        \
+char:               neat_tostr_char,       \
+signed char:        neat_tostr_schar,      \
+unsigned char:      neat_tostr_uchar,      \
+short:              neat_tostr_short,      \
+unsigned short:     neat_tostr_ushort,     \
+int:                neat_tostr_int,        \
+unsigned int:       neat_tostr_uint,       \
+long:               neat_tostr_long,       \
+unsigned long:      neat_tostr_ulong,      \
+long long:          neat_tostr_llong,      \
+unsigned long long: neat_tostr_ullong,     \
+float:              neat_tostr_float,      \
+double:             neat_tostr_double,     \
+DString:            neat_tostr_dstr,       \
+DString*:           neat_tostr_dstr_ptr,   \
+String_View:        neat_tostr_strv,       \
+String_View*:       neat_tostr_strv_ptr,   \
+String_Buffer:      neat_tostr_strbuf,     \
+String_Buffer*:     neat_tostr_strbuf_ptr, \
+SString_Ref:        neat_tostr_sstr_ref,   \
+Any_String_Ref:     neat_tostr_anystr_ref  \
 
-#define NEAT_ALL_STRINGABLE_TYPES \
-NEAT_IF_DEF(NEAT_TOSTR1)(neat_tostr_type_1: neat_tostr_func_1,)    \
-NEAT_IF_DEF(NEAT_TOSTR2)(neat_tostr_type_2: neat_tostr_func_2,)    \
-NEAT_IF_DEF(NEAT_TOSTR3)(neat_tostr_type_3: neat_tostr_func_3,)    \
-NEAT_IF_DEF(NEAT_TOSTR4)(neat_tostr_type_4: neat_tostr_func_4,)    \
-NEAT_IF_DEF(NEAT_TOSTR5)(neat_tostr_type_5: neat_tostr_func_5,)    \
-NEAT_IF_DEF(NEAT_TOSTR6)(neat_tostr_type_6: neat_tostr_func_6,)    \
-NEAT_IF_DEF(NEAT_TOSTR7)(neat_tostr_type_7: neat_tostr_func_7,)    \
-NEAT_IF_DEF(NEAT_TOSTR8)(neat_tostr_type_8: neat_tostr_func_8,)    \
-NEAT_IF_DEF(NEAT_TOSTR9)(neat_tostr_type_9: neat_tostr_func_9,)    \
+#define NEAT_ALL_TOSTR_TYPES                                       \
+NEAT_IF_DEF(NEAT_TOSTR1) (neat_tostr_type_1 : neat_tostr_func_1,)  \
+NEAT_IF_DEF(NEAT_TOSTR2) (neat_tostr_type_2 : neat_tostr_func_2,)  \
+NEAT_IF_DEF(NEAT_TOSTR3) (neat_tostr_type_3 : neat_tostr_func_3,)  \
+NEAT_IF_DEF(NEAT_TOSTR4) (neat_tostr_type_4 : neat_tostr_func_4,)  \
+NEAT_IF_DEF(NEAT_TOSTR5) (neat_tostr_type_5 : neat_tostr_func_5,)  \
+NEAT_IF_DEF(NEAT_TOSTR6) (neat_tostr_type_6 : neat_tostr_func_6,)  \
+NEAT_IF_DEF(NEAT_TOSTR7) (neat_tostr_type_7 : neat_tostr_func_7,)  \
+NEAT_IF_DEF(NEAT_TOSTR8) (neat_tostr_type_8 : neat_tostr_func_8,)  \
+NEAT_IF_DEF(NEAT_TOSTR9) (neat_tostr_type_9 : neat_tostr_func_9,)  \
 NEAT_IF_DEF(NEAT_TOSTR10)(neat_tostr_type_10: neat_tostr_func_10,) \
 NEAT_IF_DEF(NEAT_TOSTR11)(neat_tostr_type_11: neat_tostr_func_11,) \
 NEAT_IF_DEF(NEAT_TOSTR12)(neat_tostr_type_12: neat_tostr_func_12,) \
@@ -437,21 +444,78 @@ NEAT_IF_DEF(NEAT_TOSTR29)(neat_tostr_type_29: neat_tostr_func_29,) \
 NEAT_IF_DEF(NEAT_TOSTR30)(neat_tostr_type_30: neat_tostr_func_30,) \
 NEAT_IF_DEF(NEAT_TOSTR31)(neat_tostr_type_31: neat_tostr_func_31,) \
 NEAT_IF_DEF(NEAT_TOSTR32)(neat_tostr_type_32: neat_tostr_func_32,) \
-NEAT_DEFAULT_STRINGABLE_TYPES
+NEAT_DEFAULT_TOSTR_TYPES
+
+#define NEAT_DEFAULT_TOSTR_INTO_TYPES           \
+bool:               neat_tostr_into_bool,       \
+char*:              neat_tostr_into_str,        \
+char:               neat_tostr_into_char,       \
+signed char:        neat_tostr_into_schar,      \
+unsigned char:      neat_tostr_into_uchar,      \
+short:              neat_tostr_into_short,      \
+unsigned short:     neat_tostr_into_ushort,     \
+int:                neat_tostr_into_int,        \
+unsigned int:       neat_tostr_into_uint,       \
+long:               neat_tostr_into_long,       \
+unsigned long:      neat_tostr_into_ulong,      \
+long long:          neat_tostr_into_llong,      \
+unsigned long long: neat_tostr_into_ullong,     \
+float:              neat_tostr_into_float,      \
+double:             neat_tostr_into_double,     \
+DString:            neat_tostr_into_dstr,       \
+DString*:           neat_tostr_into_dstr_ptr,   \
+String_View:        neat_tostr_into_strv,       \
+String_View*:       neat_tostr_into_strv_ptr,   \
+String_Buffer:      neat_tostr_into_strbuf,     \
+String_Buffer*:     neat_tostr_into_strbuf_ptr, \
+SString_Ref:        neat_tostr_into_sstr_ref,   \
+Any_String_Ref:     neat_tostr_into_anystr_ref  \
+
+#define NEAT_ALL_TOSTR_INTO_TYPES                                                 \
+NEAT_IF_DEF(NEAT_TOSTR_INTO1) (neat_tostr_into_type_1 : neat_tostr_into_func_1,)  \
+NEAT_IF_DEF(NEAT_TOSTR_INTO2) (neat_tostr_into_type_2 : neat_tostr_into_func_2,)  \
+NEAT_IF_DEF(NEAT_TOSTR_INTO3) (neat_tostr_into_type_3 : neat_tostr_into_func_3,)  \
+NEAT_IF_DEF(NEAT_TOSTR_INTO4) (neat_tostr_into_type_4 : neat_tostr_into_func_4,)  \
+NEAT_IF_DEF(NEAT_TOSTR_INTO5) (neat_tostr_into_type_5 : neat_tostr_into_func_5,)  \
+NEAT_IF_DEF(NEAT_TOSTR_INTO6) (neat_tostr_into_type_6 : neat_tostr_into_func_6,)  \
+NEAT_IF_DEF(NEAT_TOSTR_INTO7) (neat_tostr_into_type_7 : neat_tostr_into_func_7,)  \
+NEAT_IF_DEF(NEAT_TOSTR_INTO8) (neat_tostr_into_type_8 : neat_tostr_into_func_8,)  \
+NEAT_IF_DEF(NEAT_TOSTR_INTO9) (neat_tostr_into_type_9 : neat_tostr_into_func_9,)  \
+NEAT_IF_DEF(NEAT_TOSTR_INTO10)(neat_tostr_into_type_10: neat_tostr_into_func_10,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO11)(neat_tostr_into_type_11: neat_tostr_into_func_11,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO12)(neat_tostr_into_type_12: neat_tostr_into_func_12,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO13)(neat_tostr_into_type_13: neat_tostr_into_func_13,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO14)(neat_tostr_into_type_14: neat_tostr_into_func_14,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO15)(neat_tostr_into_type_15: neat_tostr_into_func_15,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO16)(neat_tostr_into_type_16: neat_tostr_into_func_16,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO17)(neat_tostr_into_type_17: neat_tostr_into_func_17,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO18)(neat_tostr_into_type_18: neat_tostr_into_func_18,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO19)(neat_tostr_into_type_19: neat_tostr_into_func_19,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO20)(neat_tostr_into_type_20: neat_tostr_into_func_20,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO21)(neat_tostr_into_type_21: neat_tostr_into_func_21,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO22)(neat_tostr_into_type_22: neat_tostr_into_func_22,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO23)(neat_tostr_into_type_23: neat_tostr_into_func_23,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO24)(neat_tostr_into_type_24: neat_tostr_into_func_24,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO25)(neat_tostr_into_type_25: neat_tostr_into_func_25,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO26)(neat_tostr_into_type_26: neat_tostr_into_func_26,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO27)(neat_tostr_into_type_27: neat_tostr_into_func_27,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO28)(neat_tostr_into_type_28: neat_tostr_into_func_28,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO29)(neat_tostr_into_type_29: neat_tostr_into_func_29,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO30)(neat_tostr_into_type_30: neat_tostr_into_func_30,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO31)(neat_tostr_into_type_31: neat_tostr_into_func_31,) \
+NEAT_IF_DEF(NEAT_TOSTR_INTO32)(neat_tostr_into_type_32: neat_tostr_into_func_32,) \
+NEAT_DEFAULT_TOSTR_INTO_TYPES
 
 typedef neat_func_ptr(SString(1), neat_fail_type*) neat_tostr_fail;
 
 #define neat_get_tostr_func(ty) \
-({ \
-    _Static_assert(neat_is_stringable(ty), "type not stringable"); \
-    _Generic((ty){0}, \
-        NEAT_ALL_STRINGABLE_TYPES \
-    ); \
-})
+_Generic((ty){0}, \
+    NEAT_ALL_TOSTR_TYPES \
+)
 
 #define neat_get_tostr_func_ft(ty) \
 _Generic((ty){0}, \
-    NEAT_ALL_STRINGABLE_TYPES, \
+    NEAT_ALL_TOSTR_TYPES, \
     default: (neat_tostr_fail){0} \
 )
 
@@ -461,49 +525,21 @@ neat_tostr_p(neat_as_pointer(x))
 #define neat_tostr_p(xp) \
 neat_get_tostr_func(typeof(*xp))(xp)
 
-// TODO REDO THIS WHOLE SHIT
-#define neat_tostr_buf(x, buf, ...) \
-neat_get_tostr_func(typeof(x))(neat_as_pointer(x), (String_View){.chars = buf __VA_OPT__(, .len = __VA_ARGS__)})
-
-#define neat_is_stringable(ty) \
+#define neat_has_tostr(ty) \
 (!neat_has_type(neat_get_tostr_func_ft(ty), neat_tostr_fail))
-
-#define NEAT_TOSTR_BUF_TY(obj_ty) \
-uint64_t(*)(typeof(obj_ty)*, String_View)
-
-#define NEAT_TOSTR_DSTR_RET_TY(obj_ty) \
-DString(*)(typeof(obj_ty)*)
-
-#define NEAT_TOSTR_SV_RET_TY(obj_ty) \
-String_View(*)(typeof(obj_ty)*)
 
 #define NEAT_DECL_TOSTR_FUNC(n) \
 typedef typeof(NEAT_ARG1(ADD_TOSTR)) neat_tostr_type_##n; \
-static inline typeof( \
-    _Generic(NEAT_ARG2(ADD_TOSTR), \
-        NEAT_TOSTR_BUF_TY(NEAT_ARG1(ADD_TOSTR)): (uint64_t){0}, \
-        default: neat_gurantee_not(NEAT_ARG2(ADD_TOSTR), NEAT_TOSTR_BUF_TY(NEAT_ARG1(ADD_TOSTR)), NEAT_TOSTR_SV_RET_TY(NEAT_ARG1(ADD_TOSTR)))(0) \
-    ) \
-) neat_tostr_func_##n (neat_tostr_type_##n *obj, String_View sv) \
+static inline DString neat_tostr_func_##n (neat_tostr_type_##n *obj) \
 { \
-    return _Generic(NEAT_ARG2(ADD_TOSTR), \
-        NEAT_TOSTR_BUF_TY(NEAT_ARG1(ADD_TOSTR)): ({ \
-            neat_gurantee(NEAT_ARG2(ADD_TOSTR), NEAT_TOSTR_BUF_TY(NEAT_ARG1(ADD_TOSTR)))(obj, sv); \
-        }), \
-        default: ({ \
-            typeof(neat_gurantee_not(NEAT_ARG2(ADD_TOSTR), NEAT_TOSTR_BUF_TY(NEAT_ARG1(ADD_TOSTR)), NEAT_TOSTR_SV_RET_TY(NEAT_ARG1(ADD_TOSTR)))(obj)) *ret_ty; \
-            typeof(_Generic(ret_ty, VString**: (VString*){0}, default: ret_ty)) ret_ty2; \
-            typeof(neat_gurantee_not(ret_ty2, VString*, String_View*)) ret_ty3; \
-            _Static_assert( \
-                neat_has_type(ret_ty2, DString*) || \
-                neat_has_type(ret_ty2, String_View*) || \
-                neat_has_type(ret_ty2, VString*) || \
-                NEAT_IS_SSTRING_PTR(ret_ty3), \
-                "provided to_string function has incorrect type, must either be: 'SString(N)/VString*/DString/String_View (T*)' or 'uint64_t (T*, String_View)'" \
-            ); \
-            neat_gurantee_not(NEAT_ARG2(ADD_TOSTR), NEAT_TOSTR_BUF_TY(NEAT_ARG1(ADD_TOSTR)), NEAT_TOSTR_SV_RET_TY(NEAT_ARG1(ADD_TOSTR)))(obj); \
-        }) \
-    ); \
+    return NEAT_ARG2(ADD_TOSTR)(obj); \
+}
+
+#define NEAT_DECL_TOSTR_INTO_FUNC(n) \
+typedef typeof(NEAT_ARG1(ADD_TOSTR)) neat_tostr_into_type_##n; \
+static inline void neat_tostr_func_##n (Any_String_Ref dst, neat_tostr_type_##n *obj) \
+{ \
+    return NEAT_ARG2(ADD_TOSTR_INTO)(dst, obj); \
 }
 
 String_View neat_strv_cstr2(char *str, unsigned int start);
@@ -576,6 +612,7 @@ String_View neat_strv_find_strv(String_View hay, String_View needle);
 unsigned int neat_anystr_ref_fread_line(Any_String_Ref dst, FILE *stream);
 unsigned int neat_anystr_ref_concat_fread_line(Any_String_Ref dst, FILE *stream);
 unsigned int neat_fprint_strv(String_View str, FILE *stream);
+unsigned int neat_fprintln_strv(String_View str, FILE *stream);
 
 DString neat_tostr_bool(bool *obj);
 DString neat_tostr_str(char **obj);
@@ -592,6 +629,15 @@ DString neat_tostr_llong(long long *obj);
 DString neat_tostr_ullong(unsigned long long *obj);
 DString neat_tostr_float(float *obj);
 DString neat_tostr_double(double *obj);
+
+DString neat_tostr_dstr(DString *obj);
+DString neat_tostr_dstr_ptr(DString **obj);
+DString neat_tostr_strv(String_View *obj);
+DString neat_tostr_strv_ptr(String_View **obj);
+DString neat_tostr_strbuf(String_Buffer *obj);
+DString neat_tostr_strbuf_ptr(String_Buffer **obj);
+DString neat_tostr_sstr_ref(SString_Ref *obj);
+DString neat_tostr_anystr_ref(Any_String_Ref *obj);
 
 #endif /* NEAT_STR_H */
 
@@ -1452,6 +1498,99 @@ unsigned int neat_fprint_strv(String_View str, FILE *stream)
     return fwrite(str.chars, sizeof(unsigned char), str.len, stream);
 }
 
+unsigned int neat_fprintln_strv(String_View str, FILE *stream)
+{
+    unsigned int written = fwrite(str.chars, sizeof(unsigned char), str.len, stream);
+    written += fwrite(u8"\n", sizeof(unsigned char), 1, stream);
+    return written;
+}
+
+// default tostr functions:
+
+DString neat_tostr_bool(bool *obj)
+{
+    DString ret = neat_dstr_new(6, neat_get_default_allocator());
+    
+    if(*obj)
+        neat_str_copy(&ret, (char*) "true");
+    else
+        neat_str_copy(&ret, (char*) "false");
+    
+    return ret;
+}
+
+DString neat_tostr_str(char **obj)
+{
+    DString ret = neat_dstr_new(strlen(*obj) + 1, neat_get_default_allocator());
+    neat_str_copy(&ret, *obj);
+    return ret;
+}
+
+DString neat_tostr_char(char *obj);
+DString neat_tostr_schar(signed char *obj);
+DString neat_tostr_uchar(unsigned char *obj);
+DString neat_tostr_short(short *obj);
+DString neat_tostr_ushort(unsigned short *obj);
+DString neat_tostr_int(int *obj);
+DString neat_tostr_uint(unsigned int *obj);
+DString neat_tostr_long(long *obj);
+DString neat_tostr_ulong(unsigned long *obj);
+DString neat_tostr_llong(long long *obj);
+DString neat_tostr_ullong(unsigned long long *obj);
+DString neat_tostr_float(float *obj);
+DString neat_tostr_double(double *obj);
+
+DString neat_tostr_dstr(DString *obj)
+{
+    DString ret = neat_dstr_new(obj->len, neat_get_default_allocator());
+    neat_dstr_append(&ret, obj);
+    return ret;
+}
+
+DString neat_tostr_dstr_ptr(DString **obj)
+{
+    return neat_tostr_dstr(*obj);
+}
+
+DString neat_tostr_strv(String_View *obj)
+{
+    DString ret = neat_dstr_new(obj->len, neat_get_default_allocator());
+    neat_dstr_append_strv(&ret, *obj);
+    return ret;
+}
+
+DString neat_tostr_strv_ptr(String_View **obj)
+{
+    return neat_tostr_strv(*obj);
+}
+
+DString neat_tostr_strbuf(String_Buffer *obj)
+{
+    DString ret = neat_dstr_new(obj->len, neat_get_default_allocator());
+    neat_dstr_append(&ret, *obj);
+    return ret;
+}
+
+DString neat_tostr_strbuf_ptr(String_Buffer **obj)
+{
+    return neat_tostr_strbuf(*obj);
+}
+
+DString neat_tostr_sstr_ref(SString_Ref *obj)
+{
+    DString ret = neat_dstr_new(obj->sstring->len, neat_get_default_allocator());
+    neat_dstr_append(&ret, *obj);
+    return ret;
+}
+
+DString neat_tostr_anystr_ref(Any_String_Ref *obj)
+{
+    DString ret = neat_dstr_new(16, neat_get_default_allocator());
+    neat_dstr_append(&ret, *obj);
+    return ret;
+}
+
+
 #endif /* NEAT_STR_IMPL */
 
 #if defined(ADD_TOSTR)
@@ -1552,6 +1691,108 @@ NEAT_DECL_TOSTR_FUNC(31)
 #elif !defined(NEAT_TOSTR32)
 #define NEAT_TOSTR32
 NEAT_DECL_TOSTR_FUNC(32)
+#else
+#error "Maximum number of tostr functions is 32"
+#endif
+
+#if !defined(NEAT_TOSTR_INTO1)
+#define NEAT_TOSTR_INTO1
+NEAT_DECL_TOSTR_INTO_FUNC(1)
+#elif !defined(NEAT_TOSTR_INTO2)
+#define NEAT_TOSTR_INTO2
+NEAT_DECL_TOSTR_INTO_FUNC(2)
+#elif !defined(NEAT_TOSTR_INTO3)
+#define NEAT_TOSTR_INTO3
+NEAT_DECL_TOSTR_INTO_FUNC(3)
+#elif !defined(NEAT_TOSTR_INTO4)
+#define NEAT_TOSTR_INTO4
+NEAT_DECL_TOSTR_INTO_FUNC(4)
+#elif !defined(NEAT_TOSTR_INTO5)
+#define NEAT_TOSTR_INTO5
+NEAT_DECL_TOSTR_INTO_FUNC(5)
+#elif !defined(NEAT_TOSTR_INTO6)
+#define NEAT_TOSTR_INTO6
+NEAT_DECL_TOSTR_INTO_FUNC(6)
+#elif !defined(NEAT_TOSTR_INTO7)
+#define NEAT_TOSTR_INTO7
+NEAT_DECL_TOSTR_INTO_FUNC(7)
+#elif !defined(NEAT_TOSTR_INTO8)
+#define NEAT_TOSTR_INTO8
+NEAT_DECL_TOSTR_INTO_FUNC(8)
+#elif !defined(NEAT_TOSTR_INTO9)
+#define NEAT_TOSTR_INTO9
+NEAT_DECL_TOSTR_INTO_FUNC(9)
+#elif !defined(NEAT_TOSTR_INTO10)
+#define NEAT_TOSTR_INTO10
+NEAT_DECL_TOSTR_INTO_FUNC(10)
+#elif !defined(NEAT_TOSTR_INTO11)
+#define NEAT_TOSTR_INTO11
+NEAT_DECL_TOSTR_INTO_FUNC(11)
+#elif !defined(NEAT_TOSTR_INTO12)
+#define NEAT_TOSTR_INTO12
+NEAT_DECL_TOSTR_INTO_FUNC(12)
+#elif !defined(NEAT_TOSTR_INTO13)
+#define NEAT_TOSTR_INTO13
+NEAT_DECL_TOSTR_INTO_FUNC(13)
+#elif !defined(NEAT_TOSTR_INTO14)
+#define NEAT_TOSTR_INTO14
+NEAT_DECL_TOSTR_INTO_FUNC(14)
+#elif !defined(NEAT_TOSTR_INTO15)
+#define NEAT_TOSTR_INTO15
+NEAT_DECL_TOSTR_INTO_FUNC(15)
+#elif !defined(NEAT_TOSTR_INTO16)
+#define NEAT_TOSTR_INTO16
+NEAT_DECL_TOSTR_INTO_FUNC(16)
+#elif !defined(NEAT_TOSTR_INTO17)
+#define NEAT_TOSTR_INTO17
+NEAT_DECL_TOSTR_INTO_FUNC(17)
+#elif !defined(NEAT_TOSTR_INTO18)
+#define NEAT_TOSTR_INTO18
+NEAT_DECL_TOSTR_INTO_FUNC(18)
+#elif !defined(NEAT_TOSTR_INTO19)
+#define NEAT_TOSTR_INTO19
+NEAT_DECL_TOSTR_INTO_FUNC(19)
+#elif !defined(NEAT_TOSTR_INTO20)
+#define NEAT_TOSTR_INTO20
+NEAT_DECL_TOSTR_INTO_FUNC(20)
+#elif !defined(NEAT_TOSTR_INTO21)
+#define NEAT_TOSTR_INTO21
+NEAT_DECL_TOSTR_INTO_FUNC(21)
+#elif !defined(NEAT_TOSTR_INTO22)
+#define NEAT_TOSTR_INTO22
+NEAT_DECL_TOSTR_INTO_FUNC(22)
+#elif !defined(NEAT_TOSTR_INTO23)
+#define NEAT_TOSTR_INTO23
+NEAT_DECL_TOSTR_INTO_FUNC(23)
+#elif !defined(NEAT_TOSTR_INTO24)
+#define NEAT_TOSTR_INTO24
+NEAT_DECL_TOSTR_INTO_FUNC(24)
+#elif !defined(NEAT_TOSTR_INTO25)
+#define NEAT_TOSTR_INTO25
+NEAT_DECL_TOSTR_INTO_FUNC(25)
+#elif !defined(NEAT_TOSTR_INTO26)
+#define NEAT_TOSTR_INTO26
+NEAT_DECL_TOSTR_INTO_FUNC(26)
+#elif !defined(NEAT_TOSTR_INTO27)
+#define NEAT_TOSTR_INTO27
+NEAT_DECL_TOSTR_INTO_FUNC(27)
+#elif !defined(NEAT_TOSTR_INTO28)
+#define NEAT_TOSTR_INTO28
+NEAT_DECL_TOSTR_INTO_FUNC(28)
+#elif !defined(NEAT_TOSTR_INTO29)
+#define NEAT_TOSTR_INTO29
+NEAT_DECL_TOSTR_INTO_FUNC(29)
+#elif !defined(NEAT_TOSTR_INTO30)
+#define NEAT_TOSTR_INTO30
+NEAT_DECL_TOSTR_INTO_FUNC(30)
+#elif !defined(NEAT_TOSTR_INTO31)
+#define NEAT_TOSTR_INTO31
+NEAT_DECL_TOSTR_INTO_FUNC(31)
+#elif !defined(NEAT_TOSTR_INTO32)
+#define NEAT_TOSTR_INTO32
+NEAT_DECL_TOSTR_INTO_FUNC(32)
+#else
+#error "Maximum number of tostr_into functions is 32"
 #endif
 
 #undef ADD_HASH
