@@ -49,7 +49,7 @@ DString dstr(cap, allocator);
 
 void dstr_deinit(dstr);
 ```
-utlity:
+utility:
 ```C
 void dstr_append(dstr, any_str);
 void dstr_append_tostr(dstr, stringable);
