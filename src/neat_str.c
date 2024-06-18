@@ -490,7 +490,7 @@ Neat_Any_String_Ref neat_anystr_ref_to_strbuf_ptr(Neat_String_Buffer *str)
     };
 }
 
-Neat_Any_String_Ref neat_anystr_ref_to_sstr_ref(Neat_Neat_SString_Ref str)
+Neat_Any_String_Ref neat_anystr_ref_to_sstr_ref(Neat_SString_Ref str)
 {
     return (Neat_Any_String_Ref){
         .cap   = str.cap,
@@ -562,7 +562,7 @@ Neat_String_Buffer neat_strbuf_of_strbuf_ptr(Neat_String_Buffer *str)
     return *str;
 }
 
-Neat_String_Buffer neat_strbuf_of_sstr_ref(Neat_Neat_SString_Ref str)
+Neat_String_Buffer neat_strbuf_of_sstr_ref(Neat_SString_Ref str)
 {
     return (Neat_String_Buffer){
         .cap   = str.cap,
@@ -679,7 +679,7 @@ Neat_String_View neat_strv_strbuf2(Neat_String_Buffer str, unsigned int start)
     return neat_strv_strbuf_ptr2(&str, start);
 }
 
-Neat_String_View neat_strv_sstr_ref2(Neat_Neat_SString_Ref str, unsigned int start)
+Neat_String_View neat_strv_sstr_ref2(Neat_SString_Ref str, unsigned int start)
 {
     if(start > str.sstring->len)
     {
@@ -791,7 +791,7 @@ Neat_String_View neat_strv_strbuf_ptr3(Neat_String_Buffer *str, unsigned int sta
     };
 }
 
-Neat_String_View neat_strv_sstr_ref3(Neat_Neat_SString_Ref str, unsigned int start, unsigned int end)
+Neat_String_View neat_strv_sstr_ref3(Neat_SString_Ref str, unsigned int start, unsigned int end)
 {
     if(start > str.sstring->len || end > str.sstring->len || start > end)
     {
