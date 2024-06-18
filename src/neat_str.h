@@ -702,6 +702,7 @@ void neat_tostr_into_anystr_ref(Neat_Any_String_Ref dst, Neat_Any_String_Ref *ob
 
 #ifndef NEAT_STR_PREFIX
 
+typedef Neat_Allocator Allocator;
 typedef Neat_DString DString;
 typedef Neat_String_Buffer String_Buffer;
 typedef Neat_String_View String_View;
