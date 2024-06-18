@@ -32,9 +32,9 @@ unsigned int      str_fprintln(stream, any_str);
 unsigned int      str_print(any_str);
 unsigned int      str_println(any_str);
 ```
-Note some of these macros require a mutable string type (e.g. `str_replace`, `str_join`), that includes all string types except `String_View`.
+Note some of these macros require a mutable string type (e.g. `str_replace`), that includes all string types except `String_View`.
 
-And some require a string with cap information (e.g. `str_concat`, `str_concat_all`), that includes all string types except `String_View` and `[unsigned] char*`
+And some require a string with cap information (e.g. `str_concat`), that includes all string types except `String_View` and `[unsigned] char*`
 
 ## DString
 
