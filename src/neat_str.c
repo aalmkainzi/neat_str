@@ -146,7 +146,7 @@ bool neat_strv_equal(String_View str1, String_View str2)
     (memcmp(str1.chars, str2.chars, str1.len) == 0);
 }
 
-String_View neat_strv_find_strv(String_View hay, String_View needle)
+String_View neat_strv_find(String_View hay, String_View needle)
 {
     unsigned int end = hay.len - needle.len;
     for(unsigned int i = 0 ; i < end ; i++)
@@ -322,6 +322,125 @@ unsigned int neat_strv_arr_join(Any_String_Ref dst, String_View delim, String_Vi
     return chars_copied;
 }
 
+unsigned int neat_anystr_ref_replace(Any_String_Ref str, String_View target, String_View replacement)
+{
+    unsigned int replacements = 0;
+    unsigned int *len_p;
+    unsigned int len;
+    if(str.len != NULL)
+    {
+        len_p = str.len;
+    }
+    else
+    {
+        len = strlen((char*) str.chars);
+        len_p = &len;
+    }
+    
+    if(target.len < replacement.len)
+    {
+        for(unsigned int i = 0 ; i <= *len_p - target.len; )
+        {
+            String_View match = neat_strv_find(neat_strv_anystr_ref2(str, i), target);
+            if(match.chars != NULL)
+            {
+                unsigned int idx = match.chars - str.chars;
+                
+                if(str.cap > *len_p + (replacement.len - target.len))
+                {
+                    // shift right
+                    memmove(str.chars + idx + replacement.len, str.chars + idx + target.len, (*len_p - idx - target.len) * sizeof(unsigned char));
+                    
+                    // put the replacement
+                    memmove(str.chars + idx, replacement.chars, replacement.len * sizeof(unsigned char));
+                    
+                    *len_p += (replacement.len - target.len);
+                    
+                    i = idx + replacement.len;
+                    replacements++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+    else if(target.len > replacement.len)
+    {
+        for(unsigned int i = 0 ; i <= *len_p - target.len; )
+        {
+            String_View match = neat_strv_find(neat_strv_anystr_ref2(str, i), target);
+            if(match.chars != NULL)
+            {
+                unsigned int idx = match.chars - str.chars;
+                
+                // shift left
+                memmove(str.chars + idx + replacement.len, str.chars + idx + target.len, (*len_p - idx - target.len) * sizeof(unsigned char));
+                
+                // put the replacement
+                memmove(str.chars + idx, replacement.chars, replacement.len * sizeof(unsigned char));
+                
+                *len_p -= (target.len - replacement.len);
+                
+                i = idx + replacement.len;
+                replacements++;
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+    else
+    {
+        for(unsigned int i = 0 ; i <= *len_p - target.len; )
+        {
+            String_View match = neat_strv_find(neat_strv_anystr_ref2(str, i), target);
+            if(match.chars != NULL)
+            {
+                unsigned int idx = match.chars - str.chars;
+                
+                // put the replacement
+                memmove(str.chars + idx, replacement.chars, replacement.len * sizeof(unsigned char));
+                
+                i = idx + replacement.len;
+                replacements++;
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+    
+    str.chars[*len_p] = '\0';
+    return replacements;
+}
+
+unsigned int neat_strv_count(String_View hay, String_View needle)
+{
+    unsigned int count = 0;
+    for(unsigned int i = 0 ; i <= hay.len - needle.len ; )
+    {
+        String_View view = neat_strv_strv3(hay, i, i + needle.len);
+        if(neat_strv_equal(view, needle))
+        {
+            count++;
+            i += needle.len;
+        }
+        else
+        {
+            i++;
+        }
+    }
+    return count;
+}
+
 Any_String_Ref neat_anystr_ref_to_cstr(char *str)
 {
     unsigned int len = strlen(str);
@@ -375,7 +494,7 @@ Any_String_Ref neat_anystr_ref_to_sstr_ref(SString_Ref str)
 {
     return (Any_String_Ref){
         .cap   = str.cap,
-        .len   = NULL,
+        .len   = &str.sstring->len,
         .chars = str.sstring->chars
     };
 }
@@ -602,7 +721,7 @@ String_View neat_strv_cstr3(char *str, unsigned int start, unsigned int end)
 {
     unsigned int len = strlen(str);
     
-    if(start > len || end > len || end > start)
+    if(start > len || end > len || start > end)
     {
         fprintf(stderr, "ERROR: strv start/end (%u, %u) exceeds string length %u\n", start, end, len);
         exit(1);
@@ -618,7 +737,7 @@ String_View neat_strv_ucstr3(unsigned char *str, unsigned int start, unsigned in
 {
     unsigned int len = strlen((char*) str);
     
-    if(start > len || end > len || end > start)
+    if(start > len || end > len || start > end)
     {
         fprintf(stderr, "ERROR: strv start/end (%u, %u) exceeds string length %u\n", start, end, len);
         exit(1);
@@ -632,7 +751,7 @@ String_View neat_strv_ucstr3(unsigned char *str, unsigned int start, unsigned in
 
 String_View neat_strv_dstr_ptr3(DString *str, unsigned int start, unsigned int end)
 {
-    if(start > str->len || end > str->len || end > start)
+    if(start > str->len || end > str->len || start > end)
     {
         fprintf(stderr, "ERROR: strv start/end (%u, %u) exceeds string length %u\n", start, end, str->len);
         exit(1);
@@ -646,7 +765,7 @@ String_View neat_strv_dstr_ptr3(DString *str, unsigned int start, unsigned int e
 
 String_View neat_strv_strv_ptr3(String_View *str, unsigned int start, unsigned int end)
 {
-    if(start > str->len || end > str->len || end > start)
+    if(start > str->len || end > str->len || start > end)
     {
         fprintf(stderr, "ERROR: strv start/end (%u, %u) exceeds string length %u\n", start, end, str->len);
         exit(1);
@@ -660,7 +779,7 @@ String_View neat_strv_strv_ptr3(String_View *str, unsigned int start, unsigned i
 
 String_View neat_strv_strbuf_ptr3(String_Buffer *str, unsigned int start, unsigned int end)
 {
-    if(start > str->len || end > str->len || end > start)
+    if(start > str->len || end > str->len || start > end)
     {
         fprintf(stderr, "ERROR: strv start/end (%u, %u) exceeds string length %u\n", start, end, str->len);
         exit(1);
@@ -674,7 +793,7 @@ String_View neat_strv_strbuf_ptr3(String_Buffer *str, unsigned int start, unsign
 
 String_View neat_strv_sstr_ref3(SString_Ref str, unsigned int start, unsigned int end)
 {
-    if(start > str.sstring->len || end > str.sstring->len || end > start)
+    if(start > str.sstring->len || end > str.sstring->len || start > end)
     {
         fprintf(stderr, "ERROR: strv start/end (%u, %u) exceeds string length %u\n", start, end, str.sstring->len);
         exit(1);
@@ -698,7 +817,7 @@ String_View neat_strv_anystr_ref3(Any_String_Ref str, unsigned int start, unsign
         len = *str.len;
     }
     
-    if(start > len || end > len || end > start)
+    if(start > len || end > len || start > end)
     {
         fprintf(stderr, "ERROR: strv start/end (%u, %u) exceeds string length %u\n", start, end, len);
         exit(1);

@@ -118,10 +118,20 @@ _Generic((char(*)[ 1 + (sizeof(*s) == sizeof(NEAT_SSTR_COPY_T(*s))) ]){0}, \
 // this is to cause compile err if type is not mutable string
 #define neat_str_assert_mutable(str) \
 (void)_Generic(str,                  \
+    char*         : 1,               \
+    unsigned char*: 1,               \
     DString*      : 1,               \
     String_Buffer*: 1,               \
     SString_Ref   : 1,               \
     Any_String_Ref: 1                \
+)
+
+#define neat_str_assert_appendable(str) \
+(void)_Generic(str,                     \
+    DString*      : 1,                  \
+    String_Buffer*: 1,                  \
+    SString_Ref   : 1,                  \
+    Any_String_Ref: 1                   \
 )
 
 #define neat_str_len(any_str) \
@@ -135,7 +145,7 @@ neat_strv_equal(neat_strv(any_str1), neat_strv(any_str2))
 
 #define neat_str_copy(any_str_dst, any_str_src) \
 ( \
-    neat_str_assert_mutable(any_str_dst), \
+    /*neat_str_assert_mutable(any_str_dst),*/ \
     neat_anystr_ref_copy(neat_anystr_ref(any_str_dst), neat_strv(any_str_src)) \
 )
 
@@ -144,13 +154,13 @@ neat_strv_concat_new(neat_strv(any_str_1), neat_strv(any_str_2), NEAT_VA_OR(neat
 
 #define neat_str_concat(any_str_dst, any_str_src)                            \
 (                                                                            \
-neat_str_assert_mutable(any_str_dst),                                        \
+neat_str_assert_appendable(any_str_dst),                                     \
 neat_anystr_ref_concat(neat_anystr_ref(any_str_dst), neat_strv(any_str_src)) \
 )
 
 #define neat_str_concat_all(any_str_dst, strv_arr)                      \
 (                                                                       \
-neat_str_assert_mutable(any_str_dst),                                   \
+neat_str_assert_appendable(any_str_dst),                                \
 neat_anystr_ref_concat_strv_arr(neat_anystr_ref(any_str_dst), strv_arr) \
 )
 
@@ -158,7 +168,10 @@ neat_anystr_ref_concat_strv_arr(neat_anystr_ref(any_str_dst), strv_arr) \
 neat_anystr_ref_concat_strv_arr_new(strv_arr, NEAT_VA_OR(neat_get_default_allocator(), __VA_ARGS__))
 
 #define neat_str_find(any_str_hay, any_str_needle) \
-neat_strv_find_strv(neat_strv(any_str_hay), neat_strv(any_str_needle))
+neat_strv_find(neat_strv(any_str_hay), neat_strv(any_str_needle))
+
+#define neat_str_count(any_str_hay, any_str_needle) \
+neat_strv_count(neat_strv(any_str_hay), neat_strv(any_str_needle))
 
 #define neat_str_replace(any_str, any_str_target, any_str_replacement)                                       \
 (                                                                                                            \
@@ -617,13 +630,15 @@ unsigned int neat_anystr_ref_concat(Any_String_Ref dst, String_View src);
 unsigned int neat_anystr_ref_concat_strv_arr(Any_String_Ref dst, String_View_Array src);
 DString neat_strv_concat_new(String_View str1, String_View str2, Neat_Allocator allocator);
 DString neat_anystr_ref_concat_strv_arr_new(String_View_Array src, Neat_Allocator allocator);
+unsigned int neat_anystr_ref_replace(Any_String_Ref str, String_View target, String_View replacement);
 
 String_View_Array neat_strv_split(String_View str, String_View delim, Neat_Allocator allocator);
 DString neat_strv_arr_join_new(String_View delim, String_View_Array strs, Neat_Allocator allocator);
 unsigned int neat_strv_arr_join(Any_String_Ref dst, String_View delim, String_View_Array strs);
 
 bool neat_strv_equal(String_View str1, String_View str2);
-String_View neat_strv_find_strv(String_View hay, String_View needle);
+String_View neat_strv_find(String_View hay, String_View needle);
+unsigned int neat_strv_count(String_View hay, String_View needle);
 
 unsigned int neat_anystr_ref_fread_line(FILE *stream, Any_String_Ref dst);
 unsigned int neat_anystr_ref_concat_fread_line(FILE *stream, Any_String_Ref dst);
