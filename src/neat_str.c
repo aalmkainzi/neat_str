@@ -78,6 +78,24 @@ void neat_dstr_append_strv(Neat_DString *dstr, Neat_String_View str)
     dstr->chars[dstr->len] = '\0';
 }
 
+void neat_dstr_append_tostr_(Neat_DString *dstr, Neat_DString tostr)
+{
+    neat_dstr_append_strv(dstr, neat_strv_dstr2(tostr, 0));
+    neat_dstr_deinit_(&tostr);
+}
+
+void neat_dstr_prepend_tostr_(Neat_DString *dstr, Neat_DString tostr)
+{
+    neat_dstr_prepend_strv(dstr, neat_strv_dstr2(tostr, 0));
+    neat_dstr_deinit_(&tostr);
+}
+
+void neat_dstr_insert_tostr_(Neat_DString *dstr, Neat_DString tostr, unsigned int idx)
+{
+    neat_dstr_insert_strv(dstr, neat_strv_dstr2(tostr, 0), idx);
+    neat_dstr_deinit_(&tostr);
+}
+
 Neat_String_View neat_strv_strv2(Neat_String_View str, unsigned int start)
 {
     return neat_strv_strv_ptr2(&str, start);
@@ -201,10 +219,12 @@ unsigned int neat_anystr_ref_concat(Neat_Any_String_Ref dst, Neat_String_View sr
     unsigned int chars_to_copy = neat_uint_min(src.len, dst.cap - len - 1);
     memmove(dst.chars + len, src.chars, chars_to_copy);
     
-    if(dst.len != NULL)
-        *dst.len = chars_to_copy;
+    len += chars_to_copy;
     
-    dst.chars[chars_to_copy] = '\0';
+    if(dst.len != NULL)
+        *dst.len = len;
+    
+    dst.chars[len] = '\0';
     
     return chars_to_copy;
 }
@@ -256,7 +276,7 @@ Neat_String_View_Array neat_strv_split(Neat_String_View str, Neat_String_View de
     
     for(unsigned int i = 0 ; i < str.len - delim.len ; )
     {
-        Neat_String_View sub = neat_strv_strv_ptr3(&str, i, i + delim.len);
+        Neat_String_View sub = neat_strv_strv3(str, i, i + delim.len);
         if(neat_strv_equal(sub, delim))
         {
             delim_idx[nb_delim] = i;
@@ -304,7 +324,8 @@ Neat_DString neat_strv_arr_join_new(Neat_String_View delim, Neat_String_View_Arr
 
 unsigned int neat_strv_arr_join(Neat_Any_String_Ref dst, Neat_String_View delim, Neat_String_View_Array strs)
 {
-    if(dst.len != NULL) *dst.len = 0;
+    if(dst.len != NULL)
+        *dst.len = 0;
     
     unsigned int chars_copied = 0;
     
@@ -316,6 +337,9 @@ unsigned int neat_strv_arr_join(Neat_Any_String_Ref dst, Neat_String_View delim,
         chars_copied += neat_anystr_ref_concat(dst, delim);
         chars_copied += neat_anystr_ref_concat(dst, strs.strs[i]);
     }
+    
+    if(dst.len != NULL)
+        *dst.len = chars_copied;
     
     dst.chars[chars_copied] = '\0';
     

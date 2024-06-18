@@ -222,9 +222,6 @@ NEAT_IF_EMPTY(                                                                  
 )                                                                                          \
 __VA_OPT__((Neat_String_View_Array){.nb = (__VA_ARGS__), .strs = strv_carr})
 
-// strbuf(any_str)
-// strbuf(cap)
-// strbuf(cap, allocator)
 #define neat_strbuf(str_or_cap, ...) \
 neat_strbuf_##__VA_OPT__(2)(str_or_cap __VA_OPT__(,) __VA_ARGS__)
 
@@ -330,30 +327,29 @@ neat_dstr_deinit_(dstr)
 #define neat_dstr_append(dstr, any_str) \
 neat_dstr_append_strv(dstr, neat_strv(any_str))
 
-// TODO this leaks. change it later
 #define neat_dstr_append_tostr(dstr, stringable) \
-neat_dstr_append(dstr, neat_tostr(stringable))
+neat_dstr_append_tostr_(dstr, neat_tostr(stringable))
 
 #define neat_dstr_append_tostr_p(dstr, stringable_ptr) \
-neat_dstr_append(dstr, neat_tostr_p(stringable))
+neat_dstr_append_tostr_(dstr, neat_tostr_p(stringable))
 
 #define neat_dstr_prepend(dstr, any_str) \
 neat_dstr_prepend_strv(dstr, neat_strv(any_str))
 
 #define neat_dstr_prepend_tostr(dstr, stringable) \
-dstr_prepend(dstr, neat_tostr(stringable))
+neat_dstr_prepend_tostr_(dstr, neat_tostr(stringable))
 
 #define neat_dstr_prepend_tostr_p(dstr, stringable_ptr) \
-dstr_prepend(dstr, neat_tostr_p(stringable_ptr))
+neat_dstr_prepend_tostr_(dstr, neat_tostr_p(stringable_ptr))
 
 #define neat_dstr_insert(dstr, any_str, idx) \
 neat_dstr_insert_strv(dstr, neat_strv(any_str), idx)
 
 #define neat_dstr_insert_tostr(dstr, stringable, idx) \
-dstr_insert(dstr, neat_tostr(stringable), idx)
+neat_dstr_insert_tostr_(dstr, neat_tostr(stringable), idx)
 
 #define neat_dstr_insert_tostr_p(dstr, stringable_ptr, idx) \
-dstr_insert(dstr, neat_tostr_p(stringable_ptr), idx)
+neat_dstr_insert_tostr_(dstr, neat_tostr_p(stringable_ptr), idx)
 
 #define neat_fprint(f, ...) \
 do \
@@ -624,6 +620,9 @@ void neat_dstr_deinit_(Neat_DString *dstr);
 void neat_dstr_append_strv(Neat_DString *dstr, Neat_String_View str);
 void neat_dstr_prepend_strv(Neat_DString *dstr, Neat_String_View str);
 void neat_dstr_insert_strv(Neat_DString *dstr, Neat_String_View str, unsigned int idx);
+void neat_dstr_append_tostr_(Neat_DString *dstr, Neat_DString tostr);
+void neat_dstr_prepend_tostr_(Neat_DString *dstr, Neat_DString tostr);
+void neat_dstr_insert_tostr_(Neat_DString *dstr, Neat_DString tostr, unsigned int idx);
 
 Neat_SString_Ref neat_sstr_ref_from_sstr_ptr(void *sstr_ptr, unsigned int cap);
 

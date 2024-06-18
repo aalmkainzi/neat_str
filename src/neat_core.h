@@ -54,22 +54,22 @@ void neat_default_allocator_deinit(void *ctx);
 
 // TODO THE ALLOCATOR IS EXPANDED MULTIPLE TIMES HERE. BAD. MAKE THESE FUNCTIONS LATER!
 #define neat_alloc(allocator, T, n) \
-((T*) allocator.alloc(allocator.ctx, _Alignof(T), n * sizeof(T)))
+((T*) allocator.alloc(allocator.ctx, _Alignof(T), (n) * sizeof(T)))
 
 #define neat_dealloc(allocator, ptr, T, n) \
-allocator.dealloc(allocator.ctx, ptr, sizeof((T){0}) * n)
+allocator.dealloc(allocator.ctx, ptr, sizeof((T){0}) * (n))
 
 #define neat_realloc(allocator, ptr, T, old_n, new_n) \
-(T*) allocator.realloc(allocator.ctx, ptr, _Alignof(T), sizeof(T) * old_n, sizeof(T) * new_n)
+(T*) allocator.realloc(allocator.ctx, ptr, _Alignof(T), sizeof(T) * (old_n), sizeof(T) * (new_n))
 
 #define neat_alloc_bytes(allocator, n) \
-allocator.alloc(allocator.ctx, _Alignof(max_align_t), n)
+allocator.alloc(allocator.ctx, _Alignof(max_align_t), (n))
 
 #define neat_dealloc_bytes(allocator, ptr, n) \
-allocator.dealloc(allocator.ctx, ptr, n)
+allocator.dealloc(allocator.ctx, ptr, (n))
 
 #define neat_realloc_bytes(allocator, ptr, old_n, new_n) \
-allocator.realloc(allocator.ctx, ptr, _Alignof(max_align_t), old_n, new_n)
+allocator.realloc(allocator.ctx, ptr, _Alignof(max_align_t), (old_n), (new_n))
 
 #define neat_static_assertx(exp, msg) \
 ((void)sizeof(struct { _Static_assert(exp, msg); int dummy; }))
