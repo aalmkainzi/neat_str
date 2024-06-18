@@ -191,10 +191,10 @@ neat_str_assert_mutable(any_str_dst),                                           
 neat_strv_arr_join(neat_anystr_ref(any_str_dst), neat_strv(any_str_delim), strv_arr) \
 )
 
-#define neat_str_fread_line(any_str, stream) \
+#define neat_str_fread_line(stream, any_str) \
 neat_anystr_ref_fread_line(stream, neat_anystr_ref(any_str))
 
-#define neat_str_fread_concat(any_str, stream) \
+#define neat_str_fread_line_concat(stream, any_str) \
 neat_anystr_ref_concat_fread_line(stream, neat_anystr_ref(any_str))
 
 #define neat_str_read_line(any_str) \
@@ -203,16 +203,16 @@ neat_anystr_ref_fread_line(stdin, neat_anystr_ref(any_str))
 #define neat_str_read_concat(any_str) \
 neat_anystr_ref_concat_fread_line(stdin, neat_anystr_ref(any_str))
 
-#define neat_fprint_str(stream, any_str) \
+#define neat_str_fprint(stream, any_str) \
 neat_fprint_strv(stream, neat_strv(any_str))
 
-#define neat_fprintln_str(stream, any_str) \
+#define neat_str_fprintln(stream, any_str) \
 neat_fprintln_strv(stream, neat_strv(any_str))
 
-#define neat_print_str(any_str) \
-neat_fprint_str(stdout, any_str)
+#define neat_str_print(any_str) \
+neat_str_fprint(stdout, any_str)
 
-#define neat_println_str(any_str) \
+#define neat_str_println(any_str) \
 neat_fprintln_strv(stdout, neat_strv(any_str))
 
 #define neat_strv_arr(strv_carr, ...)                                                      \
@@ -332,10 +332,10 @@ neat_dstr_append_strv(dstr, neat_strv(any_str))
 
 // TODO this leaks. change it later
 #define neat_dstr_append_tostr(dstr, stringable) \
-dstr_append(dstr, neat_tostr(stringable))
+neat_dstr_append(dstr, neat_tostr(stringable))
 
 #define neat_dstr_append_tostr_p(dstr, stringable_ptr) \
-dstr_append(dstr, neat_tostr_p(stringable))
+neat_dstr_append(dstr, neat_tostr_p(stringable))
 
 #define neat_dstr_prepend(dstr, any_str) \
 neat_dstr_prepend_strv(dstr, neat_strv(any_str))
@@ -561,13 +561,15 @@ neat_tostr_into_p(dst, neat_as_pointer(x))
 typedef typeof(NEAT_ARG1(ADD_TOSTR)) neat_tostr_type_##n; \
 static inline DString neat_tostr_func_##n (neat_tostr_type_##n *obj) \
 { \
+    _Static_assert(neat_has_type(NEAT_ARG2(ADD_TOSTR), DString(*)(neat_tostr_type_##n*)), "tostr function must have type DString (T*)"); \
     return NEAT_ARG2(ADD_TOSTR)(obj); \
 }
 
 #define NEAT_DECL_TOSTR_INTO_FUNC(n) \
-typedef typeof(NEAT_ARG1(ADD_TOSTR)) neat_tostr_into_type_##n; \
-static inline void neat_tostr_func_##n (Any_String_Ref dst, neat_tostr_type_##n *obj) \
+typedef typeof(NEAT_ARG1(ADD_TOSTR_INTO)) neat_tostr_into_type_##n; \
+static inline void neat_tostr_into_func_##n (Any_String_Ref dst, neat_tostr_type_##n *obj) \
 { \
+    _Static_assert(neat_has_type(NEAT_ARG2(ADD_TOSTR_INTO), typeof(void(*)(Any_String_Ref, neat_tostr_into_type_##n*))), "tostr_into functions must have type void (T*)"); \
     return NEAT_ARG2(ADD_TOSTR_INTO)(dst, obj); \
 }
 
