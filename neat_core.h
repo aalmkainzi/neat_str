@@ -197,8 +197,8 @@ _Generic(exp, \
 #define NEAT_OMIT( ... )
 #define NEAT_OMIT1(a, ...)        __VA_ARGS__
 #define NEAT_IF_DEF( macro )      NEAT_ARG2( NEAT_COMMA macro () NEAT_INCL, NEAT_OMIT, )
-#define NEAT_STRINGIIFY(X)        NEAT_STRINGIIFY_(X)
-#define NEAT_STRINGIIFY_(X)       #X
+#define NEAT_STRINGIFY(X)         NEAT_STRINGIFY_(X)
+#define NEAT_STRINGIFY_(X)        #X
 // IF_DEF and ARG_n stuff end
 
 // FOREACH stuff
