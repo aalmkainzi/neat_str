@@ -194,13 +194,13 @@ neat_strv_arr_join(neat_anystr_ref(any_str_dst), neat_strv(any_str_delim), strv_
 #define neat_str_fread_line(stream, any_str) \
 neat_anystr_ref_fread_line(stream, neat_anystr_ref(any_str))
 
-#define neat_str_fread_line_concat(stream, any_str) \
+#define neat_str_concat_fread_line(stream, any_str) \
 neat_anystr_ref_concat_fread_line(stream, neat_anystr_ref(any_str))
 
 #define neat_str_read_line(any_str) \
 neat_anystr_ref_fread_line(stdin, neat_anystr_ref(any_str))
 
-#define neat_str_read_concat(any_str) \
+#define neat_str_concat_read_line(any_str) \
 neat_anystr_ref_concat_fread_line(stdin, neat_anystr_ref(any_str))
 
 #define neat_str_fprint(stream, any_str) \
@@ -567,7 +567,7 @@ static inline DString neat_tostr_func_##n (neat_tostr_type_##n *obj) \
 
 #define NEAT_DECL_TOSTR_INTO_FUNC(n) \
 typedef typeof(NEAT_ARG1(ADD_TOSTR_INTO)) neat_tostr_into_type_##n; \
-static inline void neat_tostr_into_func_##n (Any_String_Ref dst, neat_tostr_type_##n *obj) \
+static inline void neat_tostr_into_func_##n (Any_String_Ref dst, neat_tostr_into_type_##n *obj) \
 { \
     _Static_assert(neat_has_type(NEAT_ARG2(ADD_TOSTR_INTO), typeof(void(*)(Any_String_Ref, neat_tostr_into_type_##n*))), "tostr_into functions must have type void (T*)"); \
     return NEAT_ARG2(ADD_TOSTR_INTO)(dst, obj); \
@@ -700,6 +700,62 @@ void neat_tostr_into_sstr_ref(Any_String_Ref dst, SString_Ref *obj);
 void neat_tostr_into_anystr_ref(Any_String_Ref dst, Any_String_Ref *obj);
 
 #endif /* NEAT_STR_H */
+
+#ifndef NEAT_STR_PREFIX
+
+#define str_len(any_str) neat_str_len(any_str)
+#define str_cap(any_str) neat_str_cap(any_str)
+#define str_equal(any_str1, any_str2) neat_str_equal(any_str1, any_str2)
+#define str_find(any_str_hay, any_str_needle) neat_str_find(any_str_hay, any_str_needle)
+#define str_count(any_str_hay, any_str_needle) neat_str_count(any_str_hay, any_str_needle)
+#define str_copy(any_str_dst, any_str_src) neat_str_copy(any_str_dst, any_str_src)
+#define str_concat(cap_str_dst, any_str_src) neat_str_concat(cap_str_dst, any_str_src)
+#define str_concat_all(cap_str_dst, strv_arr) neat_str_concat_all(cap_str_dst, strv_arr)
+#define str_concat_new(any_str_1, any_str_2, ...) neat_str_concat_new(any_str_1, any_str_2 __VA_OPT__(,) __VA_ARGS__)
+#define str_concat_all_new(strv_arr, ...) neat_str_concat_all_new(strv_arr __VA_OPT__(,) __VA_ARGS__)
+#define str_replace(mut_str, any_str_target, any_str_replacement) neat_str_replace(mut_str, any_str_target, any_str_replacement)
+#define str_split(any_str, any_str_delim, ...) neat_str_split(any_str, any_str_delim __VA_OPT__(,) __VA_ARGS__)
+#define str_join(mut_str_dst, any_str_delim, strv_arr) neat_str_join(mut_str_dst, any_str_delim, strv_arr)
+#define str_join_new(any_str_delim, strv_arr, ...) neat_str_join_new(any_str_delim, strv_arr __VA_OPT__(,) __VA_ARGS__)
+#define str_fread_line(stream, any_str) neat_str_fread_line(stream, any_str)
+#define str_concat_fread_line(stream, any_str) neat_str_concat_fread_line(stream, any_str)
+#define str_read_line(any_str) neat_str_read_line(any_str)
+#define str_concat_read_line(any_str) neat_str_concat_read_line(any_str)
+#define str_fprint(stream, any_str) neat_str_fprint(stream, any_str)
+#define str_fprintln(stream, any_str) neat_str_fprintln(stream, any_str)
+#define str_print(any_str) neat_str_print(any_str)
+#define str_println(any_str) neat_str_println(any_str)
+
+#define dstr(...) neat_dstr(__VA_ARGS__)
+#define dstr_deinit(dstr) neat_dstr_deinit(dstr);
+
+#define dstr_append(dstr, any_str) neat_dstr_append(dstr, any_str)
+#define dstr_append_tostr(dstr, stringable) neat_dstr_append_tostr(dstr, stringable)
+#define dstr_append_tostr_p(dstr, stringable_ptr) neat_dstr_append_tostr_p(dstr, stringable_ptr)
+#define dstr_prepend(dstr, any_str) neat_dstr_prepend(dstr, any_str)
+#define dstr_prepend_tostr(dstr, stringable) neat_dstr_prepend_tostr(dstr, stringable)
+#define dstr_prepend_tostr_p(dstr, stringable_ptr) neat_dstr_prepend_tostr_p(dstr, stringable_ptr)
+#define dstr_insert(dstr, any_str, idx) neat_dstr_insert(dstr, any_str, idx)
+#define dstr_insert_tostr(dstr, stringable, idx) neat_dstr_insert_tostr(dstr, stringable, idx)
+#define dstr_insert_tostr_p(dstr, stringable_ptr, idx) neat_dstr_insert_tostr_p(dstr, stringable_ptr, idx)
+
+#define strbuf(str_or_cap, ...) neat_strbuf(str_or_cap __VA_OPT__(,) __VA_ARGS__)
+#define sstr_ref(sstr_ptr) neat_sstr_ref(sstr_ptr)
+#define strv(...) neat_strv(__VA_ARGS__)
+#define anystr_ref(any_str) neat_anystr_ref(any_str)
+#define strv_arr(strv_carr, ...) neat_strv_arr(strv_carr __VA_OPT__(,) __VA_ARGS__)
+
+#define tostr(x) neat_tostr(x)
+#define tostr_p(x) neat_tostr_p(x)
+#define tostr_into(any_str, x) neat_tostr_into(any_str, x)
+#define tostr_into_p(any_str, x) neat_tostr_into_p(any_str, x)
+
+#define print(...) neat_print(__VA_ARGS__)
+#define println(...) neat_println(__VA_ARGS__)
+#define fprint(stream, ...) neat_fprint(stream, __VA_ARGS__)
+#define fprintln(stream, ...) neat_fprintln(stream, __VA_ARGS__)
+
+#endif
 
 #if defined(ADD_TOSTR)
 
