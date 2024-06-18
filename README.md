@@ -222,3 +222,9 @@ int main()
     println("hello", 123, "\n", 15.3);
 }
 ```
+
+## Including
+
+to include this lib in your project, add `neat_str.c` and `neat_core.c` to your build script.
+
+note that `neat_str.c` includes `neat_str.h` in the same directory, same for `neat_core.c` and `neat_core.h`,
