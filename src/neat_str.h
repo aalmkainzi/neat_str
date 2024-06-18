@@ -192,16 +192,16 @@ neat_strv_arr_join(neat_anystr_ref(any_str_dst), neat_strv(any_str_delim), strv_
 )
 
 #define neat_str_fread_line(any_str, stream) \
-neat_anystr_ref_fread_line(neat_anystr_ref(any_str), stream)
+neat_anystr_ref_fread_line(stream, neat_anystr_ref(any_str))
 
 #define neat_str_fread_concat(any_str, stream) \
-neat_anystr_ref_concat_fread_line(neat_anystr_ref(any_str), stream)
+neat_anystr_ref_concat_fread_line(stream, neat_anystr_ref(any_str))
 
 #define neat_str_read_line(any_str) \
-neat_anystr_ref_fread_line(neat_anystr_ref(any_str), stdin)
+neat_anystr_ref_fread_line(stdin, neat_anystr_ref(any_str))
 
 #define neat_str_read_concat(any_str) \
-neat_anystr_ref_concat_fread_line(neat_anystr_ref(any_str), stdout)
+neat_anystr_ref_concat_fread_line(stdin, neat_anystr_ref(any_str))
 
 #define neat_fprint_str(stream, any_str) \
 neat_fprint_strv(stream, neat_strv(any_str))
