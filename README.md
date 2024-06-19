@@ -57,9 +57,9 @@ void dstr_append_tostr_p(dstr, stringable_ptr);
 void dstr_prepend(dstr, any_str);
 void dstr_prepend_tostr(dstr, stringable);
 void dstr_prepend_tostr_p(dstr, stringable_ptr);
-void dstr_insert(dstr, any_str, idx);
-void dstr_insert_tostr(dstr, stringable, idx);
-void dstr_insert_tostr_p(dstr, stringable_ptr, idx);
+bool dstr_insert(dstr, any_str, idx);
+bool dstr_insert_tostr(dstr, stringable, idx);
+bool dstr_insert_tostr_p(dstr, stringable_ptr, idx);
 ```
 
 ## String_Buffer
