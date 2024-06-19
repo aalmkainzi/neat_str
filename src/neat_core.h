@@ -77,6 +77,9 @@ allocator.realloc(allocator.ctx, ptr, _Alignof(max_align_t), (old_n), (new_n))
 #define neat_has_type(exp, t) \
 _Generic(exp, t: 1, default: 0)
 
+#define neat_is_array_of(exp, ty) \
+neat_has_type((typeof(exp)*){0}, typeof(ty)(*)[sizeof(exp)/sizeof(ty)])
+
 #define neat_is_integer(exp) \
 _Generic(exp, \
     bool: 1, \
