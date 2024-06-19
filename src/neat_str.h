@@ -116,14 +116,14 @@ _Generic((char(*)[ 1 + (sizeof(*s) == sizeof(NEAT_SSTR_COPY_T(*s))) ]){0}, \
 // SString stuff end
 
 // this is to cause compile err if type is not mutable string
-#define neat_str_assert_mutable(str) \
-(void)_Generic(str,                  \
-    char*              : 1,          \
-    unsigned char*     : 1,          \
-    Neat_DString*      : 1,          \
-    Neat_String_Buffer*: 1,          \
-    Neat_SString_Ref   : 1,          \
-    Neat_Any_String_Ref: 1           \
+#define neat_str_assert_mutable(str)    \
+(void)_Generic(str,                     \
+    char*                         : 1,  \
+    NEAT_UCHAR_CASE(unsigned char*: 1,) \
+    Neat_DString*                 : 1,  \
+    Neat_String_Buffer*           : 1,  \
+    Neat_SString_Ref              : 1,  \
+    Neat_Any_String_Ref           : 1   \
 )
 
 #define neat_str_assert_appendable(str) \
@@ -237,33 +237,33 @@ neat_static_assertx(!neat_is_array_of(NEAT_ARG1(__VA_ARGS__), Neat_String_View),
 #define neat_strbuf(str_or_cap, ...) \
 neat_strbuf_##__VA_OPT__(2)(str_or_cap __VA_OPT__(,) __VA_ARGS__)
 
-#define neat_strbuf_(str_or_cap)                    \
-_Generic(str_or_cap,                                \
-    char*              : neat_strbuf_of_cstr,       \
-    unsigned char*     : neat_strbuf_of_ucstr,      \
-    Neat_DString       : neat_strbuf_of_dstr,       \
-    Neat_DString*      : neat_strbuf_of_dstr_ptr,   \
-    Neat_String_View   : neat_strbuf_of_strv,       \
-    Neat_String_View*  : neat_strbuf_of_strv_ptr,   \
-    Neat_String_Buffer : neat_strbuf_of_strbuf,     \
-    Neat_String_Buffer*: neat_strbuf_of_strbuf_ptr, \
-    Neat_SString_Ref   : neat_strbuf_of_sstr_ref,   \
-    Neat_Any_String_Ref: neat_strbuf_of_anystr_ref, \
-    default            : neat_strbuf_new_default    \
+#define neat_strbuf_(str_or_cap)                               \
+_Generic(str_or_cap,                                           \
+    char*                         : neat_strbuf_of_cstr,       \
+    NEAT_UCHAR_CASE(unsigned char*: neat_strbuf_of_ucstr,)     \
+    Neat_DString                  : neat_strbuf_of_dstr,       \
+    Neat_DString*                 : neat_strbuf_of_dstr_ptr,   \
+    Neat_String_View              : neat_strbuf_of_strv,       \
+    Neat_String_View*             : neat_strbuf_of_strv_ptr,   \
+    Neat_String_Buffer            : neat_strbuf_of_strbuf,     \
+    Neat_String_Buffer*           : neat_strbuf_of_strbuf_ptr, \
+    Neat_SString_Ref              : neat_strbuf_of_sstr_ref,   \
+    Neat_Any_String_Ref           : neat_strbuf_of_anystr_ref, \
+    default                       : neat_strbuf_new_default    \
 )(str_or_cap)
 
 #define neat_strbuf_2(cap, allocator) \
 neat_strbuf_new(cap, allocator)
 
-#define neat_anystr_ref(any_str)                        \
-_Generic(any_str,                                       \
-    char*              : neat_anystr_ref_to_cstr,       \
-    unsigned char*     : neat_anystr_ref_to_ucstr,      \
-    Neat_DString*      : neat_anystr_ref_to_dstr_ptr,   \
-    Neat_String_View*  : neat_anystr_ref_to_strv_ptr,   \
-    Neat_String_Buffer*: neat_anystr_ref_to_strbuf_ptr, \
-    Neat_SString_Ref   : neat_anystr_ref_to_sstr_ref,   \
-    Neat_Any_String_Ref: neat_anystr_ref_to_anystr_ref  \
+#define neat_anystr_ref(any_str)                                   \
+_Generic(any_str,                                                  \
+    char*                         : neat_anystr_ref_to_cstr,       \
+    NEAT_UCHAR_CASE(unsigned char*: neat_anystr_ref_to_ucstr,)     \
+    Neat_DString*                 : neat_anystr_ref_to_dstr_ptr,   \
+    Neat_String_View*             : neat_anystr_ref_to_strv_ptr,   \
+    Neat_String_Buffer*           : neat_anystr_ref_to_strbuf_ptr, \
+    Neat_SString_Ref              : neat_anystr_ref_to_sstr_ref,   \
+    Neat_Any_String_Ref           : neat_anystr_ref_to_anystr_ref  \
 )(any_str)
 
 #define neat_sstr_ref(sstr_ptr) \
@@ -281,32 +281,32 @@ NEAT_CAT(neat_strv, NEAT_NARG(any_str __VA_OPT__(,) __VA_ARGS__))(any_str __VA_O
 #define neat_strv1(any_str) \
 neat_strv2(any_str, 0)
 
-#define neat_strv2(any_str, start)              \
-_Generic(any_str,                               \
-    char*              : neat_strv_cstr2,       \
-    unsigned char*     : neat_strv_ucstr2,      \
-    Neat_DString       : neat_strv_dstr2,       \
-    Neat_DString*      : neat_strv_dstr_ptr2,   \
-    Neat_String_View   : neat_strv_strv2,       \
-    Neat_String_View*  : neat_strv_strv_ptr2,   \
-    Neat_String_Buffer : neat_strv_strbuf2,     \
-    Neat_String_Buffer*: neat_strv_strbuf_ptr2, \
-    Neat_SString_Ref   : neat_strv_sstr_ref2,   \
-    Neat_Any_String_Ref: neat_strv_anystr_ref2  \
+#define neat_strv2(any_str, start)                         \
+_Generic(any_str,                                          \
+    char*                         : neat_strv_cstr2,       \
+    NEAT_UCHAR_CASE(unsigned char*: neat_strv_ucstr2,)     \
+    Neat_DString                  : neat_strv_dstr2,       \
+    Neat_DString*                 : neat_strv_dstr_ptr2,   \
+    Neat_String_View              : neat_strv_strv2,       \
+    Neat_String_View*             : neat_strv_strv_ptr2,   \
+    Neat_String_Buffer            : neat_strv_strbuf2,     \
+    Neat_String_Buffer*           : neat_strv_strbuf_ptr2, \
+    Neat_SString_Ref              : neat_strv_sstr_ref2,   \
+    Neat_Any_String_Ref           : neat_strv_anystr_ref2  \
 )(any_str, start)
 
-#define neat_strv3(any_str, start, end)         \
-_Generic(any_str,                               \
-    char*              : neat_strv_cstr3,       \
-    unsigned char*     : neat_strv_ucstr3,      \
-    Neat_DString       : neat_strv_dstr3,       \
-    Neat_DString*      : neat_strv_dstr_ptr3,   \
-    Neat_String_View   : neat_strv_strv3,       \
-    Neat_String_View*  : neat_strv_strv_ptr3,   \
-    Neat_String_Buffer : neat_strv_strbuf3,     \
-    Neat_String_Buffer*: neat_strv_strbuf_ptr3, \
-    Neat_SString_Ref   : neat_strv_sstr_ref3,   \
-    Neat_Any_String_Ref: neat_strv_anystr_ref3, \
+#define neat_strv3(any_str, start, end)                \
+_Generic(any_str,                                      \
+    char*              : neat_strv_cstr3,              \
+    NEAT_UCHAR_CASE(unsigned char*: neat_strv_ucstr3,) \
+    Neat_DString       : neat_strv_dstr3,              \
+    Neat_DString*      : neat_strv_dstr_ptr3,          \
+    Neat_String_View   : neat_strv_strv3,              \
+    Neat_String_View*  : neat_strv_strv_ptr3,          \
+    Neat_String_Buffer : neat_strv_strbuf3,            \
+    Neat_String_Buffer*: neat_strv_strbuf_ptr3,        \
+    Neat_SString_Ref   : neat_strv_sstr_ref3,          \
+    Neat_Any_String_Ref: neat_strv_anystr_ref3,        \
 )(any_str, start, end)
 
 #define neat_dstr(...) \
@@ -370,23 +370,23 @@ do \
     NEAT_FOREACH(neat_fprint_, __VA_ARGS__); \
 } while(0)
 
-#define neat_fprint_(x)                                                                                                                    \
-do                                                                                                                                         \
-{                                                                                                                                          \
-    Neat_DString temp;                                                                                                                     \
-    _Generic(x,                                                                                                                            \
-        char *             : fputs(neat_gurantee(x, char*), neat_file_stream),                                                             \
-        unsigned char*     : fputs((char*) neat_gurantee(x, unsigned char*), neat_file_stream),                                            \
-        Neat_DString       : neat_fprint_strv(neat_file_stream, neat_strv_dstr2(neat_gurantee(x, Neat_DString), 0)),                       \
-        Neat_DString*      : neat_fprint_strv(neat_file_stream, neat_strv_dstr_ptr2(neat_gurantee(x, Neat_DString*), 0)),                  \
-        Neat_String_View   : neat_fprint_strv(neat_file_stream, neat_gurantee(x, Neat_String_View)),                                       \
-        Neat_String_View*  : neat_fprint_strv(neat_file_stream, *neat_gurantee(x, Neat_String_View*)),                                     \
-        Neat_String_Buffer : neat_fprint_strv(neat_file_stream, neat_strv_strbuf2(neat_gurantee(x, Neat_String_Buffer), 0)),               \
-        Neat_String_Buffer*: neat_fprint_strv(neat_file_stream, neat_strv_strbuf_ptr2(neat_gurantee(x, Neat_String_Buffer*), 0)),          \
-        Neat_SString_Ref   : neat_fprint_strv(neat_file_stream, neat_strv_sstr_ref2(neat_gurantee(x, Neat_SString_Ref), 0)),               \
-        Neat_Any_String_Ref: neat_fprint_strv(neat_file_stream, neat_strv_anystr_ref2(neat_gurantee(x, Neat_Any_String_Ref), 0)),          \
-        default            : (temp = neat_tostr(x), neat_fprint_strv(neat_file_stream, neat_strv_dstr2(temp, 0)), neat_dstr_deinit(&temp)) \
-    );                                                                                                                                     \
+#define neat_fprint_(x)                                                                                                                               \
+do                                                                                                                                                    \
+{                                                                                                                                                     \
+    Neat_DString temp;                                                                                                                                \
+    _Generic(x,                                                                                                                                       \
+        char*                         : fputs(neat_gurantee(x, char*), neat_file_stream),                                                             \
+        NEAT_UCHAR_CASE(unsigned char*: fputs((char*) neat_gurantee(x, unsigned char*), neat_file_stream),)                                           \
+        Neat_DString                  : neat_fprint_strv(neat_file_stream, neat_strv_dstr2(neat_gurantee(x, Neat_DString), 0)),                       \
+        Neat_DString*                 : neat_fprint_strv(neat_file_stream, neat_strv_dstr_ptr2(neat_gurantee(x, Neat_DString*), 0)),                  \
+        Neat_String_View              : neat_fprint_strv(neat_file_stream, neat_gurantee(x, Neat_String_View)),                                       \
+        Neat_String_View*             : neat_fprint_strv(neat_file_stream, *neat_gurantee(x, Neat_String_View*)),                                     \
+        Neat_String_Buffer            : neat_fprint_strv(neat_file_stream, neat_strv_strbuf2(neat_gurantee(x, Neat_String_Buffer), 0)),               \
+        Neat_String_Buffer*           : neat_fprint_strv(neat_file_stream, neat_strv_strbuf_ptr2(neat_gurantee(x, Neat_String_Buffer*), 0)),          \
+        Neat_SString_Ref              : neat_fprint_strv(neat_file_stream, neat_strv_sstr_ref2(neat_gurantee(x, Neat_SString_Ref), 0)),               \
+        Neat_Any_String_Ref           : neat_fprint_strv(neat_file_stream, neat_strv_anystr_ref2(neat_gurantee(x, Neat_Any_String_Ref), 0)),          \
+        default                       : (temp = neat_tostr(x), neat_fprint_strv(neat_file_stream, neat_strv_dstr2(temp, 0)), neat_dstr_deinit(&temp)) \
+    );                                                                                                                                                \
 } while(0);
 
 #define neat_print(...) \
@@ -402,31 +402,31 @@ do                               \
 #define neat_println(...) \
 neat_fprintln(stdout, __VA_ARGS__)
 
-#define NEAT_DEFAULT_TOSTR_TYPES                \
-bool:               neat_tostr_bool,            \
-char*:              neat_tostr_str,             \
-unsigned char*:     neat_tostr_ustr,            \
-char:               neat_tostr_char,            \
-signed char:        neat_tostr_schar,           \
-unsigned char:      neat_tostr_uchar,           \
-short:              neat_tostr_short,           \
-unsigned short:     neat_tostr_ushort,          \
-int:                neat_tostr_int,             \
-unsigned int:       neat_tostr_uint,            \
-long:               neat_tostr_long,            \
-unsigned long:      neat_tostr_ulong,           \
-long long:          neat_tostr_llong,           \
-unsigned long long: neat_tostr_ullong,          \
-float:              neat_tostr_float,           \
-double:             neat_tostr_double,          \
-Neat_DString:            neat_tostr_dstr,       \
-Neat_DString*:           neat_tostr_dstr_ptr,   \
-Neat_String_View:        neat_tostr_strv,       \
-Neat_String_View*:       neat_tostr_strv_ptr,   \
-Neat_String_Buffer:      neat_tostr_strbuf,     \
-Neat_String_Buffer*:     neat_tostr_strbuf_ptr, \
-Neat_SString_Ref:        neat_tostr_sstr_ref,   \
-Neat_Any_String_Ref:     neat_tostr_anystr_ref  \
+#define NEAT_DEFAULT_TOSTR_TYPES                       \
+bool                          : neat_tostr_bool,       \
+char*                         : neat_tostr_str,        \
+NEAT_UCHAR_CASE(unsigned char*: neat_tostr_ustr,)      \
+char                          : neat_tostr_char,       \
+NEAT_SCHAR_CASE(signed char   : neat_tostr_schar,)     \
+NEAT_UCHAR_CASE(unsigned char : neat_tostr_uchar,)     \
+short                         : neat_tostr_short,      \
+unsigned short                : neat_tostr_ushort,     \
+int                           : neat_tostr_int,        \
+unsigned int                  : neat_tostr_uint,       \
+long                          : neat_tostr_long,       \
+unsigned long                 : neat_tostr_ulong,      \
+long long                     : neat_tostr_llong,      \
+unsigned long long            : neat_tostr_ullong,     \
+float                         : neat_tostr_float,      \
+double                        : neat_tostr_double,     \
+Neat_DString                  : neat_tostr_dstr,       \
+Neat_DString*                 : neat_tostr_dstr_ptr,   \
+Neat_String_View              : neat_tostr_strv,       \
+Neat_String_View*             : neat_tostr_strv_ptr,   \
+Neat_String_Buffer            : neat_tostr_strbuf,     \
+Neat_String_Buffer*           : neat_tostr_strbuf_ptr, \
+Neat_SString_Ref              : neat_tostr_sstr_ref,   \
+Neat_Any_String_Ref           : neat_tostr_anystr_ref
 
 #define NEAT_ALL_TOSTR_TYPES                                       \
 NEAT_IF_DEF(NEAT_TOSTR1) (neat_tostr_type_1 : neat_tostr_func_1,)  \
@@ -463,30 +463,31 @@ NEAT_IF_DEF(NEAT_TOSTR31)(neat_tostr_type_31: neat_tostr_func_31,) \
 NEAT_IF_DEF(NEAT_TOSTR32)(neat_tostr_type_32: neat_tostr_func_32,) \
 NEAT_DEFAULT_TOSTR_TYPES
 
-#define NEAT_DEFAULT_TOSTR_INTO_TYPES                \
-bool:                    neat_tostr_into_bool,       \
-char*:                   neat_tostr_into_str,        \
-char:                    neat_tostr_into_char,       \
-signed char:             neat_tostr_into_schar,      \
-unsigned char:           neat_tostr_into_uchar,      \
-short:                   neat_tostr_into_short,      \
-unsigned short:          neat_tostr_into_ushort,     \
-int:                     neat_tostr_into_int,        \
-unsigned int:            neat_tostr_into_uint,       \
-long:                    neat_tostr_into_long,       \
-unsigned long:           neat_tostr_into_ulong,      \
-long long:               neat_tostr_into_llong,      \
-unsigned long long:      neat_tostr_into_ullong,     \
-float:                   neat_tostr_into_float,      \
-double:                  neat_tostr_into_double,     \
-Neat_DString:            neat_tostr_into_dstr,       \
-Neat_DString*:           neat_tostr_into_dstr_ptr,   \
-Neat_String_View:        neat_tostr_into_strv,       \
-Neat_String_View*:       neat_tostr_into_strv_ptr,   \
-Neat_String_Buffer:      neat_tostr_into_strbuf,     \
-Neat_String_Buffer*:     neat_tostr_into_strbuf_ptr, \
-Neat_SString_Ref:        neat_tostr_into_sstr_ref,   \
-Neat_Any_String_Ref:     neat_tostr_into_anystr_ref  \
+#define NEAT_DEFAULT_TOSTR_INTO_TYPES                       \
+bool                          : neat_tostr_into_bool,       \
+char*                         : neat_tostr_into_str,        \
+NEAT_UCHAR_CASE(unsigned char*: neat_tostr_into_ustr,)       \
+char                          : neat_tostr_into_char,       \
+NEAT_SCHAR_CASE(signed char   : neat_tostr_into_schar,)     \
+NEAT_UCHAR_CASE(unsigned char : neat_tostr_into_uchar,)     \
+short                         : neat_tostr_into_short,      \
+unsigned short                : neat_tostr_into_ushort,     \
+int                           : neat_tostr_into_int,        \
+unsigned int                  : neat_tostr_into_uint,       \
+long                          : neat_tostr_into_long,       \
+unsigned long                 : neat_tostr_into_ulong,      \
+long long                     : neat_tostr_into_llong,      \
+unsigned long long            : neat_tostr_into_ullong,     \
+float                         : neat_tostr_into_float,      \
+double                        : neat_tostr_into_double,     \
+Neat_DString                  : neat_tostr_into_dstr,       \
+Neat_DString*                 : neat_tostr_into_dstr_ptr,   \
+Neat_String_View              : neat_tostr_into_strv,       \
+Neat_String_View*             : neat_tostr_into_strv_ptr,   \
+Neat_String_Buffer            : neat_tostr_into_strbuf,     \
+Neat_String_Buffer*           : neat_tostr_into_strbuf_ptr, \
+Neat_SString_Ref              : neat_tostr_into_sstr_ref,   \
+Neat_Any_String_Ref           : neat_tostr_into_anystr_ref  \
 
 #define NEAT_ALL_TOSTR_INTO_TYPES                                                 \
 NEAT_IF_DEF(NEAT_TOSTR_INTO1) (neat_tostr_into_type_1 : neat_tostr_into_func_1,)  \

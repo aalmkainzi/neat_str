@@ -273,6 +273,18 @@ Neat_String_View_Array neat_strv_split(Neat_String_View str, Neat_String_View de
         };
     }
     
+    if(delim.len == 0)
+    {
+        Neat_String_View_Array ret = { 0 };
+        ret.nb = str.len;
+        ret.strs = neat_alloc(allocator, String_View, ret.nb);
+        for(unsigned int i = 0 ; i < ret.nb ; i++)
+        {
+            ret.strs[i] = neat_strv_strv3(str, i, i + 1);
+        }
+        return ret;
+    }
+    
     unsigned int nb_delim = 0;
     unsigned int *delim_idx = (unsigned int*) calloc(str.len, sizeof(unsigned int));
     
@@ -326,18 +338,22 @@ Neat_DString neat_strv_arr_join_new(Neat_String_View delim, Neat_String_View_Arr
 
 unsigned int neat_strv_arr_join(Neat_Any_String_Ref dst, Neat_String_View delim, Neat_String_View_Array strs)
 {
-    if(dst.len != NULL)
-        *dst.len = 0;
-    
     unsigned int chars_copied = 0;
     
+    Neat_String_Buffer dst_as_buf = { 0 };
+    dst_as_buf.cap = dst.cap;
+    dst_as_buf.len = 0;
+    dst_as_buf.chars = dst.chars;
+    
+    Neat_Any_String_Ref dst2 = neat_anystr_ref_to_strbuf_ptr(&dst_as_buf);
+    
     if(strs.nb > 0)
-        chars_copied += neat_anystr_ref_concat(dst, strs.strs[0]);
+        chars_copied += neat_anystr_ref_concat(dst2, strs.strs[0]);
     
     for(unsigned int i = 1 ; i < strs.nb ; i++)
     {
-        chars_copied += neat_anystr_ref_concat(dst, delim);
-        chars_copied += neat_anystr_ref_concat(dst, strs.strs[i]);
+        chars_copied += neat_anystr_ref_concat(dst2, delim);
+        chars_copied += neat_anystr_ref_concat(dst2, strs.strs[i]);
     }
     
     if(dst.len != NULL)

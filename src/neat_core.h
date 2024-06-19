@@ -71,6 +71,29 @@ allocator.dealloc(allocator.ctx, ptr, (n))
 #define neat_realloc_bytes(allocator, ptr, old_n, new_n) \
 allocator.realloc(allocator.ctx, ptr, _Alignof(max_align_t), (old_n), (new_n))
 
+
+// below is needed for MSVC because (for some reason) 'signed char' and 'char' are type aliases in MSVC
+#ifdef _MSC_VER
+
+    #if _CHAR_UNSIGNED
+
+        #define NEAT_UCHAR_CASE(...)
+        #define NEAT_SCHAR_CASE(...) __VA_ARGS__
+
+    #else
+
+        #define NEAT_UCHAR_CASE(...) __VA_ARGS__
+        #define NEAT_SCHAR_CASE(...)
+
+    #endif
+
+#else
+
+#define NEAT_UCHAR_CASE(...) __VA_ARGS__
+#define NEAT_SCHAR_CASE(...) __VA_ARGS__
+
+#endif
+
 #define neat_static_assertx(exp, msg) \
 ((void)sizeof(struct { _Static_assert(exp, msg); int dummy; }))
 
@@ -84,12 +107,12 @@ neat_has_type((typeof(exp)*){0}, typeof(ty)(*)[sizeof(exp)/sizeof(ty)])
 _Generic(exp, \
     bool: 1, \
     char: 1, \
-    signed char: 1, \
+    NEAT_SCHAR_CASE(signed char: 1,) \
     short int: 1, \
     int: 1, \
     long int: 1, \
     long long int: 1, \
-    unsigned char: 1, \
+    NEAT_UCHAR_CASE(unsigned char: 1,) \
     unsigned short int: 1, \
     unsigned int: 1, \
     unsigned long int: 1, \
@@ -149,12 +172,12 @@ _Generic(exp, \
 _Generic(exp, \
     bool: exp, \
     char: exp, \
-    signed char: exp, \
+    NEAT_SCHAR_CASE(signed char: exp,) \
     short int: exp, \
     int: exp, \
     long int: exp, \
     long long int: exp, \
-    unsigned char: exp, \
+    NEAT_SCHAR_CASE(unsigned char: exp,) \
     unsigned short int: exp, \
     unsigned int: exp, \
     unsigned long int: exp, \
@@ -168,21 +191,21 @@ _Generic(exp, \
     default: exp \
 )
 
-#define neat_gurantee_not_integer(exp, fallback_ty) \
-_Generic(exp, \
-    bool:                   (fallback_ty){0}, \
-    char:                   (fallback_ty){0}, \
-    signed char:            (fallback_ty){0}, \
-    short int:              (fallback_ty){0}, \
-    int:                    (fallback_ty){0}, \
-    long int:               (fallback_ty){0}, \
-    long long int:          (fallback_ty){0}, \
-    unsigned char:          (fallback_ty){0}, \
-    unsigned short int:     (fallback_ty){0}, \
-    unsigned int:           (fallback_ty){0}, \
-    unsigned long int:      (fallback_ty){0}, \
-    unsigned long long int: (fallback_ty){0}, \
-    default: exp \
+#define neat_gurantee_not_integer(exp, fallback_ty)   \
+_Generic(exp,                                         \
+    bool:                          (fallback_ty){0},  \
+    char:                          (fallback_ty){0},  \
+    NEAT_SCHAR_CASE(signed char:   (fallback_ty){0},) \
+    short int:                     (fallback_ty){0},  \
+    int:                           (fallback_ty){0},  \
+    long int:                      (fallback_ty){0},  \
+    long long int:                 (fallback_ty){0},  \
+    NEAT_UCHAR_CASE(unsigned char: (fallback_ty){0},) \
+    unsigned short int:            (fallback_ty){0},  \
+    unsigned int:                  (fallback_ty){0},  \
+    unsigned long int:             (fallback_ty){0},  \
+    unsigned long long int:        (fallback_ty){0},  \
+    default: exp                                      \
 )
 
 #define neat_as_pointer(scalar) \
@@ -240,22 +263,5 @@ NEAT_CAT(NEAT_IF_EMPTY_, __VA_OPT__(0))(then)
 #define NEAT_IF_EMPTY_0(then)
 
 #define NEAT_IF_NEMPTY(then, ...) __VA_OPT__(then)
-
-#define NEAT_U64_IF_INTEGER(num)                                                   \
-_Generic(num,                                                                      \
-    bool:                   (uint64_t) neat_gurantee(num, bool),                   \
-    char:                   (uint64_t) neat_gurantee(num, char),                   \
-    signed char:            (uint64_t) neat_gurantee(num, signed char),            \
-    short int:              (uint64_t) neat_gurantee(num, short int),              \
-    int:                    (uint64_t) neat_gurantee(num, int),                    \
-    long int:               (uint64_t) neat_gurantee(num, long int),               \
-    long long int:          (uint64_t) neat_gurantee(num, long long int),          \
-    unsigned char:          (uint64_t) neat_gurantee(num, unsigned char),          \
-    unsigned short int:     (uint64_t) neat_gurantee(num, unsigned short int),     \
-    unsigned int:           (uint64_t) neat_gurantee(num, unsigned int),           \
-    unsigned long int:      (uint64_t) neat_gurantee(num, unsigned long int),      \
-    unsigned long long int: (uint64_t) neat_gurantee(num, unsigned long long int), \
-    default: num                                                                   \
-)
 
 #endif /* NEAT_CORE_H */
