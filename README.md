@@ -231,7 +231,7 @@ You can choose to prefix the entire lib like this:
 #define NEAT_STR_PREFIX
 #include "neat_str.h"
 ```
-this will prefix all macro calls with `neat_` and all types with `Neat_`
+this will prefix all macro definitions with `neat_` and all types with `Neat_`
 
 ## Including
 
