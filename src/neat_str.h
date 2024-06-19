@@ -622,7 +622,7 @@ void neat_dstr_prepend_strv(Neat_DString *dstr, Neat_String_View str);
 bool neat_dstr_insert_strv(Neat_DString *dstr, Neat_String_View str, unsigned int idx);
 void neat_dstr_append_tostr_(Neat_DString *dstr, Neat_DString tostr);
 void neat_dstr_prepend_tostr_(Neat_DString *dstr, Neat_DString tostr);
-void neat_dstr_insert_tostr_(Neat_DString *dstr, Neat_DString tostr, unsigned int idx);
+bool neat_dstr_insert_tostr_(Neat_DString *dstr, Neat_DString tostr, unsigned int idx);
 
 Neat_SString_Ref neat_sstr_ref_from_sstr_ptr(void *sstr_ptr, unsigned int cap);
 

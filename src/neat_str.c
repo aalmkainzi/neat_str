@@ -90,10 +90,11 @@ void neat_dstr_prepend_tostr_(Neat_DString *dstr, Neat_DString tostr)
     neat_dstr_deinit_(&tostr);
 }
 
-void neat_dstr_insert_tostr_(Neat_DString *dstr, Neat_DString tostr, unsigned int idx)
+bool neat_dstr_insert_tostr_(Neat_DString *dstr, Neat_DString tostr, unsigned int idx)
 {
-    neat_dstr_insert_strv(dstr, neat_strv_dstr2(tostr, 0), idx);
+    bool ret = neat_dstr_insert_strv(dstr, neat_strv_dstr2(tostr, 0), idx);
     neat_dstr_deinit_(&tostr);
+    return ret;
 }
 
 Neat_String_View neat_strv_strv2(Neat_String_View str, unsigned int start)
