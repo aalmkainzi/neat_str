@@ -619,7 +619,7 @@ Neat_DString neat_dstr_new(unsigned int cap, Neat_Allocator allocator);
 void neat_dstr_deinit_(Neat_DString *dstr);
 void neat_dstr_append_strv(Neat_DString *dstr, Neat_String_View str);
 void neat_dstr_prepend_strv(Neat_DString *dstr, Neat_String_View str);
-void neat_dstr_insert_strv(Neat_DString *dstr, Neat_String_View str, unsigned int idx);
+bool neat_dstr_insert_strv(Neat_DString *dstr, Neat_String_View str, unsigned int idx);
 void neat_dstr_append_tostr_(Neat_DString *dstr, Neat_DString tostr);
 void neat_dstr_prepend_tostr_(Neat_DString *dstr, Neat_DString tostr);
 void neat_dstr_insert_tostr_(Neat_DString *dstr, Neat_DString tostr, unsigned int idx);

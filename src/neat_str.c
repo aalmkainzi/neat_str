@@ -23,10 +23,10 @@ Neat_DString neat_dstr_new(unsigned int cap, Neat_Allocator allocator)
     allocator.init(&allocator.ctx);
     Neat_DString ret = {
         .allocator = allocator,
-        .cap = cap,
+        .cap = cap + 1,
         .len = 0,
     };
-    ret.chars = neat_alloc(allocator, unsigned char, cap);
+    ret.chars = neat_alloc(allocator, unsigned char, cap + 1);
     if(ret.chars != NULL)
     {
         ret.chars[0] = '\0';
@@ -126,12 +126,11 @@ void neat_dstr_prepend_strv(Neat_DString *dstr, Neat_String_View str)
     dstr->chars[dstr->len] = '\0';
 }
 
-void neat_dstr_insert_strv(Neat_DString *dstr, Neat_String_View str, unsigned int idx)
+bool neat_dstr_insert_strv(Neat_DString *dstr, Neat_String_View str, unsigned int idx)
 {
     if(idx > dstr->len)
     {
-        fprintf(stderr, "ERROR: dstr_insert index %u out of range %u\n", idx, str.len);
-        exit(1);
+        return false;
     }
     
     Neat_String_View to_insert = str;
@@ -155,6 +154,8 @@ void neat_dstr_insert_strv(Neat_DString *dstr, Neat_String_View str, unsigned in
     
     dstr->len += to_insert.len;
     dstr->chars[dstr->len] = '\0';
+    
+    return true;
 }
 
 bool neat_strv_equal(Neat_String_View str1, Neat_String_View str2)
@@ -532,9 +533,9 @@ Neat_String_Buffer neat_strbuf_new(unsigned int cap, Neat_Allocator allocator)
 {
     allocator.init(&allocator.ctx);
     return (Neat_String_Buffer){
-        .cap   = cap,
+        .cap   = cap + 1,
         .len   = 0,
-        .chars = neat_alloc(allocator, unsigned char, cap)
+        .chars = neat_alloc(allocator, unsigned char, cap + 1)
     };
 }
 
@@ -625,8 +626,10 @@ Neat_String_View neat_strv_cstr2(char *str, unsigned int start)
     
     if(start > len)
     {
-        fprintf(stderr, "ERROR: strv start index %u exceeds string length %u\n", start, len);
-        exit(1);
+        return (Neat_String_View){
+            .len = 0,
+            .chars = NULL
+        };
     }
     
     return (Neat_String_View){
@@ -641,8 +644,10 @@ Neat_String_View neat_strv_ucstr2(unsigned char *str, unsigned int start)
     
     if(start > len)
     {
-        fprintf(stderr, "ERROR: strv start index %u exceeds string length %u\n", start, len);
-        exit(1);
+        return (Neat_String_View){
+            .len = 0,
+            .chars = NULL
+        };
     }
     
     return (Neat_String_View){
@@ -660,8 +665,10 @@ Neat_String_View neat_strv_dstr_ptr2(Neat_DString *str, unsigned int start)
 {
     if(start > str->len)
     {
-        fprintf(stderr, "ERROR: strv start index %u exceeds string length %u\n", start, str->len);
-        exit(1);
+        return (Neat_String_View){
+            .len = 0,
+            .chars = NULL
+        };
     }
     
     return (Neat_String_View){
@@ -674,8 +681,10 @@ Neat_String_View neat_strv_strv_ptr2(Neat_String_View *str, unsigned int start)
 {
     if(start > str->len)
     {
-        fprintf(stderr, "ERROR: strv start index %u exceeds string length %u\n", start, str->len);
-        exit(1);
+        return (Neat_String_View){
+            .len = 0,
+            .chars = NULL
+        };
     }
     
     return (Neat_String_View){
@@ -688,8 +697,10 @@ Neat_String_View neat_strv_strbuf_ptr2(Neat_String_Buffer *str, unsigned int sta
 {
     if(start > str->len)
     {
-        fprintf(stderr, "ERROR: strv start index %u exceeds string length %u\n", start, str->len);
-        exit(1);
+        return (Neat_String_View){
+            .len = 0,
+            .chars = NULL
+        };
     }
     
     return (Neat_String_View){
@@ -707,8 +718,10 @@ Neat_String_View neat_strv_sstr_ref2(Neat_SString_Ref str, unsigned int start)
 {
     if(start > str.sstring->len)
     {
-        fprintf(stderr, "ERROR: strv start index %u exceeds string length %u\n", start, str.sstring->len);
-        exit(1);
+        return (Neat_String_View){
+            .len = 0,
+            .chars = NULL
+        };
     }
     
     return (Neat_String_View){
@@ -731,8 +744,10 @@ Neat_String_View neat_strv_anystr_ref2(Neat_Any_String_Ref str, unsigned int sta
     
     if(start > len)
     {
-        fprintf(stderr, "ERROR: strv start index %u exceeds string length %u\n", start, len);
-        exit(1);
+        return (Neat_String_View){
+            .len = 0,
+            .chars = NULL
+        };
     }
     
     return (Neat_String_View){
@@ -747,8 +762,10 @@ Neat_String_View neat_strv_cstr3(char *str, unsigned int start, unsigned int end
     
     if(start > len || end > len || start > end)
     {
-        fprintf(stderr, "ERROR: strv start/end (%u, %u) exceeds string length %u\n", start, end, len);
-        exit(1);
+        return (Neat_String_View){
+            .len = 0,
+            .chars = NULL
+        };
     }
     
     return (Neat_String_View){
@@ -763,8 +780,10 @@ Neat_String_View neat_strv_ucstr3(unsigned char *str, unsigned int start, unsign
     
     if(start > len || end > len || start > end)
     {
-        fprintf(stderr, "ERROR: strv start/end (%u, %u) exceeds string length %u\n", start, end, len);
-        exit(1);
+        return (Neat_String_View){
+            .len = 0,
+            .chars = NULL
+        };
     }
     
     return (Neat_String_View){
@@ -777,8 +796,10 @@ Neat_String_View neat_strv_dstr_ptr3(Neat_DString *str, unsigned int start, unsi
 {
     if(start > str->len || end > str->len || start > end)
     {
-        fprintf(stderr, "ERROR: strv start/end (%u, %u) exceeds string length %u\n", start, end, str->len);
-        exit(1);
+        return (Neat_String_View){
+            .len = 0,
+            .chars = NULL
+        };
     }
     
     return (Neat_String_View){
@@ -791,8 +812,10 @@ Neat_String_View neat_strv_strv_ptr3(Neat_String_View *str, unsigned int start, 
 {
     if(start > str->len || end > str->len || start > end)
     {
-        fprintf(stderr, "ERROR: strv start/end (%u, %u) exceeds string length %u\n", start, end, str->len);
-        exit(1);
+        return (Neat_String_View){
+            .len = 0,
+            .chars = NULL
+        };
     }
     
     return (Neat_String_View){
@@ -805,8 +828,10 @@ Neat_String_View neat_strv_strbuf_ptr3(Neat_String_Buffer *str, unsigned int sta
 {
     if(start > str->len || end > str->len || start > end)
     {
-        fprintf(stderr, "ERROR: strv start/end (%u, %u) exceeds string length %u\n", start, end, str->len);
-        exit(1);
+        return (Neat_String_View){
+            .len = 0,
+            .chars = NULL
+        };
     }
     
     return (Neat_String_View){
@@ -819,8 +844,10 @@ Neat_String_View neat_strv_sstr_ref3(Neat_SString_Ref str, unsigned int start, u
 {
     if(start > str.sstring->len || end > str.sstring->len || start > end)
     {
-        fprintf(stderr, "ERROR: strv start/end (%u, %u) exceeds string length %u\n", start, end, str.sstring->len);
-        exit(1);
+        return (Neat_String_View){
+            .len = 0,
+            .chars = NULL
+        };
     }
     
     return (Neat_String_View){
@@ -843,8 +870,10 @@ Neat_String_View neat_strv_anystr_ref3(Neat_Any_String_Ref str, unsigned int sta
     
     if(start > len || end > len || start > end)
     {
-        fprintf(stderr, "ERROR: strv start/end (%u, %u) exceeds string length %u\n", start, end, len);
-        exit(1);
+        return (Neat_String_View){
+            .len = 0,
+            .chars = NULL
+        };
     }
     
     return (Neat_String_View){
