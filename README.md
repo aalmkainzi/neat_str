@@ -117,8 +117,9 @@ An array of `String_View`. This type is returned from `str_split` and is passed 
 
 to initialize:
 ```C
-String_View_Array strv_arr(carray);
-String_View_Array strv_arr(carray_or_ptr, nb);
+String_View_Array strv_arr(...any_str);
+String_View_Array strv_arr_from_carr(carr);
+String_View_Array strv_arr_from_carr(carr_or_ptr, nb);
 ```
 
 ## Any_String_Ref
