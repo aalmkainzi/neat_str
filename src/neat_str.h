@@ -566,6 +566,7 @@ typedef typeof(NEAT_ARG1(ADD_TOSTR_INTO)) neat_tostr_into_type_##n; \
 static inline void neat_tostr_into_func_##n (Neat_Any_String_Ref dst, neat_tostr_into_type_##n *obj) \
 { \
     _Static_assert(neat_has_type(NEAT_ARG2(ADD_TOSTR_INTO), typeof(void(*)(Neat_Any_String_Ref, neat_tostr_into_type_##n*))), "tostr_into functions must have type void (T*)"); \
+    if(dst.len != NULL) *dst.len = 0; \
     return NEAT_ARG2(ADD_TOSTR_INTO)(dst, obj); \
 }
 
