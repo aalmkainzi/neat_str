@@ -1012,84 +1012,84 @@ Neat_DString neat_tostr_char(char *obj)
 Neat_DString neat_tostr_schar(signed char *obj)
 {
     Neat_DString ret = neat_dstr_new(5, neat_get_default_allocator());
-    ret.len = sprintf((char*) ret.chars, "%hhd", *obj);
+    ret.len = snprintf((char*) ret.chars, ret.cap, "%hhd", *obj);
     return ret;
 }
 
 Neat_DString neat_tostr_uchar(unsigned char *obj)
 {
     Neat_DString ret = neat_dstr_new(4, neat_get_default_allocator());
-    ret.len = sprintf((char*) ret.chars, "%hhu", *obj);
+    ret.len = snprintf((char*) ret.chars, ret.cap, "%hhu", *obj);
     return ret;
 }
 
 Neat_DString neat_tostr_short(short *obj)
 {
     Neat_DString ret = neat_dstr_new(8, neat_get_default_allocator());
-    ret.len = sprintf((char*) ret.chars, "%hd", *obj);
+    ret.len = snprintf((char*) ret.chars, ret.cap, "%hd", *obj);
     return ret;
 }
 
 Neat_DString neat_tostr_ushort(unsigned short *obj)
 {
     Neat_DString ret = neat_dstr_new(8, neat_get_default_allocator());
-    ret.len = sprintf((char*) ret.chars, "%hu", *obj);
+    ret.len = snprintf((char*) ret.chars, ret.cap, "%hu", *obj);
     return ret;
 }
 
 Neat_DString neat_tostr_int(int *obj)
 {
     Neat_DString ret = neat_dstr_new(16, neat_get_default_allocator());
-    ret.len = sprintf((char*) ret.chars, "%d", *obj);
+    ret.len = snprintf((char*) ret.chars, ret.cap, "%d", *obj);
     return ret;
 }
 
 Neat_DString neat_tostr_uint(unsigned int *obj)
 {
     Neat_DString ret = neat_dstr_new(16, neat_get_default_allocator());
-    ret.len = sprintf((char*) ret.chars, "%u", *obj);
+    ret.len = snprintf((char*) ret.chars, ret.cap, "%u", *obj);
     return ret;
 }
 
 Neat_DString neat_tostr_long(long *obj)
 {
     Neat_DString ret = neat_dstr_new(32, neat_get_default_allocator());
-    ret.len = sprintf((char*) ret.chars, "%ld", *obj);
+    ret.len = snprintf((char*) ret.chars, ret.cap, "%ld", *obj);
     return ret;
 }
 
 Neat_DString neat_tostr_ulong(unsigned long *obj)
 {
     Neat_DString ret = neat_dstr_new(32, neat_get_default_allocator());
-    ret.len = sprintf((char*) ret.chars, "%lu", *obj);
+    ret.len = snprintf((char*) ret.chars, ret.cap, "%lu", *obj);
     return ret;
 }
 
 Neat_DString neat_tostr_llong(long long *obj)
 {
     Neat_DString ret = neat_dstr_new(32, neat_get_default_allocator());
-    ret.len = sprintf((char*) ret.chars, "%lld", *obj);
+    ret.len = snprintf((char*) ret.chars, ret.cap, "%lld", *obj);
     return ret;
 }
 
 Neat_DString neat_tostr_ullong(unsigned long long *obj)
 {
     Neat_DString ret = neat_dstr_new(32, neat_get_default_allocator());
-    ret.len = sprintf((char*) ret.chars, "%llu", *obj);
+    ret.len = snprintf((char*) ret.chars, ret.cap, "%llu", *obj);
     return ret;
 }
 
 Neat_DString neat_tostr_float(float *obj)
 {
     Neat_DString ret = neat_dstr_new(16, neat_get_default_allocator());
-    ret.len = sprintf((char*) ret.chars, "%g", *obj);
+    ret.len = snprintf((char*) ret.chars, ret.cap, "%g", *obj);
     return ret;
 }
 
 Neat_DString neat_tostr_double(double *obj)
 {
     Neat_DString ret = neat_dstr_new(32, neat_get_default_allocator());
-    ret.len = sprintf((char*) ret.chars, "%g", *obj);
+    ret.len = snprintf((char*) ret.chars, ret.cap, "%g", *obj);
     return ret;
 }
 
