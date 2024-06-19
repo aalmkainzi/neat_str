@@ -224,6 +224,15 @@ int main()
 }
 ```
 
+## Namespacing
+
+You can choose to prefix the entire lib like this:
+```C
+#define NEAT_STR_PREFIX
+#include "neat_str.h"
+```
+this will prefix all macro calls with `neat_` and all types with `Neat_`
+
 ## Including
 
 to include this lib in your project, add `neat_str.c` and `neat_core.c` to your build script.
