@@ -171,8 +171,8 @@ struct FOO {
 
 DString foo_to_str( struct FOO *f )
 {
-    DString ret = neat_dstr();
-    neat_dstr_append_tostr(&ret, f->n);
+    DString ret = dstr();
+    dstr_append_tostr(&ret, f->n);
     return ret;
 }
 
@@ -199,7 +199,7 @@ struct FOO {
 void foo_to_str_into(Any_String_Ref dst, struct FOO *f)
 {
     char tmp[2] = {f->n, '\0'};
-    neat_str_copy(dst, tmp);
+    str_copy(dst, tmp);
 }
 
 #define ADD_TOSTR_INTO struct FOO, foo_to_str_into
