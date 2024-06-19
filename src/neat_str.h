@@ -215,12 +215,24 @@ neat_str_fprint(stdout, any_str)
 #define neat_str_println(any_str) \
 neat_fprintln_strv(stdout, neat_strv(any_str))
 
-#define neat_strv_arr(strv_carr, ...)                                                           \
+#define neat_strv_arr_from_carr(strv_carr, ...)                                                 \
 NEAT_IF_EMPTY(                                                                                  \
     ((void) _Generic((typeof(strv_carr)*){0}, Neat_String_View(*)[NEAT_CARR_LEN(strv_carr)]: 0) \
     ,(Neat_String_View_Array){.nb = NEAT_CARR_LEN(strv_carr), .strs = strv_carr}), __VA_ARGS__  \
 )                                                                                               \
 __VA_OPT__((Neat_String_View_Array){.nb = (__VA_ARGS__), .strs = strv_carr})
+
+#define NEAT_STRV_COMMA(any_str, ...) \
+neat_strv(any_str __VA_OPT__(,) __VA_ARGS__),
+
+#define neat_strv_arr(...)                                                                                                                                \
+(                                                                                                                                                         \
+neat_static_assertx(!neat_has_type((typeof(NEAT_ARG1(__VA_ARGS__))*){0}, typeof(Neat_String_View(*)[sizeof(NEAT_ARG1(__VA_ARGS__))/sizeof(Neat_String_View)])), "strv_arr accpets variadic arguments of strings, not String_View[], call strv_arr_from_carr instead"), \
+(Neat_String_View_Array) {                                                                                                                                \
+    .nb   = NEAT_CARR_LEN(((Neat_String_View[]){NEAT_FOREACH(NEAT_STRV_COMMA, __VA_ARGS__)})),                                                            \
+    .strs = (Neat_String_View[]){NEAT_FOREACH(NEAT_STRV_COMMA, __VA_ARGS__)}                                                                              \
+}                                                                                                                                                         \
+)
 
 #define neat_strbuf(str_or_cap, ...) \
 neat_strbuf_##__VA_OPT__(2)(str_or_cap __VA_OPT__(,) __VA_ARGS__)
@@ -752,7 +764,9 @@ typedef Neat_Any_String_Ref Any_String_Ref;
 #define sstr_ref(sstr_ptr) neat_sstr_ref(sstr_ptr)
 #define strv(...) neat_strv(__VA_ARGS__)
 #define anystr_ref(any_str) neat_anystr_ref(any_str)
-#define strv_arr(strv_carr, ...) neat_strv_arr(strv_carr __VA_OPT__(,) __VA_ARGS__)
+#define strv_arr(...) neat_strv_arr(__VA_ARGS__)
+#define strv_arr_from_carr(strv_carr, ...) neat_strv_arr_from_carr(strv_carr __VA_OPT__(,) __VA_ARGS__)
+
 
 #define tostr(x) neat_tostr(x)
 #define tostr_p(x) neat_tostr_p(x)
