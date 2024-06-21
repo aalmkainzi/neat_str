@@ -506,6 +506,71 @@ unsigned int neat_anystr_ref_replace(Neat_Any_String_Ref str, Neat_String_View t
     return replacements;
 }
 
+bool neat_anystr_ref_replace_first(Neat_Any_String_Ref str, Neat_String_View target, Neat_String_View replacement)
+{
+    bool replaced = false;
+    
+    unsigned int *len_p;
+    unsigned int len;
+    if(str.len != NULL)
+    {
+        len_p = str.len;
+    }
+    else
+    {
+        len = strlen((char*) str.chars);
+        len_p = &len;
+    }
+    
+    Neat_String_View match = neat_strv_find(neat_strv_anystr_ref2(str, 0), target);
+    if(match.chars != NULL)
+    {
+        if(target.len < replacement.len)
+        {
+            if(str.cap > *len_p + (replacement.len - target.len))
+            {
+                unsigned int idx = match.chars - str.chars;
+                
+                // shift right
+                memmove(str.chars + idx + replacement.len, str.chars + idx + target.len, (*len_p - idx - target.len) * sizeof(unsigned char));
+                
+                // put the replacement
+                memmove(str.chars + idx, replacement.chars, replacement.len * sizeof(unsigned char));
+                
+                *len_p += (replacement.len - target.len);
+                
+                replaced = true;
+            }
+        }
+        else if(target.len > replacement.len)
+        {
+            unsigned int idx = match.chars - str.chars;
+            
+            // shift left
+            memmove(str.chars + idx + replacement.len, str.chars + idx + target.len, (*len_p - idx - target.len) * sizeof(unsigned char));
+            
+            // put the replacement
+            memmove(str.chars + idx, replacement.chars, replacement.len * sizeof(unsigned char));
+            
+            *len_p -= (target.len - replacement.len);
+            
+            replaced = true;
+        }
+        else
+        {
+            unsigned int idx = match.chars - str.chars;
+            
+            // put the replacement
+            memmove(str.chars + idx, replacement.chars, replacement.len * sizeof(unsigned char));
+            
+            replaced = true;
+        }
+    }
+    
+    str.chars[*len_p] = '\0';
+    return replaced;
+}
+
 unsigned int neat_strv_count(Neat_String_View hay, Neat_String_View needle)
 {
     unsigned int count = 0;
