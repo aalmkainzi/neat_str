@@ -1,3 +1,4 @@
+#define NEAT_STR_PREFIX
 #include "neat_str.h"
 
 static inline unsigned int neat_uint_min(unsigned int a, unsigned int b)
@@ -12,10 +13,10 @@ static inline unsigned int neat_uint_max(unsigned int a, unsigned int b)
 
 bool neat_is_strv_intersect(Neat_String_View base, Neat_String_View sub)
 {
-    uintptr_t start = (uintptr_t) base.chars;
+    uintptr_t begin = (uintptr_t) base.chars;
     uintptr_t end   = (uintptr_t) base.chars + base.len;
-    uintptr_t sub_start = (uintptr_t) sub.chars;
-    return sub_start >= start && sub_start <= end;
+    uintptr_t sub_begin = (uintptr_t) sub.chars;
+    return sub_begin >= begin && sub_begin <= end;
 }
 
 Neat_DString neat_dstr_new(unsigned int cap, Neat_Allocator allocator)
@@ -97,9 +98,9 @@ bool neat_dstr_insert_tostr_(Neat_DString *dstr, Neat_DString tostr, unsigned in
     return ret;
 }
 
-Neat_String_View neat_strv_strv2(Neat_String_View str, unsigned int start)
+Neat_String_View neat_strv_strv2(Neat_String_View str, unsigned int begin)
 {
-    return neat_strv_strv_ptr2(&str, start);
+    return neat_strv_strv_ptr2(&str, begin);
 }
 
 void neat_dstr_prepend_strv(Neat_DString *dstr, Neat_String_View str)
@@ -159,6 +160,12 @@ bool neat_dstr_insert_strv(Neat_DString *dstr, Neat_String_View str, unsigned in
     return true;
 }
 
+void neat_dstr_shrink_to_fit_(Neat_DString *dstr)
+{
+    dstr->chars = neat_realloc(dstr->allocator, dstr->chars, unsigned char, dstr->cap, dstr->len + 1);
+    dstr->cap = dstr->len + 1;
+}
+
 bool neat_strv_equal(Neat_String_View str1, Neat_String_View str2)
 {
     return
@@ -169,7 +176,7 @@ bool neat_strv_equal(Neat_String_View str1, Neat_String_View str2)
 Neat_String_View neat_strv_find(Neat_String_View hay, Neat_String_View needle)
 {
     unsigned int end = hay.len - needle.len;
-    for(unsigned int i = 0 ; i < end ; i++)
+    for(unsigned int i = 0 ; i <= end ; i++)
     {
         Neat_String_View sv = neat_strv_strv_ptr3(&hay, i, i + needle.len);
         if(neat_strv_equal(needle, sv))
@@ -259,6 +266,41 @@ Neat_DString neat_anystr_ref_concat_strv_arr_new(Neat_String_View_Array src, Nea
     return neat_strv_arr_join_new(neat_strv_cstr2((char*) "", 0), src, allocator);
 }
 
+bool neat_anystr_ref_delete_range(Neat_Any_String_Ref str, unsigned int begin, unsigned int end)
+{
+    unsigned int len;
+    if(str.len != NULL)
+    {
+        len = *str.len;
+    }
+    else
+    {
+        len = strlen((char*) str.chars);
+    }
+    
+    if(begin > len || end > len || begin > end)
+    {
+        return false;
+    }
+    
+    unsigned int substr_len = end - begin;
+    
+    //unsigned int shift_by = neat_uint_min(len - begin + substr_len);
+    
+    memmove(str.chars + begin, str.chars + begin + substr_len, len - begin - substr_len);
+    
+    len -= substr_len;
+    
+    str.chars[len] = '\0';
+    
+    if(str.len != NULL)
+    {
+        *str.len = len;
+    }
+    
+    return true;
+}
+
 Neat_String_View_Array neat_strv_split(Neat_String_View str, Neat_String_View delim, Neat_Allocator allocator)
 {
     allocator.init(&allocator.ctx);
@@ -277,7 +319,7 @@ Neat_String_View_Array neat_strv_split(Neat_String_View str, Neat_String_View de
     {
         Neat_String_View_Array ret = { 0 };
         ret.nb = str.len;
-        ret.strs = neat_alloc(allocator, String_View, ret.nb);
+        ret.strs = neat_alloc(allocator, Neat_String_View, ret.nb);
         for(unsigned int i = 0 ; i < ret.nb ; i++)
         {
             ret.strs[i] = neat_strv_strv3(str, i, i + 1);
@@ -637,11 +679,11 @@ Neat_String_Buffer neat_strbuf_of_strbuf(Neat_String_Buffer str)
     return str;
 }
 
-Neat_String_View neat_strv_cstr2(char *str, unsigned int start)
+Neat_String_View neat_strv_cstr2(char *str, unsigned int begin)
 {
     unsigned int len = strlen(str);
     
-    if(start > len)
+    if(begin > len)
     {
         return (Neat_String_View){
             .len = 0,
@@ -650,16 +692,16 @@ Neat_String_View neat_strv_cstr2(char *str, unsigned int start)
     }
     
     return (Neat_String_View){
-        .len   = len - start,
-        .chars = (unsigned char*) str + start
+        .len   = len - begin,
+        .chars = (unsigned char*) str + begin
     };
 }
 
-Neat_String_View neat_strv_ucstr2(unsigned char *str, unsigned int start)
+Neat_String_View neat_strv_ucstr2(unsigned char *str, unsigned int begin)
 {
     unsigned int len = strlen((char*) str);
     
-    if(start > len)
+    if(begin > len)
     {
         return (Neat_String_View){
             .len = 0,
@@ -668,19 +710,19 @@ Neat_String_View neat_strv_ucstr2(unsigned char *str, unsigned int start)
     }
     
     return (Neat_String_View){
-        .len   = len - start,
-        .chars = str + start
+        .len   = len - begin,
+        .chars = str + begin
     };
 }
 
-Neat_String_View neat_strv_dstr2(Neat_DString str, unsigned int start)
+Neat_String_View neat_strv_dstr2(Neat_DString str, unsigned int begin)
 {
-    return neat_strv_dstr_ptr2(&str, start);
+    return neat_strv_dstr_ptr2(&str, begin);
 }
 
-Neat_String_View neat_strv_dstr_ptr2(Neat_DString *str, unsigned int start)
+Neat_String_View neat_strv_dstr_ptr2(Neat_DString *str, unsigned int begin)
 {
-    if(start > str->len)
+    if(begin > str->len)
     {
         return (Neat_String_View){
             .len = 0,
@@ -689,14 +731,14 @@ Neat_String_View neat_strv_dstr_ptr2(Neat_DString *str, unsigned int start)
     }
     
     return (Neat_String_View){
-        .len   = str->len   - start,
-        .chars = str->chars + start
+        .len   = str->len   - begin,
+        .chars = str->chars + begin
     };
 }
 
-Neat_String_View neat_strv_strv_ptr2(Neat_String_View *str, unsigned int start)
+Neat_String_View neat_strv_strv_ptr2(Neat_String_View *str, unsigned int begin)
 {
-    if(start > str->len)
+    if(begin > str->len)
     {
         return (Neat_String_View){
             .len = 0,
@@ -705,14 +747,14 @@ Neat_String_View neat_strv_strv_ptr2(Neat_String_View *str, unsigned int start)
     }
     
     return (Neat_String_View){
-        .len   = str->len   - start,
-        .chars = str->chars + start
+        .len   = str->len   - begin,
+        .chars = str->chars + begin
     };
 }
 
-Neat_String_View neat_strv_strbuf_ptr2(Neat_String_Buffer *str, unsigned int start)
+Neat_String_View neat_strv_strbuf_ptr2(Neat_String_Buffer *str, unsigned int begin)
 {
-    if(start > str->len)
+    if(begin > str->len)
     {
         return (Neat_String_View){
             .len = 0,
@@ -721,19 +763,19 @@ Neat_String_View neat_strv_strbuf_ptr2(Neat_String_Buffer *str, unsigned int sta
     }
     
     return (Neat_String_View){
-        .len   = str->len   - start,
-        .chars = str->chars + start
+        .len   = str->len   - begin,
+        .chars = str->chars + begin
     };
 }
 
-Neat_String_View neat_strv_strbuf2(Neat_String_Buffer str, unsigned int start)
+Neat_String_View neat_strv_strbuf2(Neat_String_Buffer str, unsigned int begin)
 {
-    return neat_strv_strbuf_ptr2(&str, start);
+    return neat_strv_strbuf_ptr2(&str, begin);
 }
 
-Neat_String_View neat_strv_sstr_ref2(Neat_SString_Ref str, unsigned int start)
+Neat_String_View neat_strv_sstr_ref2(Neat_SString_Ref str, unsigned int begin)
 {
-    if(start > str.sstring->len)
+    if(begin > str.sstring->len)
     {
         return (Neat_String_View){
             .len = 0,
@@ -742,12 +784,12 @@ Neat_String_View neat_strv_sstr_ref2(Neat_SString_Ref str, unsigned int start)
     }
     
     return (Neat_String_View){
-        .len   = str.sstring->len   - start,
-        .chars = str.sstring->chars + start
+        .len   = str.sstring->len   - begin,
+        .chars = str.sstring->chars + begin
     };
 }
 
-Neat_String_View neat_strv_anystr_ref2(Neat_Any_String_Ref str, unsigned int start)
+Neat_String_View neat_strv_anystr_ref2(Neat_Any_String_Ref str, unsigned int begin)
 {
     unsigned int len = 0;
     if(str.len == NULL)
@@ -759,7 +801,7 @@ Neat_String_View neat_strv_anystr_ref2(Neat_Any_String_Ref str, unsigned int sta
         len = *str.len;
     }
     
-    if(start > len)
+    if(begin > len)
     {
         return (Neat_String_View){
             .len = 0,
@@ -768,16 +810,16 @@ Neat_String_View neat_strv_anystr_ref2(Neat_Any_String_Ref str, unsigned int sta
     }
     
     return (Neat_String_View){
-        .len   = len       - start,
-        .chars = str.chars + start
+        .len   = len       - begin,
+        .chars = str.chars + begin
     };
 }
 
-Neat_String_View neat_strv_cstr3(char *str, unsigned int start, unsigned int end)
+Neat_String_View neat_strv_cstr3(char *str, unsigned int begin, unsigned int end)
 {
     unsigned int len = strlen(str);
     
-    if(start > len || end > len || start > end)
+    if(begin > len || end > len || begin > end)
     {
         return (Neat_String_View){
             .len = 0,
@@ -786,16 +828,16 @@ Neat_String_View neat_strv_cstr3(char *str, unsigned int start, unsigned int end
     }
     
     return (Neat_String_View){
-        .len   = end - start,
-        .chars = (unsigned char*) str + start
+        .len   = end - begin,
+        .chars = (unsigned char*) str + begin
     };
 }
 
-Neat_String_View neat_strv_ucstr3(unsigned char *str, unsigned int start, unsigned int end)
+Neat_String_View neat_strv_ucstr3(unsigned char *str, unsigned int begin, unsigned int end)
 {
     unsigned int len = strlen((char*) str);
     
-    if(start > len || end > len || start > end)
+    if(begin > len || end > len || begin > end)
     {
         return (Neat_String_View){
             .len = 0,
@@ -804,14 +846,14 @@ Neat_String_View neat_strv_ucstr3(unsigned char *str, unsigned int start, unsign
     }
     
     return (Neat_String_View){
-        .len   = end - start,
-        .chars = str + start
+        .len   = end - begin,
+        .chars = str + begin
     };
 }
 
-Neat_String_View neat_strv_dstr_ptr3(Neat_DString *str, unsigned int start, unsigned int end)
+Neat_String_View neat_strv_dstr_ptr3(Neat_DString *str, unsigned int begin, unsigned int end)
 {
-    if(start > str->len || end > str->len || start > end)
+    if(begin > str->len || end > str->len || begin > end)
     {
         return (Neat_String_View){
             .len = 0,
@@ -820,14 +862,14 @@ Neat_String_View neat_strv_dstr_ptr3(Neat_DString *str, unsigned int start, unsi
     }
     
     return (Neat_String_View){
-        .len   = end - start,
-        .chars = str->chars + start
+        .len   = end - begin,
+        .chars = str->chars + begin
     };
 }
 
-Neat_String_View neat_strv_strv_ptr3(Neat_String_View *str, unsigned int start, unsigned int end)
+Neat_String_View neat_strv_strv_ptr3(Neat_String_View *str, unsigned int begin, unsigned int end)
 {
-    if(start > str->len || end > str->len || start > end)
+    if(begin > str->len || end > str->len || begin > end)
     {
         return (Neat_String_View){
             .len = 0,
@@ -836,14 +878,14 @@ Neat_String_View neat_strv_strv_ptr3(Neat_String_View *str, unsigned int start, 
     }
     
     return (Neat_String_View){
-        .len   = end - start,
-        .chars = str->chars + start
+        .len   = end - begin,
+        .chars = str->chars + begin
     };
 }
 
-Neat_String_View neat_strv_strbuf_ptr3(Neat_String_Buffer *str, unsigned int start, unsigned int end)
+Neat_String_View neat_strv_strbuf_ptr3(Neat_String_Buffer *str, unsigned int begin, unsigned int end)
 {
-    if(start > str->len || end > str->len || start > end)
+    if(begin > str->len || end > str->len || begin > end)
     {
         return (Neat_String_View){
             .len = 0,
@@ -852,14 +894,14 @@ Neat_String_View neat_strv_strbuf_ptr3(Neat_String_Buffer *str, unsigned int sta
     }
     
     return (Neat_String_View){
-        .len   = end - start,
-        .chars = str->chars + start
+        .len   = end - begin,
+        .chars = str->chars + begin
     };
 }
 
-Neat_String_View neat_strv_sstr_ref3(Neat_SString_Ref str, unsigned int start, unsigned int end)
+Neat_String_View neat_strv_sstr_ref3(Neat_SString_Ref str, unsigned int begin, unsigned int end)
 {
-    if(start > str.sstring->len || end > str.sstring->len || start > end)
+    if(begin > str.sstring->len || end > str.sstring->len || begin > end)
     {
         return (Neat_String_View){
             .len = 0,
@@ -868,12 +910,12 @@ Neat_String_View neat_strv_sstr_ref3(Neat_SString_Ref str, unsigned int start, u
     }
     
     return (Neat_String_View){
-        .len   = end - start,
-        .chars = str.sstring->chars + start
+        .len   = end - begin,
+        .chars = str.sstring->chars + begin
     };
 }
 
-Neat_String_View neat_strv_anystr_ref3(Neat_Any_String_Ref str, unsigned int start, unsigned int end)
+Neat_String_View neat_strv_anystr_ref3(Neat_Any_String_Ref str, unsigned int begin, unsigned int end)
 {
     unsigned int len = 0;
     if(str.len == NULL)
@@ -885,7 +927,7 @@ Neat_String_View neat_strv_anystr_ref3(Neat_Any_String_Ref str, unsigned int sta
         len = *str.len;
     }
     
-    if(start > len || end > len || start > end)
+    if(begin > len || end > len || begin > end)
     {
         return (Neat_String_View){
             .len = 0,
@@ -894,24 +936,24 @@ Neat_String_View neat_strv_anystr_ref3(Neat_Any_String_Ref str, unsigned int sta
     }
     
     return (Neat_String_View){
-        .len   = end - start,
-        .chars = str.chars + start
+        .len   = end - begin,
+        .chars = str.chars + begin
     };
 }
 
-Neat_String_View neat_strv_dstr3(Neat_DString str, unsigned int start, unsigned int end)
+Neat_String_View neat_strv_dstr3(Neat_DString str, unsigned int begin, unsigned int end)
 {
-    return neat_strv_dstr_ptr3(&str, start, end);
+    return neat_strv_dstr_ptr3(&str, begin, end);
 }
 
-Neat_String_View neat_strv_strv3(Neat_String_View str, unsigned int start, unsigned int end)
+Neat_String_View neat_strv_strv3(Neat_String_View str, unsigned int begin, unsigned int end)
 {
-    return neat_strv_strv_ptr3(&str, start, end);
+    return neat_strv_strv_ptr3(&str, begin, end);
 }
 
-Neat_String_View neat_strv_strbuf3(Neat_String_Buffer str, unsigned int start, unsigned int end)
+Neat_String_View neat_strv_strbuf3(Neat_String_Buffer str, unsigned int begin, unsigned int end)
 {
-    return neat_strv_strbuf_ptr3(&str, start, end);
+    return neat_strv_strbuf_ptr3(&str, begin, end);
 }
 
 unsigned int neat_anystr_ref_fread_line(FILE *stream, Neat_Any_String_Ref dst)
