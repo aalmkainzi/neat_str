@@ -167,6 +167,12 @@ neat_anystr_ref_concat_strv_arr(neat_anystr_ref(any_str_dst), strv_arr) \
 #define neat_str_concat_all_new(strv_arr, ...) \
 neat_anystr_ref_concat_strv_arr_new(strv_arr, NEAT_VA_OR(neat_get_default_allocator(), __VA_ARGS__))
 
+#define neat_str_insert(any_str_dst, any_str_src, idx) \
+neat_anystr_ref_insert_strv(neat_anystr_ref(any_str_dst), neat_strv(any_str_src), idx)
+
+#define neat_str_prepend(neat_str_dst, neat_str_src) \
+neat_str_insert(neat_str_dst, neat_str_src, 0)
+
 #define neat_str_find(any_str_hay, any_str_needle) \
 neat_strv_find(neat_strv(any_str_hay), neat_strv(any_str_needle))
 
@@ -275,6 +281,7 @@ _Generic(any_str,                                                  \
     Neat_Any_String_Ref           : neat_anystr_ref_to_anystr_ref  \
 )(any_str)
 
+// TODO make this type safe
 #define neat_sstr_ref(sstr_ptr) \
 neat_sstr_ref_from_sstr_ptr(sstr_ptr, sizeof((sstr_ptr)->chars)) \
 
@@ -660,6 +667,7 @@ unsigned int neat_anystr_ref_concat_strv_arr(Neat_Any_String_Ref dst, Neat_Strin
 Neat_DString neat_strv_concat_new(Neat_String_View str1, Neat_String_View str2, Neat_Allocator allocator);
 Neat_DString neat_anystr_ref_concat_strv_arr_new(Neat_String_View_Array src, Neat_Allocator allocator);
 NEAT_NODISCARD("str_del returns true on success, false on failure") bool neat_anystr_ref_delete_range(Neat_Any_String_Ref str, unsigned int begin, unsigned int end);
+unsigned int neat_anystr_ref_insert_strv(Neat_Any_String_Ref dst, Neat_String_View src, unsigned int idx);
 unsigned int neat_anystr_ref_replace(Neat_Any_String_Ref str, Neat_String_View target, Neat_String_View replacement);
 bool neat_anystr_ref_replace_first(Neat_Any_String_Ref str, Neat_String_View target, Neat_String_View replacement);
 
@@ -751,6 +759,8 @@ typedef Neat_Any_String_Ref Any_String_Ref;
 #define str_concat_all(cap_str_dst, strv_arr) neat_str_concat_all(cap_str_dst, strv_arr)
 #define str_concat_new(any_str_1, any_str_2, ...) neat_str_concat_new(any_str_1, any_str_2 __VA_OPT__(,) __VA_ARGS__)
 #define str_concat_all_new(strv_arr, ...) neat_str_concat_all_new(strv_arr __VA_OPT__(,) __VA_ARGS__)
+#define str_insert(any_str_dst, any_str_src, idx) neat_str_insert(any_str_dst, any_str_src, idx)
+#define str_prepend(neat_str_dst, neat_str_src) neat_str_prepend(neat_str_dst, neat_str_src)
 #define str_del(any_str, begin, end) neat_str_del(any_str, begin, end)
 #define str_replace(mut_str, any_str_target, any_str_replacement) neat_str_replace(mut_str, any_str_target, any_str_replacement)
 #define str_replace_first(any_str, any_str_target, any_str_replacement) neat_str_replace_first(any_str, any_str_target, any_str_replacement)

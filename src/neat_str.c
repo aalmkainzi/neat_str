@@ -160,6 +160,39 @@ NEAT_NODISCARD("dstr_insert returns error, true if success, false if fail") bool
     return true;
 }
 
+unsigned int neat_anystr_ref_insert_strv(Neat_Any_String_Ref dst, Neat_String_View src, unsigned int idx)
+{
+    unsigned int len;
+    if(dst.len != NULL)
+    {
+        len = *dst.len;
+    }
+    else
+    {
+        len = strlen((char*) dst.chars);
+    }
+    
+    if(idx > len)
+    {
+        return 0;
+    }
+    
+    unsigned int nb_chars_to_insert = neat_uint_min(dst.cap - len - 1, src.len);
+    
+    // shift right
+    memmove(dst.chars + idx + nb_chars_to_insert, dst.chars + idx, len - idx);
+    memmove(dst.chars + idx, src.chars, nb_chars_to_insert);
+    
+    len += nb_chars_to_insert;
+    
+    if(dst.len != NULL)
+    {
+        *dst.len = len;
+    }
+    
+    return nb_chars_to_insert;
+}
+
 void neat_dstr_shrink_to_fit_(Neat_DString *dstr)
 {
     dstr->chars = neat_realloc(dstr->allocator, dstr->chars, unsigned char, dstr->cap, dstr->len + 1);
