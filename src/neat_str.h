@@ -68,7 +68,7 @@ typedef struct Neat_Any_String_Ref
 #if __STDC_VERSION__ >= 202311L
 
     #define Neat_SString(cap) \
-    struct SString_##cap \
+    struct Neat_SString_##cap \
     { \
         _Static_assert((1##cap##1ul || cap##8ul || 1) && (cap > 0), "argument must be positive decimal integer literal"); /* the first term is to make sure cap is an integer literal */ \
         unsigned int len; \
@@ -79,15 +79,15 @@ typedef struct Neat_Any_String_Ref
 #else
 
     #define Neat_SString(cap) \
-    struct SString_##cap
+    Neat_SString_##cap
     
     #define NEAT_DECL_SSTRING(cap) \
-    struct SString_##cap \
+    typedef struct Neat_SString_##cap \
     { \
         _Static_assert((1##cap##1ul || cap##8ul || 1) && (cap > 0), "argument must be positive decimal integer literal"); /* the first term is to make sure cap is an integer literal */ \
         unsigned int len; \
         unsigned char chars[ cap + 1 ]; /* + 1 for the nul */ \
-    }
+    } Neat_SString_##cap
 #endif
 
 // SString stuff
@@ -382,23 +382,24 @@ do \
     NEAT_FOREACH(neat_fprint_, __VA_ARGS__); \
 } while(0)
 
-#define neat_fprint_(x)                                                                                                                               \
-do                                                                                                                                                    \
-{                                                                                                                                                     \
-    Neat_DString temp;                                                                                                                                \
-    _Generic(x,                                                                                                                                       \
-        char*                         : fputs(neat_gurantee(x, char*), neat_file_stream),                                                             \
-        NEAT_UCHAR_CASE(unsigned char*: fputs((char*) neat_gurantee(x, unsigned char*), neat_file_stream),)                                           \
-        Neat_DString                  : neat_fprint_strv(neat_file_stream, neat_strv_dstr2(neat_gurantee(x, Neat_DString), 0)),                       \
-        Neat_DString*                 : neat_fprint_strv(neat_file_stream, neat_strv_dstr_ptr2(neat_gurantee(x, Neat_DString*), 0)),                  \
-        Neat_String_View              : neat_fprint_strv(neat_file_stream, neat_gurantee(x, Neat_String_View)),                                       \
-        Neat_String_View*             : neat_fprint_strv(neat_file_stream, *neat_gurantee(x, Neat_String_View*)),                                     \
-        Neat_String_Buffer            : neat_fprint_strv(neat_file_stream, neat_strv_strbuf2(neat_gurantee(x, Neat_String_Buffer), 0)),               \
-        Neat_String_Buffer*           : neat_fprint_strv(neat_file_stream, neat_strv_strbuf_ptr2(neat_gurantee(x, Neat_String_Buffer*), 0)),          \
-        Neat_SString_Ref              : neat_fprint_strv(neat_file_stream, neat_strv_sstr_ref2(neat_gurantee(x, Neat_SString_Ref), 0)),               \
-        Neat_Any_String_Ref           : neat_fprint_strv(neat_file_stream, neat_strv_anystr_ref2(neat_gurantee(x, Neat_Any_String_Ref), 0)),          \
-        default                       : (temp = neat_tostr(x), neat_fprint_strv(neat_file_stream, neat_strv_dstr2(temp, 0)), neat_dstr_deinit(&temp)) \
-    );                                                                                                                                                \
+#define neat_fprint_(x)                                                                                                                                              \
+do                                                                                                                                                                   \
+{                                                                                                                                                                    \
+    Neat_DString neat_temp;                                                                                                                                          \
+    _Generic(x,                                                                                                                                                      \
+        char*                         : fputs(neat_gurantee(x, char*), neat_file_stream),                                                                            \
+        NEAT_UCHAR_CASE(unsigned char*: fputs((char*) neat_gurantee(x, unsigned char*), neat_file_stream),)                                                          \
+        Neat_DString                  : neat_fprint_strv(neat_file_stream, neat_strv_dstr2(neat_gurantee(x, Neat_DString), 0)),                                      \
+        Neat_DString*                 : neat_fprint_strv(neat_file_stream, neat_strv_dstr_ptr2(neat_gurantee(x, Neat_DString*), 0)),                                 \
+        Neat_String_View              : neat_fprint_strv(neat_file_stream, neat_gurantee(x, Neat_String_View)),                                                      \
+        Neat_String_View*             : neat_fprint_strv(neat_file_stream, *neat_gurantee(x, Neat_String_View*)),                                                    \
+        Neat_String_Buffer            : neat_fprint_strv(neat_file_stream, neat_strv_strbuf2(neat_gurantee(x, Neat_String_Buffer), 0)),                              \
+        Neat_String_Buffer*           : neat_fprint_strv(neat_file_stream, neat_strv_strbuf_ptr2(neat_gurantee(x, Neat_String_Buffer*), 0)),                         \
+        Neat_SString_Ref              : neat_fprint_strv(neat_file_stream, neat_strv_sstr_ref2(neat_gurantee(x, Neat_SString_Ref), 0)),                              \
+        Neat_Any_String_Ref           : neat_fprint_strv(neat_file_stream, neat_strv_anystr_ref2(neat_gurantee(x, Neat_Any_String_Ref), 0)),                         \
+        default                       : (neat_temp = neat_tostr(x), neat_fprint_strv(neat_file_stream, neat_strv_dstr2(neat_temp, 0)), neat_dstr_deinit(&neat_temp)) \
+    );                                                                                                                                                               \
+    (void) neat_temp;                                                                                                                                                \
 } while(0);
 
 #define neat_print(...) \
@@ -536,7 +537,7 @@ NEAT_IF_DEF(NEAT_TOSTR_INTO31)(neat_tostr_into_type_31: neat_tostr_into_func_31,
 NEAT_IF_DEF(NEAT_TOSTR_INTO32)(neat_tostr_into_type_32: neat_tostr_into_func_32,) \
 NEAT_DEFAULT_TOSTR_INTO_TYPES
 
-typedef neat_func_ptr(Neat_SString(1), neat_fail_type*) neat_tostr_fail;
+typedef neat_func_ptr(void, neat_fail_type*) neat_tostr_fail;
 
 #define neat_get_tostr_func(ty) \
 _Generic((ty){0}, \
@@ -641,14 +642,14 @@ Neat_Any_String_Ref neat_anystr_ref_to_anystr_ref(Neat_Any_String_Ref str);
 
 bool neat_is_strv_intersect(Neat_String_View base, Neat_String_View sub);
 
-Neat_DString neat_dstr_new(unsigned int cap, Neat_Allocator allocator);
+NEAT_NODISCARD("discarding a new DString will cause memory leak") Neat_DString neat_dstr_new(unsigned int cap, Neat_Allocator allocator);
 void neat_dstr_deinit_(Neat_DString *dstr);
 void neat_dstr_append_strv(Neat_DString *dstr, Neat_String_View str);
 void neat_dstr_prepend_strv(Neat_DString *dstr, Neat_String_View str);
-bool neat_dstr_insert_strv(Neat_DString *dstr, Neat_String_View str, unsigned int idx);
+NEAT_NODISCARD("dstr_insert returns error, true if success, false if fail") bool neat_dstr_insert_strv(Neat_DString *dstr, Neat_String_View str, unsigned int idx);
 void neat_dstr_append_tostr_(Neat_DString *dstr, Neat_DString tostr);
 void neat_dstr_prepend_tostr_(Neat_DString *dstr, Neat_DString tostr);
-bool neat_dstr_insert_tostr_(Neat_DString *dstr, Neat_DString tostr, unsigned int idx);
+NEAT_NODISCARD("dstr_insert returns error, true if success, false if fail") bool neat_dstr_insert_tostr_(Neat_DString *dstr, Neat_DString tostr, unsigned int idx);
 void neat_dstr_shrink_to_fit_(Neat_DString *dstr);
 
 Neat_SString_Ref neat_sstr_ref_from_sstr_ptr(void *sstr_ptr, unsigned int cap);
@@ -658,12 +659,12 @@ unsigned int neat_anystr_ref_concat(Neat_Any_String_Ref dst, Neat_String_View sr
 unsigned int neat_anystr_ref_concat_strv_arr(Neat_Any_String_Ref dst, Neat_String_View_Array src);
 Neat_DString neat_strv_concat_new(Neat_String_View str1, Neat_String_View str2, Neat_Allocator allocator);
 Neat_DString neat_anystr_ref_concat_strv_arr_new(Neat_String_View_Array src, Neat_Allocator allocator);
-bool neat_anystr_ref_delete_range(Neat_Any_String_Ref str, unsigned int begin, unsigned int end);
+NEAT_NODISCARD("str_del returns true on success, false on failure") bool neat_anystr_ref_delete_range(Neat_Any_String_Ref str, unsigned int begin, unsigned int end);
 unsigned int neat_anystr_ref_replace(Neat_Any_String_Ref str, Neat_String_View target, Neat_String_View replacement);
 bool neat_anystr_ref_replace_first(Neat_Any_String_Ref str, Neat_String_View target, Neat_String_View replacement);
 
-Neat_String_View_Array neat_strv_split(Neat_String_View str, Neat_String_View delim, Neat_Allocator allocator);
-Neat_DString neat_strv_arr_join_new(Neat_String_View delim, Neat_String_View_Array strs, Neat_Allocator allocator);
+NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array neat_strv_split(Neat_String_View str, Neat_String_View delim, Neat_Allocator allocator);
+NEAT_NODISCARD("str_join_new returns new DString, discarding will cause memory leak") Neat_DString neat_strv_arr_join_new(Neat_String_View delim, Neat_String_View_Array strs, Neat_Allocator allocator);
 unsigned int neat_strv_arr_join(Neat_Any_String_Ref dst, Neat_String_View delim, Neat_String_View_Array strs);
 
 bool neat_strv_equal(Neat_String_View str1, Neat_String_View str2);
@@ -675,31 +676,31 @@ unsigned int neat_anystr_ref_concat_fread_line(FILE *stream, Neat_Any_String_Ref
 unsigned int neat_fprint_strv(FILE *stream, Neat_String_View str);
 unsigned int neat_fprintln_strv(FILE *stream, Neat_String_View str);
 
-Neat_DString neat_tostr_bool(bool *obj);
-Neat_DString neat_tostr_str(char **obj);
-Neat_DString neat_tostr_ustr(unsigned char **obj);
-Neat_DString neat_tostr_char(char *obj);
-Neat_DString neat_tostr_schar(signed char *obj);
-Neat_DString neat_tostr_uchar(unsigned char *obj);
-Neat_DString neat_tostr_short(short *obj);
-Neat_DString neat_tostr_ushort(unsigned short *obj);
-Neat_DString neat_tostr_int(int *obj);
-Neat_DString neat_tostr_uint(unsigned int *obj);
-Neat_DString neat_tostr_long(long *obj);
-Neat_DString neat_tostr_ulong(unsigned long *obj);
-Neat_DString neat_tostr_llong(long long *obj);
-Neat_DString neat_tostr_ullong(unsigned long long *obj);
-Neat_DString neat_tostr_float(float *obj);
-Neat_DString neat_tostr_double(double *obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_bool(bool *obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_str(char **obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_ustr(unsigned char **obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_char(char *obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_schar(signed char *obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_uchar(unsigned char *obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_short(short *obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_ushort(unsigned short *obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_int(int *obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_uint(unsigned int *obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_long(long *obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_ulong(unsigned long *obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_llong(long long *obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_ullong(unsigned long long *obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_float(float *obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_double(double *obj);
 
-Neat_DString neat_tostr_dstr(Neat_DString *obj);
-Neat_DString neat_tostr_dstr_ptr(Neat_DString **obj);
-Neat_DString neat_tostr_strv(Neat_String_View *obj);
-Neat_DString neat_tostr_strv_ptr(Neat_String_View **obj);
-Neat_DString neat_tostr_strbuf(Neat_String_Buffer *obj);
-Neat_DString neat_tostr_strbuf_ptr(Neat_String_Buffer **obj);
-Neat_DString neat_tostr_sstr_ref(Neat_SString_Ref *obj);
-Neat_DString neat_tostr_anystr_ref(Neat_Any_String_Ref *obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_dstr(Neat_DString *obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_dstr_ptr(Neat_DString **obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_strv(Neat_String_View *obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_strv_ptr(Neat_String_View **obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_strbuf(Neat_String_Buffer *obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_strbuf_ptr(Neat_String_Buffer **obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_sstr_ref(Neat_SString_Ref *obj);
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_anystr_ref(Neat_Any_String_Ref *obj);
 
 void neat_tostr_into_bool(Neat_Any_String_Ref dst, bool *obj);
 void neat_tostr_into_str(Neat_Any_String_Ref dst, char **obj);

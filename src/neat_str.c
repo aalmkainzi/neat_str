@@ -19,7 +19,7 @@ bool neat_is_strv_intersect(Neat_String_View base, Neat_String_View sub)
     return sub_begin >= begin && sub_begin <= end;
 }
 
-Neat_DString neat_dstr_new(unsigned int cap, Neat_Allocator allocator)
+NEAT_NODISCARD("discarding a new DString will cause memory leak") Neat_DString neat_dstr_new(unsigned int cap, Neat_Allocator allocator)
 {
     allocator.init(&allocator.ctx);
     Neat_DString ret = {
@@ -91,7 +91,7 @@ void neat_dstr_prepend_tostr_(Neat_DString *dstr, Neat_DString tostr)
     neat_dstr_deinit_(&tostr);
 }
 
-bool neat_dstr_insert_tostr_(Neat_DString *dstr, Neat_DString tostr, unsigned int idx)
+NEAT_NODISCARD("dstr_insert returns error, true if success, false if fail") bool neat_dstr_insert_tostr_(Neat_DString *dstr, Neat_DString tostr, unsigned int idx)
 {
     bool ret = neat_dstr_insert_strv(dstr, neat_strv_dstr2(tostr, 0), idx);
     neat_dstr_deinit_(&tostr);
@@ -128,7 +128,7 @@ void neat_dstr_prepend_strv(Neat_DString *dstr, Neat_String_View str)
     dstr->chars[dstr->len] = '\0';
 }
 
-bool neat_dstr_insert_strv(Neat_DString *dstr, Neat_String_View str, unsigned int idx)
+NEAT_NODISCARD("dstr_insert returns error, true if success, false if fail") bool neat_dstr_insert_strv(Neat_DString *dstr, Neat_String_View str, unsigned int idx)
 {
     if(idx > dstr->len)
     {
@@ -266,7 +266,7 @@ Neat_DString neat_anystr_ref_concat_strv_arr_new(Neat_String_View_Array src, Nea
     return neat_strv_arr_join_new(neat_strv_cstr2((char*) "", 0), src, allocator);
 }
 
-bool neat_anystr_ref_delete_range(Neat_Any_String_Ref str, unsigned int begin, unsigned int end)
+NEAT_NODISCARD("str_del returns true on success, false on failure") bool neat_anystr_ref_delete_range(Neat_Any_String_Ref str, unsigned int begin, unsigned int end)
 {
     unsigned int len;
     if(str.len != NULL)
@@ -301,7 +301,7 @@ bool neat_anystr_ref_delete_range(Neat_Any_String_Ref str, unsigned int begin, u
     return true;
 }
 
-Neat_String_View_Array neat_strv_split(Neat_String_View str, Neat_String_View delim, Neat_Allocator allocator)
+NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array neat_strv_split(Neat_String_View str, Neat_String_View delim, Neat_Allocator allocator)
 {
     allocator.init(&allocator.ctx);
     
@@ -362,7 +362,7 @@ Neat_String_View_Array neat_strv_split(Neat_String_View str, Neat_String_View de
     return ret;
 }
 
-Neat_DString neat_strv_arr_join_new(Neat_String_View delim, Neat_String_View_Array strs, Neat_Allocator allocator)
+NEAT_NODISCARD("str_join_new returns new DString, discarding will cause memory leak") Neat_DString neat_strv_arr_join_new(Neat_String_View delim, Neat_String_View_Array strs, Neat_Allocator allocator)
 {
     Neat_DString ret = neat_dstr_new(16, allocator);
     
@@ -1098,7 +1098,7 @@ unsigned int neat_fprintln_strv(FILE *stream, Neat_String_View str)
 
 // default tostr functions:
 
-Neat_DString neat_tostr_bool(bool *obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_bool(bool *obj)
 {
     Neat_DString ret = neat_dstr_new(6, neat_get_default_allocator());
     
@@ -1110,21 +1110,21 @@ Neat_DString neat_tostr_bool(bool *obj)
     return ret;
 }
 
-Neat_DString neat_tostr_str(char **obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_str(char **obj)
 {
     Neat_DString ret = neat_dstr_new(strlen(*obj) + 1, neat_get_default_allocator());
     neat_str_copy(&ret, *obj);
     return ret;
 }
 
-Neat_DString neat_tostr_ustr(unsigned char **obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_ustr(unsigned char **obj)
 {
     Neat_DString ret = neat_dstr_new(strlen((char*) *obj) + 1, neat_get_default_allocator());
     neat_str_copy(&ret, *obj);
     return ret;
 }
 
-Neat_DString neat_tostr_char(char *obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_char(char *obj)
 {
     Neat_DString ret = neat_dstr_new(5, neat_get_default_allocator());
     char cstr[2] = {*obj, 0};
@@ -1132,134 +1132,134 @@ Neat_DString neat_tostr_char(char *obj)
     return ret;
 }
 
-Neat_DString neat_tostr_schar(signed char *obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_schar(signed char *obj)
 {
     Neat_DString ret = neat_dstr_new(5, neat_get_default_allocator());
     ret.len = snprintf((char*) ret.chars, ret.cap, "%hhd", *obj);
     return ret;
 }
 
-Neat_DString neat_tostr_uchar(unsigned char *obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_uchar(unsigned char *obj)
 {
     Neat_DString ret = neat_dstr_new(4, neat_get_default_allocator());
     ret.len = snprintf((char*) ret.chars, ret.cap, "%hhu", *obj);
     return ret;
 }
 
-Neat_DString neat_tostr_short(short *obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_short(short *obj)
 {
     Neat_DString ret = neat_dstr_new(8, neat_get_default_allocator());
     ret.len = snprintf((char*) ret.chars, ret.cap, "%hd", *obj);
     return ret;
 }
 
-Neat_DString neat_tostr_ushort(unsigned short *obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_ushort(unsigned short *obj)
 {
     Neat_DString ret = neat_dstr_new(8, neat_get_default_allocator());
     ret.len = snprintf((char*) ret.chars, ret.cap, "%hu", *obj);
     return ret;
 }
 
-Neat_DString neat_tostr_int(int *obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_int(int *obj)
 {
     Neat_DString ret = neat_dstr_new(16, neat_get_default_allocator());
     ret.len = snprintf((char*) ret.chars, ret.cap, "%d", *obj);
     return ret;
 }
 
-Neat_DString neat_tostr_uint(unsigned int *obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_uint(unsigned int *obj)
 {
     Neat_DString ret = neat_dstr_new(16, neat_get_default_allocator());
     ret.len = snprintf((char*) ret.chars, ret.cap, "%u", *obj);
     return ret;
 }
 
-Neat_DString neat_tostr_long(long *obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_long(long *obj)
 {
     Neat_DString ret = neat_dstr_new(32, neat_get_default_allocator());
     ret.len = snprintf((char*) ret.chars, ret.cap, "%ld", *obj);
     return ret;
 }
 
-Neat_DString neat_tostr_ulong(unsigned long *obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_ulong(unsigned long *obj)
 {
     Neat_DString ret = neat_dstr_new(32, neat_get_default_allocator());
     ret.len = snprintf((char*) ret.chars, ret.cap, "%lu", *obj);
     return ret;
 }
 
-Neat_DString neat_tostr_llong(long long *obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_llong(long long *obj)
 {
     Neat_DString ret = neat_dstr_new(32, neat_get_default_allocator());
     ret.len = snprintf((char*) ret.chars, ret.cap, "%lld", *obj);
     return ret;
 }
 
-Neat_DString neat_tostr_ullong(unsigned long long *obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_ullong(unsigned long long *obj)
 {
     Neat_DString ret = neat_dstr_new(32, neat_get_default_allocator());
     ret.len = snprintf((char*) ret.chars, ret.cap, "%llu", *obj);
     return ret;
 }
 
-Neat_DString neat_tostr_float(float *obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_float(float *obj)
 {
     Neat_DString ret = neat_dstr_new(16, neat_get_default_allocator());
     ret.len = snprintf((char*) ret.chars, ret.cap, "%g", *obj);
     return ret;
 }
 
-Neat_DString neat_tostr_double(double *obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_double(double *obj)
 {
     Neat_DString ret = neat_dstr_new(32, neat_get_default_allocator());
     ret.len = snprintf((char*) ret.chars, ret.cap, "%g", *obj);
     return ret;
 }
 
-Neat_DString neat_tostr_dstr(Neat_DString *obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_dstr(Neat_DString *obj)
 {
     Neat_DString ret = neat_dstr_new(obj->len, neat_get_default_allocator());
     neat_dstr_append(&ret, obj);
     return ret;
 }
 
-Neat_DString neat_tostr_dstr_ptr(Neat_DString **obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_dstr_ptr(Neat_DString **obj)
 {
     return neat_tostr_dstr(*obj);
 }
 
-Neat_DString neat_tostr_strv(Neat_String_View *obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_strv(Neat_String_View *obj)
 {
     Neat_DString ret = neat_dstr_new(obj->len, neat_get_default_allocator());
     neat_dstr_append_strv(&ret, *obj);
     return ret;
 }
 
-Neat_DString neat_tostr_strv_ptr(Neat_String_View **obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_strv_ptr(Neat_String_View **obj)
 {
     return neat_tostr_strv(*obj);
 }
 
-Neat_DString neat_tostr_strbuf(Neat_String_Buffer *obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_strbuf(Neat_String_Buffer *obj)
 {
     Neat_DString ret = neat_dstr_new(obj->len, neat_get_default_allocator());
     neat_dstr_append(&ret, *obj);
     return ret;
 }
 
-Neat_DString neat_tostr_strbuf_ptr(Neat_String_Buffer **obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_strbuf_ptr(Neat_String_Buffer **obj)
 {
     return neat_tostr_strbuf(*obj);
 }
 
-Neat_DString neat_tostr_sstr_ref(Neat_SString_Ref *obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_sstr_ref(Neat_SString_Ref *obj)
 {
     Neat_DString ret = neat_dstr_new(obj->sstring->len, neat_get_default_allocator());
     neat_dstr_append(&ret, *obj);
     return ret;
 }
 
-Neat_DString neat_tostr_anystr_ref(Neat_Any_String_Ref *obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_anystr_ref(Neat_Any_String_Ref *obj)
 {
     Neat_DString ret = neat_dstr_new(16, neat_get_default_allocator());
     neat_dstr_append(&ret, *obj);
