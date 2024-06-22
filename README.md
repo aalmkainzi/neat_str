@@ -17,7 +17,11 @@ DString           str_concat_new(any_str_1, any_str_2);
 DString           str_concat_new(any_str_1, any_str_2, allocator);
 DString           str_concat_all_new(strv_arr);
 DString           str_concat_all_new(strv_arr, allocator);
+unsigned int      str_insert(cap_str_dst, any_str_src, idx);
+unsigned int      str_prepend(cap_str_dst, any_str_src);
 unsigned int      str_replace(mut_str, any_str_target, any_str_replacement);
+bool              str_replace_first(mut_str, any_str);
+bool              str_del(mut_str, begin, end);
 String_View_Array str_split(any_str, any_str_delim);
 String_View_Array str_split(any_str, any_str_delim, allocator);
 unsigned int      str_join(mut_str_dst, any_str_delim, strv_arr);
@@ -60,6 +64,7 @@ void dstr_prepend_tostr_p(dstr, stringable_ptr);
 bool dstr_insert(dstr, any_str, idx);
 bool dstr_insert_tostr(dstr, stringable, idx);
 bool dstr_insert_tostr_p(dstr, stringable_ptr, idx);
+void dstr_shrink_to_fit(dstr);
 ```
 
 ## String_Buffer
