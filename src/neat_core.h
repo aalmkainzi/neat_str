@@ -61,7 +61,6 @@ void *neat_allocator_invoke_realloc(Neat_Allocator allocator, void *ptr, size_t 
     .deinit  = neat_noop_allocator_deinit,  \
 })
 
-
 #define neat_alloc(allocator, T, n, actual) \
 (T*) neat_allocator_invoke_alloc(allocator, _Alignof(T), sizeof(T), n, actual)
 

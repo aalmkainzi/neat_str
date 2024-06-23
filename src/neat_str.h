@@ -346,7 +346,7 @@ _Generic(cap_or_allocator,                                                      
                         neat_gurantee_not(cap_or_allocator, Neat_Allocator, int), \
                         neat_get_default_allocator()                              \
                     )                                                             \
-)                                                                                 \
+), __VA_ARGS__                                                                    \
 )
 
 #define neat_dstr2(cap, allocator) \
@@ -489,7 +489,7 @@ NEAT_DEFAULT_TOSTR_TYPES
 #define NEAT_DEFAULT_TOSTR_INTO_TYPES                       \
 bool                          : neat_tostr_into_bool,       \
 char*                         : neat_tostr_into_str,        \
-NEAT_UCHAR_CASE(unsigned char*: neat_tostr_into_ustr,)       \
+NEAT_UCHAR_CASE(unsigned char*: neat_tostr_into_ustr,)      \
 char                          : neat_tostr_into_char,       \
 NEAT_SCHAR_CASE(signed char   : neat_tostr_into_schar,)     \
 NEAT_UCHAR_CASE(unsigned char : neat_tostr_into_uchar,)     \
