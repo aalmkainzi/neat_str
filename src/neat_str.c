@@ -22,12 +22,14 @@ bool neat_is_strv_intersect(Neat_String_View base, Neat_String_View sub)
 NEAT_NODISCARD("discarding a new DString will cause memory leak") Neat_DString neat_dstr_new(unsigned int cap, Neat_Allocator allocator)
 {
     allocator.init(&allocator.ctx);
-    Neat_DString ret = {
-        .allocator = allocator,
-        .cap = cap + 1,
-        .len = 0,
-    };
-    ret.chars = neat_alloc(allocator, unsigned char, cap + 1);
+    Neat_DString ret = { 0 };
+    
+    ret.allocator = allocator;
+    size_t actual_allocated_cap;
+    
+    ret.chars = neat_alloc(allocator, unsigned char, cap + 1, &actual_allocated_cap);
+    ret.cap = actual_allocated_cap;
+    
     if(ret.chars != NULL)
     {
         ret.chars[0] = '\0';
@@ -50,8 +52,10 @@ void neat_dstr_maybe_grow(Neat_DString *dstr, unsigned int len_to_append)
     {
         // grow
         unsigned int new_cap = neat_uint_max(dstr->cap * 2, dstr->cap + len_to_append);
-        dstr->chars = neat_realloc(dstr->allocator, dstr->chars, unsigned char, dstr->cap, new_cap);
-        dstr->cap = new_cap;
+        
+        size_t actual_allocated_cap;
+        dstr->chars = neat_realloc(dstr->allocator, dstr->chars, unsigned char, dstr->cap, new_cap, &actual_allocated_cap);
+        dstr->cap = actual_allocated_cap;
     }
 }
 
@@ -195,8 +199,9 @@ unsigned int neat_anystr_ref_insert_strv(Neat_Any_String_Ref dst, Neat_String_Vi
 
 void neat_dstr_shrink_to_fit_(Neat_DString *dstr)
 {
-    dstr->chars = neat_realloc(dstr->allocator, dstr->chars, unsigned char, dstr->cap, dstr->len + 1);
-    dstr->cap = dstr->len + 1;
+    size_t actual_new_cap;
+    dstr->chars = neat_realloc(dstr->allocator, dstr->chars, unsigned char, dstr->cap, dstr->len + 1, &actual_new_cap);
+    dstr->cap = actual_new_cap;
 }
 
 bool neat_strv_equal(Neat_String_View str1, Neat_String_View str2)
@@ -340,7 +345,7 @@ NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array
     
     if(delim.len > str.len)
     {
-        Neat_String_View *copy = neat_alloc(allocator, Neat_String_View, 1);
+        Neat_String_View *copy = neat_alloc(allocator, Neat_String_View, 1, NULL);
         *copy = str;
         return (Neat_String_View_Array){
             .nb   = 1,
@@ -352,7 +357,7 @@ NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array
     {
         Neat_String_View_Array ret = { 0 };
         ret.nb = str.len;
-        ret.strs = neat_alloc(allocator, Neat_String_View, ret.nb);
+        ret.strs = neat_alloc(allocator, Neat_String_View, ret.nb, NULL);
         for(unsigned int i = 0 ; i < ret.nb ; i++)
         {
             ret.strs[i] = neat_strv_strv3(str, i, i + 1);
@@ -381,7 +386,7 @@ NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array
     delim_idx[nb_delim] = str.len;
     
     Neat_String_View_Array ret = { 0 };
-    ret.strs = neat_alloc(allocator, Neat_String_View, nb_delim + 1);
+    ret.strs = neat_alloc(allocator, Neat_String_View, nb_delim + 1, NULL);
     
     ret.nb = nb_delim + 1;
     
@@ -689,11 +694,12 @@ Neat_Any_String_Ref neat_anystr_ref_to_anystr_ref(Neat_Any_String_Ref str)
 Neat_String_Buffer neat_strbuf_new(unsigned int cap, Neat_Allocator allocator)
 {
     allocator.init(&allocator.ctx);
-    return (Neat_String_Buffer){
-        .cap   = cap + 1,
-        .len   = 0,
-        .chars = neat_alloc(allocator, unsigned char, cap + 1)
-    };
+    Neat_String_Buffer ret = { 0 };
+    size_t actual_allocated_cap;
+    ret.chars = neat_alloc(allocator, unsigned char, cap, &actual_allocated_cap);
+    ret.cap = actual_allocated_cap;
+    
+    return ret;
 }
 
 Neat_String_Buffer neat_strbuf_new_default(unsigned int cap)
