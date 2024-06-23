@@ -168,7 +168,10 @@ neat_anystr_ref_concat_strv_arr(neat_anystr_ref(any_str_dst), strv_arr) \
 neat_anystr_ref_concat_strv_arr_new(strv_arr, NEAT_VA_OR(neat_get_default_allocator(), __VA_ARGS__))
 
 #define neat_str_insert(any_str_dst, any_str_src, idx) \
-neat_anystr_ref_insert_strv(neat_anystr_ref(any_str_dst), neat_strv(any_str_src), idx)
+( \
+    neat_str_assert_appendable(any_str_dst), \
+    neat_anystr_ref_insert_strv(neat_anystr_ref(any_str_dst), neat_strv(any_str_src), idx) \
+)
 
 #define neat_str_prepend(neat_str_dst, neat_str_src) \
 neat_str_insert(neat_str_dst, neat_str_src, 0)
@@ -788,6 +791,7 @@ typedef Neat_Any_String_Ref Any_String_Ref;
 #define dstr_insert(dstr, any_str, idx) neat_dstr_insert(dstr, any_str, idx)
 #define dstr_insert_tostr(dstr, stringable, idx) neat_dstr_insert_tostr(dstr, stringable, idx)
 #define dstr_insert_tostr_p(dstr, stringable_ptr, idx) neat_dstr_insert_tostr_p(dstr, stringable_ptr, idx)
+#define dstr_shrink_to_fit(dstr) neat_dstr_shrink_to_fit(dstr)
 
 #define strbuf(str_or_cap, ...) neat_strbuf(str_or_cap __VA_OPT__(,) __VA_ARGS__)
 #define sstr_ref(sstr_ptr) neat_sstr_ref(sstr_ptr)
