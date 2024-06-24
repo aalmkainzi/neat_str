@@ -242,4 +242,4 @@ this will prefix all macro definitions with `neat_` and all types with `Neat_`
 
 to include this lib in your project, add `neat_str.c` and `neat_core.c` to your build script.
 
-note that `neat_str.c` includes `neat_str.h` in the same directory, same for `neat_core.c` and `neat_core.h`,
+note that all 4 file must be in the same directory.
