@@ -233,6 +233,18 @@ _Generic(exp,                                         \
     default: exp                                      \
 )
 
+#define neat_if_ty(exp, ty, macro, ...) \
+_Generic(exp, \
+    ty: macro(neat_gurantee(exp, ty) __VA_OPT__(,) __VA_ARGS__), \
+    default: 0 \
+)
+
+#define neat_ifn_ty(exp, not_ty, fb_ty, macro, ...) \
+_Generic(exp, \
+    default: macro(neat_gurantee_not(exp, not_ty, fb_ty) __VA_OPT__(,) __VA_ARGS__), \
+    not_ty: 0 \
+)
+
 #define neat_as_pointer(scalar) \
 &(struct { typeof((void)0,scalar) t; }){scalar}.t
 

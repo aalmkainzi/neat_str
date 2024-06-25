@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #define NEAT_STR_PREFIX
 #include "neat_str.h"
 
@@ -633,7 +634,7 @@ Neat_Any_String_Ref neat_anystr_ref_to_cstr(char *str)
     unsigned int len = strlen(str);
     
     return (Neat_Any_String_Ref){
-        .cap   = len,
+        .cap   = len + 1,
         .len   = NULL,
         .chars = (unsigned char*) str
     };
@@ -644,7 +645,7 @@ Neat_Any_String_Ref neat_anystr_ref_to_ucstr(unsigned char *str)
     unsigned int len = strlen((char*) str);
     
     return (Neat_Any_String_Ref){
-        .cap   = len,
+        .cap   = len + 1,
         .len   = NULL,
         .chars = str
     };
@@ -696,7 +697,7 @@ Neat_String_Buffer neat_strbuf_new(unsigned int cap, Neat_Allocator allocator)
     allocator.init(&allocator.ctx);
     Neat_String_Buffer ret = { 0 };
     size_t actual_allocated_cap;
-    ret.chars = neat_alloc(allocator, unsigned char, cap, &actual_allocated_cap);
+    ret.chars = neat_alloc(allocator, unsigned char, cap + 1, &actual_allocated_cap);
     ret.cap = actual_allocated_cap;
     
     return ret;
@@ -1060,6 +1061,25 @@ Neat_String_View neat_strv_strbuf3(Neat_String_Buffer str, unsigned int begin, u
     return neat_strv_strbuf_ptr3(&str, begin, end);
 }
 
+Neat_DString neat_tostr_all_into_new_dstr(Neat_Allocator allocator, unsigned int nb, ...)
+{
+    Neat_DString ret = neat_dstr_new(nb * 16, allocator);
+    
+    va_list args;
+    va_start(args, nb);
+    
+    for(unsigned int i = 0 ; i < nb ; i++)
+    {
+        Neat_DString current = va_arg(args, Neat_DString);
+        neat_dstr_append_strv(&ret, (Neat_String_View){.chars = current.chars, .len = current.len});
+        neat_dstr_deinit_(&current);
+    }
+    
+    va_end(args);
+    
+    return ret;
+}
+
 unsigned int neat_anystr_ref_fread_line(FILE *stream, Neat_Any_String_Ref dst)
 {
     unsigned int len;
@@ -1149,14 +1169,14 @@ NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak")
     return ret;
 }
 
-NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_str(char **obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_cstr(char **obj)
 {
     Neat_DString ret = neat_dstr_new(strlen(*obj) + 1, neat_get_default_allocator());
     neat_str_copy(&ret, *obj);
     return ret;
 }
 
-NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_ustr(unsigned char **obj)
+NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_ucstr(unsigned char **obj)
 {
     Neat_DString ret = neat_dstr_new(strlen((char*) *obj) + 1, neat_get_default_allocator());
     neat_str_copy(&ret, *obj);
@@ -1305,156 +1325,250 @@ NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak")
     return ret;
 }
 
+static const char neat_digit_ones[] = {
+'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+};
+
+static const char neat_digit_tens[] = {
+'0', '0', '0', '0', '0', '0', '0', '0', '0', '0',
+'1', '1', '1', '1', '1', '1', '1', '1', '1', '1',
+'2', '2', '2', '2', '2', '2', '2', '2', '2', '2',
+'3', '3', '3', '3', '3', '3', '3', '3', '3', '3',
+'4', '4', '4', '4', '4', '4', '4', '4', '4', '4',
+'5', '5', '5', '5', '5', '5', '5', '5', '5', '5',
+'6', '6', '6', '6', '6', '6', '6', '6', '6', '6',
+'7', '7', '7', '7', '7', '7', '7', '7', '7', '7',
+'8', '8', '8', '8', '8', '8', '8', '8', '8', '8',
+'9', '9', '9', '9', '9', '9', '9', '9', '9', '9',
+};
+
+static const unsigned long long neat_ten_pows[] = {
+1ull,
+10ull,
+100ull,
+1000ull,
+10000ull,
+100000ull,
+1000000ull,
+10000000ull,
+100000000ull,
+1000000000ull,
+10000000000ull,
+100000000000ull,
+1000000000000ull,
+10000000000000ull,
+100000000000000ull,
+1000000000000000ull,
+10000000000000000ull,
+100000000000000000ull,
+1000000000000000000ull,
+10000000000000000000ull
+};
+
+#define neat_tostr_into_signed() \
+if(dst.cap == 0) \
+    return; \
+ \
+typeof(*obj) i = *obj; \
+int q, r; \
+unsigned char size_of_str = neat_string_size_of_ll(i); \
+if(size_of_str >= dst.cap) \
+{ \
+    i /= neat_ten_pows[size_of_str - dst.cap + 1]; \
+    size_of_str = dst.cap - 1; \
+} \
+int charPos = size_of_str; \
+ \
+bool negative = i < 0; \
+if (!negative) { \
+    i = -i; \
+} \
+ \
+while (i <= -100) { \
+    q = i / 100; \
+    r = (q * 100) - i; \
+    i = q; \
+    dst.chars[--charPos] = neat_digit_ones[r]; \
+    dst.chars[--charPos] = neat_digit_tens[r]; \
+} \
+\
+dst.chars[--charPos] = neat_digit_ones[-i]; \
+if (i < -9) { \
+    dst.chars[--charPos] = neat_digit_tens[-i]; \
+} \
+\
+if (negative) { \
+    dst.chars[--charPos] = '-'; \
+} \
+\
+if(dst.len != NULL) \
+    *dst.len = size_of_str;
+
+
+static unsigned char neat_string_size_of_ll(long long x) {
+    int d = 1;
+    if (x >= 0) {
+        d = 0;
+        x = -x;
+    }
+    int p = -10;
+    for (int i = 1; i < 10; i++) {
+        if (x > p)
+            return i + d;
+        p = 10 * p;
+    }
+    return 10 + d;
+}
+
 void neat_tostr_into_bool(Neat_Any_String_Ref dst, bool *obj)
 {
-    neat_str_copy(dst, *obj ? (char*) "true" : (char*) "false");
+    char *res = *obj ? "true" : "false";
+    neat_tostr_into_cstr(dst, &res);
 }
 
-void neat_tostr_into_str(Neat_Any_String_Ref dst, char **obj)
+void neat_tostr_into_cstr(Neat_Any_String_Ref dst, char **obj)
 {
-    neat_str_copy(dst, *obj);
+    neat_anystr_ref_copy(dst, (Neat_String_View){.chars = (unsigned char*) *obj, .len = strlen(*obj)});
 }
 
-void neat_tostr_into_ustr(Neat_Any_String_Ref dst, unsigned char **obj)
+void neat_tostr_into_ucstr(Neat_Any_String_Ref dst, unsigned char **obj)
 {
-    neat_str_copy(dst, *obj);
+    neat_anystr_ref_copy(dst, (Neat_String_View){.chars = *obj, .len = strlen((char*) *obj)});
 }
 
 void neat_tostr_into_char(Neat_Any_String_Ref dst, char *obj)
 {
-    neat_str_copy(dst, ((char[]){*obj, '\0'}));
+    if(dst.cap > 1)
+    {
+        dst.chars[0] = *obj;
+        if(dst.len != NULL)
+            *dst.len = 1;
+    }
 }
 
 void neat_tostr_into_schar(Neat_Any_String_Ref dst, signed char *obj)
 {
-    char tmp[5] = { 0 };
-    snprintf(tmp, sizeof(tmp), "%hhd", *obj);
-    
-    neat_str_copy(dst, tmp);
+    neat_tostr_into_signed();
 }
 
 void neat_tostr_into_uchar(Neat_Any_String_Ref dst, unsigned char *obj)
 {
-    neat_str_copy(dst, ((char[]){(char) *obj, '\0'}));
+    if(dst.cap > 1)
+    {
+        dst.chars[0] = *obj;
+        if(dst.len != NULL)
+            *dst.len = 1;
+    }
 }
 
 void neat_tostr_into_short(Neat_Any_String_Ref dst, short *obj)
 {
-    char tmp[8] = { 0 };
-    snprintf(tmp, sizeof(tmp), "%hd", *obj);
-    
-    neat_str_copy(dst, tmp);
+    neat_tostr_into_signed();
 }
 
 void neat_tostr_into_ushort(Neat_Any_String_Ref dst, unsigned short *obj)
 {
-    char tmp[8] = { 0 };
-    snprintf(tmp, sizeof(tmp), "%hu", *obj);
-    
-    neat_str_copy(dst, tmp);
+    snprintf((char*) dst.chars, dst.cap, "%hu", *obj);
+    if(dst.len != NULL)
+        *dst.len = strlen((char*) dst.chars);
 }
 
 void neat_tostr_into_int(Neat_Any_String_Ref dst, int *obj)
 {
-    char tmp[16] = { 0 };
-    snprintf(tmp, sizeof(tmp), "%d", *obj);
-    
-    neat_str_copy(dst, tmp);
+    neat_tostr_into_signed();
 }
 
 void neat_tostr_into_uint(Neat_Any_String_Ref dst, unsigned int *obj)
 {
-    char tmp[16] = { 0 };
-    snprintf(tmp, sizeof(tmp), "%u", *obj);
-    
-    neat_str_copy(dst, tmp);
+    snprintf((char*) dst.chars, dst.cap, "%u", *obj);
+    if(dst.len != NULL)
+        *dst.len = strlen((char*) dst.chars);
 }
 
 void neat_tostr_into_long(Neat_Any_String_Ref dst, long *obj)
 {
-    char tmp[32] = { 0 };
-    snprintf(tmp, sizeof(tmp), "%ld", *obj);
-    
-    neat_str_copy(dst, tmp);
+    neat_tostr_into_signed();
 }
 
 void neat_tostr_into_ulong(Neat_Any_String_Ref dst, unsigned long *obj)
 {
-    char tmp[32] = { 0 };
-    snprintf(tmp, sizeof(tmp), "%lu", *obj);
-    
-    neat_str_copy(dst, tmp);
+    snprintf((char*) dst.chars, dst.cap, "%lu", *obj);
+    if(dst.len != NULL)
+        *dst.len = strlen((char*) dst.chars);
 }
 
 void neat_tostr_into_llong(Neat_Any_String_Ref dst, long long *obj)
 {
-    char tmp[32] = { 0 };
-    snprintf(tmp, sizeof(tmp), "%lld", *obj);
-    
-    neat_str_copy(dst, tmp);
+    neat_tostr_into_signed();
 }
 
 void neat_tostr_into_ullong(Neat_Any_String_Ref dst, unsigned long long *obj)
 {
-    char tmp[32] = { 0 };
-    snprintf(tmp, sizeof(tmp), "%llu", *obj);
-    
-    neat_str_copy(dst, tmp);
+    snprintf((char*) dst.chars, dst.cap, "%llu", *obj);
+    if(dst.len != NULL)
+        *dst.len = strlen((char*) dst.chars);
 }
 
 void neat_tostr_into_float(Neat_Any_String_Ref dst, float *obj)
 {
-    char tmp[16] = { 0 };
-    snprintf(tmp, sizeof(tmp), "%g", *obj);
-    
-    neat_str_copy(dst, tmp);
+    snprintf((char*) dst.chars, dst.cap, "%g", *obj);
+    if(dst.len != NULL)
+        *dst.len = strlen((char*) dst.chars);
 }
 
 void neat_tostr_into_double(Neat_Any_String_Ref dst, double *obj)
 {
-    char tmp[32] = { 0 };
-    snprintf(tmp, sizeof(tmp), "%g", *obj);
-    
-    neat_str_copy(dst, tmp);
+    snprintf((char*) dst.chars, dst.cap, "%g", *obj);
+    if(dst.len != NULL)
+        *dst.len = strlen((char*) dst.chars);
 }
-
 
 void neat_tostr_into_dstr(Neat_Any_String_Ref dst, Neat_DString *obj)
 {
-    neat_str_copy(dst, obj);
+    neat_anystr_ref_copy(dst, (Neat_String_View){.chars = obj->chars, .len = obj->len});
 }
 
 void neat_tostr_into_dstr_ptr(Neat_Any_String_Ref dst, Neat_DString **obj)
 {
-    neat_str_copy(dst, *obj);
+    neat_anystr_ref_copy(dst, (Neat_String_View){.chars = obj[0]->chars, .len = obj[0]->len});
 }
 
 void neat_tostr_into_strv(Neat_Any_String_Ref dst, Neat_String_View *obj)
 {
-    neat_str_copy(dst, *obj);
+    neat_anystr_ref_copy(dst, *obj);
 }
 
 void neat_tostr_into_strv_ptr(Neat_Any_String_Ref dst, Neat_String_View **obj)
 {
-    neat_str_copy(dst, *obj);
+    neat_anystr_ref_copy(dst, **obj);
 }
 
 void neat_tostr_into_strbuf(Neat_Any_String_Ref dst, Neat_String_Buffer *obj)
 {
-    neat_str_copy(dst, *obj);
+    neat_anystr_ref_copy(dst, (Neat_String_View){.chars = obj->chars, .len = obj->len});
 }
 
 void neat_tostr_into_strbuf_ptr(Neat_Any_String_Ref dst, Neat_String_Buffer **obj)
 {
-    neat_str_copy(dst, *obj);
+    neat_anystr_ref_copy(dst, (Neat_String_View){.chars = obj[0]->chars, .len = obj[0]->len});
 }
 
 void neat_tostr_into_sstr_ref(Neat_Any_String_Ref dst, Neat_SString_Ref *obj)
 {
-    neat_str_copy(dst, *obj);
+    neat_anystr_ref_copy(dst, (Neat_String_View){.chars = obj->sstring->chars, .len = obj->sstring->len});
 }
 
 void neat_tostr_into_anystr_ref(Neat_Any_String_Ref dst, Neat_Any_String_Ref *obj)
 {
-    neat_str_copy(dst, *obj);
+    unsigned int len = obj->len != NULL ? *obj->len : strlen((char*) obj->chars);
+    neat_anystr_ref_copy(dst, (Neat_String_View){.chars = obj->chars, .len = len});
 }
