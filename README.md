@@ -31,10 +31,9 @@ unsigned int      str_fread_line(stream, any_str);
 unsigned int      str_concat_fread_line(stream, any_str);
 unsigned int      str_read_line(any_str);
 unsigned int      str_concat_read_line(any_str);
-unsigned int      str_fprint(stream, any_str);
-unsigned int      str_fprintln(stream, any_str);
-unsigned int      str_print(any_str);
-unsigned int      str_println(any_str);
+void              str_print(mut_str, ...); // sprintf replacement
+DString           str_print_new(...);
+DString           str_print_new(allocator, ...);
 ```
 Note some of these macros require a mutable string type (e.g. `str_replace`), that includes all string types except `String_View`.
 
