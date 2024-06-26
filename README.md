@@ -9,13 +9,13 @@ unsigned int      str_len(any_str);
 unsigned int      str_cap(any_str);
 bool              str_equal(any_str1, any_str2);
 
-// returns a String_View of arg1 where arg2 was found
+// Returns a String_View of arg1 where arg2 was found
 String_View       str_find(any_str_hay, any_str_needle);
-// returns how many times arg2 was found in arg1
+// Returns how many times arg2 was found in arg1
 unsigned int      str_count(any_str_hay, any_str_needle);
-// copies arg2 into arg1. If it doesn't fit, it copies as many chars as can fit. Returns how many chars were copied
+// Copies arg2 into arg1. If it doesn't fit, it copies as many chars as can fit. Returns how many chars were copied
 unsigned int      str_copy(any_str_dst, any_str_src);
-// concats arg2 into arg1. If it doesn't fit, it concats as many chars as can fit. Returns how many chars were concated
+// Concats arg2 into arg1. If it doesn't fit, it concats as many chars as can fit. Returns how many chars were concated
 unsigned int      str_concat(cap_str_dst, any_str_src);
 // Same as above except arg2 is a String_View_Array
 unsigned int      str_concat_all(cap_str_dst, strv_arr);
