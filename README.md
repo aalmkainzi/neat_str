@@ -8,6 +8,7 @@ This is a list of the functions (macros) that work with all string types:
 unsigned int      str_len(any_str);
 unsigned int      str_cap(any_str);
 bool              str_equal(any_str1, any_str2);
+char*             str_cstr(any_str);
 
 // Returns a String_View of arg1 where arg2 was found
 String_View       str_find(any_str_hay, any_str_needle);
