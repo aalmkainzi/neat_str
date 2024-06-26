@@ -8,32 +8,58 @@ This is a list of the functions (macros) that work with all string types:
 unsigned int      str_len(any_str);
 unsigned int      str_cap(any_str);
 bool              str_equal(any_str1, any_str2);
-String_View       str_find(any_str_hay, any_str_needle);
-unsigned int      str_count(any_str_hay, any_str_needle);
-unsigned int      str_copy(any_str_dst, any_str_src);
-unsigned int      str_concat(cap_str_dst, any_str_src);
-unsigned int      str_concat_all(cap_str_dst, strv_arr);
-DString           str_concat_new(any_str_1, any_str_2);
-DString           str_concat_new(any_str_1, any_str_2, allocator);
-DString           str_concat_all_new(strv_arr);
-DString           str_concat_all_new(strv_arr, allocator);
-unsigned int      str_insert(cap_str_dst, any_str_src, idx);
-unsigned int      str_prepend(cap_str_dst, any_str_src);
-unsigned int      str_replace(mut_str, any_str_target, any_str_replacement);
-bool              str_replace_first(mut_str, any_str_target, any_str_replacement);
-bool              str_del(mut_str, begin, end);
-String_View_Array str_split(any_str, any_str_delim);
-String_View_Array str_split(any_str, any_str_delim, allocator);
-unsigned int      str_join(mut_str_dst, any_str_delim, strv_arr);
-DString           str_join_new(any_str_delim, strv_arr);
-DString           str_join_new(any_str_delim, strv_arr, allocator);
-void              str_print(mut_str, ...); // sprintf replacement
-DString           str_print_new(...);
-DString           str_print_new(allocator, ...);
 
+// returns a String_View of arg1 where arg2 was found
+String_View       str_find(any_str_hay, any_str_needle);
+// returns how many times arg2 was found in arg1
+unsigned int      str_count(any_str_hay, any_str_needle);
+// copies arg2 into arg1. If it doesn't fit, it copies as many chars as can fit. Returns how many chars were copied
+unsigned int      str_copy(any_str_dst, any_str_src);
+// concats arg2 into arg1. If it doesn't fit, it concats as many chars as can fit. Returns how many chars were concated
+unsigned int      str_concat(cap_str_dst, any_str_src);
+// Same as above except arg2 is a String_View_Array
+unsigned int      str_concat_all(cap_str_dst, strv_arr);
+// Returns a new DString containing arg1 concated with arg2
+DString           str_concat_new(any_str_1, any_str_2);
+// Same as above except specify the allocator in arg3
+DString           str_concat_new(any_str_1, any_str_2, allocator);
+// Returns a new DString containing all of the strings in the String_View_Array arg1 concated 
+DString           str_concat_all_new(strv_arr);
+// Same as above except specify the allocator in arg3
+DString           str_concat_all_new(strv_arr, allocator);
+// Insert into arg1 the string arg2 at a specific index. If it doesn't fit, it inserts as many chars as can fit. Returns how many chars were inserted
+unsigned int      str_insert(cap_str_dst, any_str_src, idx);
+// Same as calling the above with index 0
+unsigned int      str_prepend(cap_str_dst, any_str_src);
+// Replaces all occurrence of arg2 inside arg1 with the replacement arg3. Returns how many replaced
+unsigned int      str_replace(mut_str, any_str_target, any_str_replacement);
+// Replaces the first occurance of arg2 inside arg1 with the replacement arg3. Returns whether it was found
+bool              str_replace_first(mut_str, any_str_target, any_str_replacement);
+// Deletes the characters specified by the range [begin, end). Returns false if the range is invalid, true otherwise
+bool              str_del(mut_str, begin, end);
+// Returns a new String_View_Array containing arg1 splitted using the delimiter arg2
+String_View_Array str_split(any_str, any_str_delim);
+// Same as above except specify the allocator in arg3
+String_View_Array str_split(any_str, any_str_delim, allocator);
+// Joins the String_View_Array in arg3 using the delimiter in arg2, store the resulting string in arg1. Returns how many chars were copied
+unsigned int      str_join(mut_str_dst, any_str_delim, strv_arr);
+// Same as above except returns a new DString containing the joined string
+DString           str_join_new(any_str_delim, strv_arr);
+// Same as above except specify the allocator in arg3
+DString           str_join_new(any_str_delim, strv_arr, allocator);
+// sprintf replacement. Store into arg1 the tostr_into of all the va args (e.g. `str_print( mystr, 10, "\n", "hello", "world" );`
+void              str_print(mut_str, ...);
+// Same as above except return a new DString containing the tostr of all args
+DString           str_print_new(...);
+// Same as above except specify the allocator in arg1
+DString           str_print_new(allocator, ...);
+// Reads a line from file stream arg1 into string arg2. If it doesn't fit, it reads as many chars as can fit. Returns how many chars were read and copied
 unsigned int      str_fread_line(stream, any_str);
+// Same as above except concats into string arg2 rather than copy
 unsigned int      str_concat_fread_line(stream, any_str);
+// Same as str_fread_line(stdio, any_str)
 unsigned int      str_read_line(any_str);
+// Same as str_concat_fread_line(stdio, any_str)
 unsigned int      str_concat_read_line(any_str);
 ```
 Note some of these macros require a mutable string type (e.g. `str_replace`), that includes all string types except `String_View`.
@@ -123,7 +149,9 @@ An array of `String_View`. This type is returned from `str_split` and is passed 
 to initialize:
 ```C
 String_View_Array strv_arr(...any_str);
+// arg1 is String_View[N]
 String_View_Array strv_arr_from_carr(carr);
+// arg 1 can either be String_View[N] or String_View*. arg2 is how many elements in the array
 String_View_Array strv_arr_from_carr(carr_or_ptr, nb);
 ```
 
