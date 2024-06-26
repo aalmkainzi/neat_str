@@ -25,7 +25,7 @@ DString           str_concat_new(any_str_1, any_str_2);
 DString           str_concat_new(any_str_1, any_str_2, allocator);
 // Returns a new DString containing all of the strings in the String_View_Array arg1 concated 
 DString           str_concat_all_new(strv_arr);
-// Same as above except specify the allocator in arg3
+// Same as above except specify the allocator in arg2
 DString           str_concat_all_new(strv_arr, allocator);
 // Insert into arg1 the string arg2 at a specific index. If it doesn't fit, it inserts as many chars as can fit. Returns how many chars were inserted
 unsigned int      str_insert(cap_str_dst, any_str_src, idx);
