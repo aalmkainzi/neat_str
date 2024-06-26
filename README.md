@@ -27,13 +27,14 @@ String_View_Array str_split(any_str, any_str_delim, allocator);
 unsigned int      str_join(mut_str_dst, any_str_delim, strv_arr);
 DString           str_join_new(any_str_delim, strv_arr);
 DString           str_join_new(any_str_delim, strv_arr, allocator);
+void              str_print(mut_str, ...); // sprintf replacement
+DString           str_print_new(...);
+DString           str_print_new(allocator, ...);
+
 unsigned int      str_fread_line(stream, any_str);
 unsigned int      str_concat_fread_line(stream, any_str);
 unsigned int      str_read_line(any_str);
 unsigned int      str_concat_read_line(any_str);
-void              str_print(mut_str, ...); // sprintf replacement
-DString           str_print_new(...);
-DString           str_print_new(allocator, ...);
 ```
 Note some of these macros require a mutable string type (e.g. `str_replace`), that includes all string types except `String_View`.
 
