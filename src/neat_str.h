@@ -267,11 +267,17 @@ neat_tostr_all_into_new_dstr(a, neat_count_args(__VA_ARGS__) neat_tostr_all_args
 #define neat_str_print_new_default(...) \
 neat_tostr_all_into_new_dstr(neat_get_default_allocator(), neat_count_args(__VA_ARGS__) neat_tostr_all_args(__VA_ARGS__))
 
-#define neat_str_print_new(stringable_or_allocator, ...) \
+#define neat_str_print_new(...) \
+neat_str_print_new_##__VA_OPT__(1)(__VA_ARGS__)
+
+#define neat_str_print_new_1(stringable_or_allocator, ...) \
 _Generic(stringable_or_allocator, \
     Neat_Allocator: neat_str_print_new_wallocator(neat_gurantee(stringable_or_allocator, Neat_Allocator), __VA_ARGS__), \
     default       : neat_str_print_new_default(neat_gurantee_not(stringable_or_allocator, Neat_Allocator, Neat_String_Buffer), __VA_ARGS__) \
 )
+
+#define neat_str_print_new_() \
+neat_tostr_all_into_new_dstr(neat_get_default_allocator(), 0)
 
 #define neat_strv_arr_from_carr(strv_carr, ...)                                                 \
 NEAT_IF_EMPTY(                                                                                  \
@@ -825,7 +831,7 @@ typedef Neat_Any_String_Ref Any_String_Ref;
 #define str_read_line(any_str) neat_str_read_line(any_str)
 #define str_concat_read_line(any_str) neat_str_concat_read_line(any_str)
 #define str_print(any_str, ...) neat_str_print(any_str, __VA_ARGS__)
-#define str_print_new(stringable_or_allocator, ...) neat_str_print_new(stringable_or_allocator, __VA_ARGS__)
+#define str_print_new(...) neat_str_print_new(__VA_ARGS__)
 
 #define dstr(...) neat_dstr(__VA_ARGS__)
 #define dstr_deinit(dstr) neat_dstr_deinit(dstr);
