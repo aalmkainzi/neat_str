@@ -234,11 +234,12 @@ do \
 do \
 { \
     neat_str_assert_mutable(any_str_dst); \
-    Neat_String_Buffer neat_as_strbuf = neat_strbuf(any_str_dst); \
+    typeof(any_str_dst) neat_anystr_dst = any_str_dst; \
+    Neat_String_Buffer neat_as_strbuf = neat_strbuf(neat_anystr_dst); \
     neat_as_strbuf.len = 0; \
     unsigned int neat_len; \
     unsigned int *neat_len_p; \
-    Neat_Any_String_Ref neat_as_anystr_ref = neat_anystr_ref(any_str_dst); \
+    Neat_Any_String_Ref neat_as_anystr_ref = neat_anystr_ref(neat_anystr_dst); \
     if(neat_as_anystr_ref.len != NULL) \
         neat_len_p = neat_as_anystr_ref.len; \
     else \
