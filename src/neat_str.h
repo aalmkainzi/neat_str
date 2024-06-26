@@ -139,6 +139,20 @@ strv(any_str).len
 #define neat_str_cap(any_str) \
 neat_anystr_ref(any_str).cap
 
+#define neat_str_cstr(any_str) \
+_Generic(any_str, \
+    char*                         : neat_cstr_as_cstr,       \
+    NEAT_UCHAR_CASE(unsigned char*: neat_ucstr_as_cstr,)     \
+    Neat_DString                  : neat_dstr_as_cstr,       \
+    Neat_DString*                 : neat_dstr_ptr_as_cstr,   \
+    Neat_String_View              : neat_strv_as_cstr,       \
+    Neat_String_View*             : neat_strv_ptr_as_cstr,   \
+    Neat_String_Buffer            : neat_strbuf_as_cstr,     \
+    Neat_String_Buffer*           : neat_strbuf_ptr_as_cstr, \
+    Neat_SString_Ref              : neat_sstr_ref_as_cstr,   \
+    Neat_Any_String_Ref           : neat_anystr_ref_as_cstr  \
+)(any_str)
+
 #define neat_str_equal(any_str1, any_str2) \
 neat_strv_equal(neat_strv(any_str1), neat_strv(any_str2))
 
@@ -706,6 +720,17 @@ Neat_Any_String_Ref neat_anystr_ref_to_strbuf_ptr(Neat_String_Buffer *str);
 Neat_Any_String_Ref neat_anystr_ref_to_sstr_ref(Neat_SString_Ref str);
 Neat_Any_String_Ref neat_anystr_ref_to_anystr_ref(Neat_Any_String_Ref str);
 
+char *neat_cstr_as_cstr(char *str);
+char *neat_ucstr_as_cstr(unsigned char *str);
+char *neat_dstr_as_cstr(Neat_DString str);
+char *neat_dstr_ptr_as_cstr(Neat_DString *str);
+char *neat_strv_as_cstr (Neat_String_View str);
+char *neat_strv_ptr_as_cstr(Neat_String_View *str);
+char *neat_strbuf_as_cstr(Neat_String_Buffer str);
+char *neat_strbuf_ptr_as_cstr(Neat_String_Buffer *str);
+char *neat_sstr_ref_as_cstr(Neat_SString_Ref str);
+char *neat_anystr_ref_as_cstr(Neat_Any_String_Ref str);
+
 bool neat_is_strv_intersect(Neat_String_View base, Neat_String_View sub);
 
 NEAT_NODISCARD("discarding a new DString will cause memory leak") Neat_DString neat_dstr_new(unsigned int cap, Neat_Allocator allocator);
@@ -812,6 +837,7 @@ typedef Neat_Any_String_Ref Any_String_Ref;
 #define str_len(any_str) neat_str_len(any_str)
 #define str_cap(any_str) neat_str_cap(any_str)
 #define str_equal(any_str1, any_str2) neat_str_equal(any_str1, any_str2)
+#define str_cstr(any_str) neat_str_cstr(any_str)
 #define str_find(any_str_hay, any_str_needle) neat_str_find(any_str_hay, any_str_needle)
 #define str_count(any_str_hay, any_str_needle) neat_str_count(any_str_hay, any_str_needle)
 #define str_copy(any_str_dst, any_str_src) neat_str_copy(any_str_dst, any_str_src)

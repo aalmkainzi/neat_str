@@ -103,6 +103,56 @@ NEAT_NODISCARD("dstr_insert returns error, true if success, false if fail") bool
     return ret;
 }
 
+char *neat_cstr_as_cstr(char *str)
+{
+    return str;
+}
+
+char *neat_ucstr_as_cstr(unsigned char *str)
+{
+    return (char*) str;
+}
+
+char *neat_dstr_as_cstr(Neat_DString str)
+{
+    return (char*) str.chars;
+}
+
+char *neat_dstr_ptr_as_cstr(Neat_DString *str)
+{
+    return (char*) str->chars;
+}
+
+char *neat_strv_as_cstr(Neat_String_View str)
+{
+    return (char*) str.chars;
+}
+
+char *neat_strv_ptr_as_cstr(Neat_String_View *str)
+{
+    return (char*) str->chars;
+}
+
+char *neat_strbuf_as_cstr(Neat_String_Buffer str)
+{
+    return (char*) str.chars;
+}
+
+char *neat_strbuf_ptr_as_cstr(Neat_String_Buffer *str)
+{
+    return (char*) str->chars;
+}
+
+char *neat_sstr_ref_as_cstr(Neat_SString_Ref str)
+{
+    return (char*) str.sstring->chars;
+}
+
+char *neat_anystr_ref_as_cstr(Neat_Any_String_Ref str)
+{
+    return (char*) str.chars;
+}
+
 Neat_String_View neat_strv_strv2(Neat_String_View str, unsigned int begin)
 {
     return neat_strv_strv_ptr2(&str, begin);
