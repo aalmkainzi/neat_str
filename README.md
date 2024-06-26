@@ -20,7 +20,7 @@ DString           str_concat_all_new(strv_arr, allocator);
 unsigned int      str_insert(cap_str_dst, any_str_src, idx);
 unsigned int      str_prepend(cap_str_dst, any_str_src);
 unsigned int      str_replace(mut_str, any_str_target, any_str_replacement);
-bool              str_replace_first(mut_str, any_str);
+bool              str_replace_first(mut_str, any_str_target, any_str_replacement);
 bool              str_del(mut_str, begin, end);
 String_View_Array str_split(any_str, any_str_delim);
 String_View_Array str_split(any_str, any_str_delim, allocator);
