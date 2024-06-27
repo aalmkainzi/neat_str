@@ -175,8 +175,10 @@ An array of `String_View`. This type is returned from `str_split` and is passed 
 to initialize:
 ```C
 String_View_Array strv_arr(...any_str);
+
 // arg1 is String_View[N]
 String_View_Array strv_arr_from_carr(carr);
+
 // arg 1 can either be String_View[N] or String_View*. arg2 is how many elements in the array
 String_View_Array strv_arr_from_carr(carr_or_ptr, nb);
 ```
