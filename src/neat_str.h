@@ -236,7 +236,7 @@ do \
 do \
 { \
     neat_str_assert_mutable(any_str_dst); \
-    typeof(any_str_dst) neat_anystr_dst = any_str_dst; \
+    typeof(((void)0, any_str_dst)) neat_anystr_dst = any_str_dst; \
     Neat_String_Buffer neat_as_strbuf = neat_strbuf(neat_anystr_dst); \
     neat_as_strbuf.len = 0; \
     unsigned int neat_len; \
