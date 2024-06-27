@@ -253,18 +253,27 @@ Example to add your own ```tostr_into```
 ```C
 #include "neat_str.h"
 
-struct FOO {
-    char n;
-};
+typedef struct {
+    char c;
+    float f;
+} FOO;
 
-void foo_to_str_into(Any_String_Ref dst, struct FOO *f)
+void foo_to_str_into(Any_String_Ref dst, FOO *foo)
 {
-    char tmp[2] = {f->n, '\0'};
-    str_copy(dst, tmp);
+    str_print(dst, "FOO{", ".c=", foo->c, ", .f=", foo->f, "}");
 }
 
-#define ADD_TOSTR_INTO struct FOO, foo_to_str_into
+#define ADD_TOSTR_INTO FOO, foo_to_str_into
 #include "neat_str.h"
+```
+
+now that `FOO` has a `tostr_into` it can be used in `str_print` like this:
+```C
+FOO foo = {.c = 'X', .f = 1.5f};
+
+str_print(&mystr, foo);
+
+println(mystr); // prints 'FOO{.c=X, .f=1.5}'
 ```
 
 ## print
