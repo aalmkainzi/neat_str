@@ -155,7 +155,7 @@ String_View strv(any_str, begin_idx, end_idx);
 
 ## String_View_Array
 
-An array of `String_View`. This type is returned from `str_split` and is passed to `str_join` and `str_concat_all`
+An array of `String_View`. This type is returned from `str_split` and is passed to `str_join`
 
 to initialize:
 ```C
