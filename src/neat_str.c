@@ -335,26 +335,6 @@ Neat_DString neat_strv_concat_new(Neat_String_View str1, Neat_String_View str2, 
     return ret;
 }
 
-unsigned int neat_anystr_ref_concat_strv_arr(Neat_Any_String_Ref dst, Neat_String_View_Array src)
-{
-    unsigned int total_chars_copied = 0;
-    unsigned int chars_copied = 1;
-    
-    for(unsigned int i = 0 ; i < src.nb && chars_copied != 0 ; i++)
-    {
-        chars_copied = neat_anystr_ref_concat(dst, src.strs[i]);
-        total_chars_copied += chars_copied;
-    }
-    
-    return total_chars_copied;
-}
-
-Neat_DString neat_anystr_ref_concat_strv_arr_new(Neat_String_View_Array src, Neat_Allocator allocator)
-{
-    // lazy solution, fix later.
-    return neat_strv_arr_join_new(neat_strv_cstr2((char*) "", 0), src, allocator);
-}
-
 NEAT_NODISCARD("str_del returns true on success, false on failure") bool neat_anystr_ref_delete_range(Neat_Any_String_Ref str, unsigned int begin, unsigned int end)
 {
     unsigned int len;

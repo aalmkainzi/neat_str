@@ -21,21 +21,6 @@ unsigned int      str_copy(any_str_dst, any_str_src);
 // Concats arg2 into arg1. If it doesn't fit, it concats as many chars as can fit. Returns how many chars were concated
 unsigned int      str_concat(cap_str_dst, any_str_src);
 
-// Same as above except arg2 is a String_View_Array
-unsigned int      str_concat_all(cap_str_dst, strv_arr);
-
-// Returns a new DString containing arg1 concated with arg2
-DString           str_concat_new(any_str_1, any_str_2);
-
-// Same as above except specify the allocator in arg3
-DString           str_concat_new(any_str_1, any_str_2, allocator);
-
-// Returns a new DString containing all of the strings in the String_View_Array arg1 concated 
-DString           str_concat_all_new(strv_arr);
-
-// Same as above except specify the allocator in arg2
-DString           str_concat_all_new(strv_arr, allocator);
-
 // Insert into arg1 the string arg2 at a specific index. If it doesn't fit, it inserts as many chars as can fit. Returns how many chars were inserted
 unsigned int      str_insert(cap_str_dst, any_str_src, idx);
 

@@ -162,23 +162,11 @@ neat_strv_equal(neat_strv(any_str1), neat_strv(any_str2))
     neat_anystr_ref_copy(neat_anystr_ref(any_str_dst), neat_strv(any_str_src)) \
 )
 
-#define neat_str_concat_new(any_str_1, any_str_2, ...) \
-neat_strv_concat_new(neat_strv(any_str_1), neat_strv(any_str_2), NEAT_VA_OR(neat_get_default_allocator(), __VA_ARGS__))
-
 #define neat_str_concat(any_str_dst, any_str_src)                            \
 (                                                                            \
 neat_str_assert_appendable(any_str_dst),                                     \
 neat_anystr_ref_concat(neat_anystr_ref(any_str_dst), neat_strv(any_str_src)) \
 )
-
-#define neat_str_concat_all(any_str_dst, strv_arr)                      \
-(                                                                       \
-neat_str_assert_appendable(any_str_dst),                                \
-neat_anystr_ref_concat_strv_arr(neat_anystr_ref(any_str_dst), strv_arr) \
-)
-
-#define neat_str_concat_all_new(strv_arr, ...) \
-neat_anystr_ref_concat_strv_arr_new(strv_arr, NEAT_VA_OR(neat_get_default_allocator(), __VA_ARGS__))
 
 #define neat_str_insert(any_str_dst, any_str_src, idx) \
 ( \
@@ -724,7 +712,7 @@ char *neat_cstr_as_cstr(char *str);
 char *neat_ucstr_as_cstr(unsigned char *str);
 char *neat_dstr_as_cstr(Neat_DString str);
 char *neat_dstr_ptr_as_cstr(Neat_DString *str);
-char *neat_strv_as_cstr (Neat_String_View str);
+char *neat_strv_as_cstr(Neat_String_View str);
 char *neat_strv_ptr_as_cstr(Neat_String_View *str);
 char *neat_strbuf_as_cstr(Neat_String_Buffer str);
 char *neat_strbuf_ptr_as_cstr(Neat_String_Buffer *str);
@@ -747,9 +735,6 @@ Neat_SString_Ref neat_sstr_ref_from_sstr_ptr(void *sstr_ptr, unsigned int cap);
 
 unsigned int neat_anystr_ref_copy(Neat_Any_String_Ref dst, Neat_String_View src);
 unsigned int neat_anystr_ref_concat(Neat_Any_String_Ref dst, Neat_String_View src);
-unsigned int neat_anystr_ref_concat_strv_arr(Neat_Any_String_Ref dst, Neat_String_View_Array src);
-Neat_DString neat_strv_concat_new(Neat_String_View str1, Neat_String_View str2, Neat_Allocator allocator);
-Neat_DString neat_anystr_ref_concat_strv_arr_new(Neat_String_View_Array src, Neat_Allocator allocator);
 NEAT_NODISCARD("str_del returns true on success, false on failure") bool neat_anystr_ref_delete_range(Neat_Any_String_Ref str, unsigned int begin, unsigned int end);
 unsigned int neat_anystr_ref_insert_strv(Neat_Any_String_Ref dst, Neat_String_View src, unsigned int idx);
 unsigned int neat_anystr_ref_replace(Neat_Any_String_Ref str, Neat_String_View target, Neat_String_View replacement);
@@ -842,9 +827,6 @@ typedef Neat_Any_String_Ref Any_String_Ref;
 #define str_count(any_str_hay, any_str_needle) neat_str_count(any_str_hay, any_str_needle)
 #define str_copy(any_str_dst, any_str_src) neat_str_copy(any_str_dst, any_str_src)
 #define str_concat(cap_str_dst, any_str_src) neat_str_concat(cap_str_dst, any_str_src)
-#define str_concat_all(cap_str_dst, strv_arr) neat_str_concat_all(cap_str_dst, strv_arr)
-#define str_concat_new(any_str_1, any_str_2, ...) neat_str_concat_new(any_str_1, any_str_2 __VA_OPT__(,) __VA_ARGS__)
-#define str_concat_all_new(strv_arr, ...) neat_str_concat_all_new(strv_arr __VA_OPT__(,) __VA_ARGS__)
 #define str_insert(any_str_dst, any_str_src, idx) neat_str_insert(any_str_dst, any_str_src, idx)
 #define str_prepend(neat_str_dst, neat_str_src) neat_str_prepend(neat_str_dst, neat_str_src)
 #define str_del(any_str, begin, end) neat_str_del(any_str, begin, end)
