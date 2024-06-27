@@ -8,6 +8,7 @@ This is a list of the functions (macros) that work with all string types:
 unsigned int      str_len(any_str);
 unsigned int      str_cap(any_str);
 bool              str_equal(any_str1, any_str2);
+char*             str_cstr(any_str);
 
 // Returns a String_View of arg1 where arg2 was found
 String_View       str_find(any_str_hay, any_str_needle);
@@ -159,8 +160,10 @@ An array of `String_View`. This type is returned from `str_split` and is passed 
 to initialize:
 ```C
 String_View_Array strv_arr(...any_str);
+
 // arg1 is String_View[N]
 String_View_Array strv_arr_from_carr(carr);
+
 // arg 1 can either be String_View[N] or String_View*. arg2 is how many elements in the array
 String_View_Array strv_arr_from_carr(carr_or_ptr, nb);
 ```
@@ -235,18 +238,27 @@ Example to add your own ```tostr_into```
 ```C
 #include "neat_str.h"
 
-struct FOO {
-    char n;
-};
+typedef struct {
+    char c;
+    float f;
+} FOO;
 
-void foo_to_str_into(Any_String_Ref dst, struct FOO *f)
+void foo_to_str_into(Any_String_Ref dst, FOO *foo)
 {
-    char tmp[2] = {f->n, '\0'};
-    str_copy(dst, tmp);
+    str_print(dst, "FOO{", ".c=", foo->c, ", .f=", foo->f, "}");
 }
 
-#define ADD_TOSTR_INTO struct FOO, foo_to_str_into
+#define ADD_TOSTR_INTO FOO, foo_to_str_into
 #include "neat_str.h"
+```
+
+now that `FOO` has a `tostr_into` it can be used in `str_print` like this:
+```C
+FOO foo = {.c = 'X', .f = 1.5f};
+
+str_print(&mystr, foo);
+
+println(mystr); // prints 'FOO{.c=X, .f=1.5}'
 ```
 
 ## print
