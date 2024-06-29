@@ -208,7 +208,10 @@ neat_strv_arr_join(neat_anystr_ref(any_str_dst), neat_strv(any_str_delim), strv_
 )
 
 #define neat_str_del(any_str, begin, end) \
-neat_anystr_ref_delete_range(neat_anystr_ref(any_str), begin, end)
+( \
+    neat_str_assert_mutable(any_str), \
+    neat_anystr_ref_delete_range(neat_anystr_ref(any_str), begin, end) \
+)
 
 #define neat_str_fread_line(stream, any_str) \
 neat_anystr_ref_fread_line(stream, neat_anystr_ref(any_str))
@@ -221,6 +224,12 @@ neat_anystr_ref_fread_line(stdin, neat_anystr_ref(any_str))
 
 #define neat_str_concat_read_line(any_str) \
 neat_anystr_ref_concat_fread_line(stdin, neat_anystr_ref(any_str))
+
+#define neat_str_fread_line_new(stream, ...) \
+neat_str_fread_line_new_(stream, NEAT_VA_OR(neat_get_default_allocator(), __VA_ARGS__))
+
+#define neat_str_read_line_new(...) \
+neat_str_fread_line_new(stdin __VA_OPT__(,) __VA_ARGS__)
 
 // helper macro
 #define neat_str_print_each(x) \
@@ -751,6 +760,8 @@ unsigned int neat_strv_count(Neat_String_View hay, Neat_String_View needle);
 
 unsigned int neat_anystr_ref_fread_line(FILE *stream, Neat_Any_String_Ref dst);
 unsigned int neat_anystr_ref_concat_fread_line(FILE *stream, Neat_Any_String_Ref dst);
+Neat_DString neat_str_fread_line_new_(FILE *stream, Neat_Allocator allocator);
+
 unsigned int neat_fprint_strv(FILE *stream, Neat_String_View str);
 unsigned int neat_fprintln_strv(FILE *stream, Neat_String_View str);
 
@@ -838,6 +849,8 @@ typedef Neat_Any_String_Ref Any_String_Ref;
 #define str_fread_line(stream, any_str) neat_str_fread_line(stream, any_str)
 #define str_concat_fread_line(stream, any_str) neat_str_concat_fread_line(stream, any_str)
 #define str_read_line(any_str) neat_str_read_line(any_str)
+#define str_read_line_new(...) neat_str_read_line_new(__VA_ARGS__)
+#define str_fread_line_new(stream, ...) neat_str_fread_line_new(stream __VA_OPT__(,) __VA_ARGS__)
 #define str_concat_read_line(any_str) neat_str_concat_read_line(any_str)
 #define str_print(any_str, ...) neat_str_print(any_str, __VA_ARGS__)
 #define str_print_new(...) neat_str_print_new(__VA_ARGS__)

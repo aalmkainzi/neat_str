@@ -349,7 +349,7 @@ NEAT_NODISCARD("str_del returns true on success, false on failure") bool neat_an
         len = strlen((char*) str.chars);
     }
     
-    if(begin > len || end > len || begin > end)
+    if(end > len || begin > end)
     {
         return false;
     }
@@ -1112,32 +1112,28 @@ Neat_DString neat_tostr_all_into_new_dstr(Neat_Allocator allocator, unsigned int
 
 unsigned int neat_anystr_ref_fread_line(FILE *stream, Neat_Any_String_Ref dst)
 {
-    unsigned int len;
-    if(dst.len != NULL)
+    if(dst.cap == 0)
     {
-        len = *dst.len;
-    }
-    else
-    {
-        len = strlen((char*) dst.chars);
+        return 0;
     }
     
-    unsigned char prev_len = len;
+    unsigned int len = 0;
     int c = 0;
-    while(c != '\n' && !feof(stream))
+    while(len < dst.cap - 1 && c != '\n' && !feof(stream))
     {
         c = fgetc(stream);
         dst.chars[len] = c;
         len += 1;
     }
     
+    dst.chars[len] = '\0';
+    
     if(dst.len != NULL)
     {
         *dst.len = len;
     }
     
-    unsigned int chars_read = len - prev_len;
-    return chars_read;
+    return len;
 }
 
 unsigned int neat_anystr_ref_concat_fread_line(FILE *stream, Neat_Any_String_Ref dst)
@@ -1158,8 +1154,8 @@ unsigned int neat_anystr_ref_concat_fread_line(FILE *stream, Neat_Any_String_Ref
         .cap = dst.cap - dst_len,
         .len = &concated_len
     };
-    
     right.chars = dst.chars + dst_len;
+    
     unsigned int chars_read = neat_anystr_ref_fread_line(stream, right);
     dst_len += chars_read;
     
@@ -1171,6 +1167,22 @@ unsigned int neat_anystr_ref_concat_fread_line(FILE *stream, Neat_Any_String_Ref
     dst.chars[dst_len] = '\0';
     
     return chars_read;
+}
+
+// is this a good approach? maybe it should be dstr_fread_line where it writes to dstr and reallocs when needed
+Neat_DString neat_str_fread_line_new_(FILE *stream, Neat_Allocator allocator)
+{
+    Neat_DString ret = neat_dstr_new(16, allocator);
+    
+    int c = 0;
+    while(c != '\n' && !feof(stream))
+    {
+        c = fgetc(stream);
+        Neat_String_View as_strv = {.chars = (unsigned char*) &c, .len = 1};
+        neat_dstr_append_strv(&ret, as_strv);
+    }
+    
+    return ret;
 }
 
 unsigned int neat_fprint_strv(FILE *stream, Neat_String_View str)
