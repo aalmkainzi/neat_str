@@ -103,6 +103,17 @@ NEAT_NODISCARD("dstr_insert returns error, true if success, false if fail") bool
     return ret;
 }
 
+void neat_dstr_ensure_cap_(Neat_DString *dstr, unsigned int at_least)
+{
+    if(dstr->cap <= at_least)
+    {
+        unsigned int new_cap = at_least + 1;
+        size_t actual_allocated_cap;
+        dstr->chars = neat_realloc(dstr->allocator, dstr->chars, unsigned char, dstr->cap, new_cap, &actual_allocated_cap);
+        dstr->cap = actual_allocated_cap;
+    }
+}
+
 char *neat_cstr_as_cstr(char *str)
 {
     return str;

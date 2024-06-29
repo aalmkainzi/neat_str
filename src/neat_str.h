@@ -446,6 +446,9 @@ neat_dstr_insert_tostr_(dstr, neat_tostr_p(stringable_ptr), idx)
 #define neat_dstr_shrink_to_fit(dstr) \
 neat_dstr_shrink_to_fit_(dstr)
 
+#define neat_dstr_ensure_cap(dstr, new_cap) \
+neat_dstr_ensure_cap_(dstr, new_cap)
+
 #define neat_fprint(f, ...) \
 do \
 { \
@@ -739,6 +742,7 @@ void neat_dstr_append_tostr_(Neat_DString *dstr, Neat_DString tostr);
 void neat_dstr_prepend_tostr_(Neat_DString *dstr, Neat_DString tostr);
 NEAT_NODISCARD("dstr_insert returns error, true if success, false if fail") bool neat_dstr_insert_tostr_(Neat_DString *dstr, Neat_DString tostr, unsigned int idx);
 void neat_dstr_shrink_to_fit_(Neat_DString *dstr);
+void neat_dstr_ensure_cap_(Neat_DString *dstr, unsigned int at_least);
 
 Neat_SString_Ref neat_sstr_ref_from_sstr_ptr(void *sstr_ptr, unsigned int cap);
 
@@ -868,6 +872,7 @@ typedef Neat_Any_String_Ref Any_String_Ref;
 #define dstr_insert_tostr(dstr, stringable, idx) neat_dstr_insert_tostr(dstr, stringable, idx)
 #define dstr_insert_tostr_p(dstr, stringable_ptr, idx) neat_dstr_insert_tostr_p(dstr, stringable_ptr, idx)
 #define dstr_shrink_to_fit(dstr) neat_dstr_shrink_to_fit(dstr)
+#define dstr_ensure_cap(dstr, new_cap) neat_dstr_ensure_cap(dstr, new_cap)
 
 #define strbuf(str_or_cap, ...) neat_strbuf(str_or_cap __VA_OPT__(,) __VA_ARGS__)
 #define sstr_ref(sstr_ptr) neat_sstr_ref(sstr_ptr)
