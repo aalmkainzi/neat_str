@@ -102,6 +102,7 @@ bool dstr_insert(dstr, any_str, idx);
 bool dstr_insert_tostr(dstr, stringable, idx);
 bool dstr_insert_tostr_p(dstr, stringable_ptr, idx);
 void dstr_shrink_to_fit(dstr);
+void dstr_ensure_cap(dstr, new_cap);
 ```
 
 ## String_Buffer
