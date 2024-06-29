@@ -236,6 +236,8 @@ unsigned int neat_anystr_ref_insert_strv(Neat_Any_String_Ref dst, Neat_String_Vi
     
     // shift right
     memmove(dst.chars + idx + nb_chars_to_insert, dst.chars + idx, len - idx);
+    
+    // insert the src
     memmove(dst.chars + idx, src.chars, nb_chars_to_insert);
     
     len += nb_chars_to_insert;
@@ -353,8 +355,6 @@ NEAT_NODISCARD("str_del returns true on success, false on failure") bool neat_an
     }
     
     unsigned int substr_len = end - begin;
-    
-    //unsigned int shift_by = neat_uint_min(len - begin + substr_len);
     
     memmove(str.chars + begin, str.chars + begin + substr_len, len - begin - substr_len);
     
