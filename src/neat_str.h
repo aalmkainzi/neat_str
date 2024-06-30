@@ -342,7 +342,12 @@ _Generic(any_str,                                                    \
     Neat_Any_String_Ref           : neat_anystr_ref_to_anystr_ref    \
 )(any_str)
 
-// TODO make this type safe
+#define neat_strbuf_carr(carr) \
+( \
+    neat_static_assertx(neat_is_array_of(carr, char) || neat_is_array_of(carr, unsigned char), "must be 'char[N]' or 'unsigned char[N]'"), \
+    (Neat_String_Buffer){.chars = (unsigned char*) carr, .cap = sizeof(carr) / sizeof(carr[0]), .len = strlen((char*) carr)} \
+)
+
 #define neat_sstr_ref(sstr_ptr) \
 ( \
     neat_static_assertx(NEAT_IS_SSTRING_PTR(sstr_ptr), "Must pass SString(N)*"), \
@@ -893,6 +898,7 @@ typedef Neat_Any_String_Ref Any_String_Ref;
 #define dstr_ensure_cap(dstr, new_cap) neat_dstr_ensure_cap(dstr, new_cap)
 
 #define strbuf(str_or_cap, ...) neat_strbuf(str_or_cap __VA_OPT__(,) __VA_ARGS__)
+#define strbuf_carr(carr) neat_strbuf_carr(carr)
 #define sstr_ref(sstr_ptr) neat_sstr_ref(sstr_ptr)
 #define strv(...) neat_strv(__VA_ARGS__)
 #define anystr_ref(any_str) neat_anystr_ref(any_str)
