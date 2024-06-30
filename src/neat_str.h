@@ -158,7 +158,7 @@ neat_strv_equal(neat_strv(any_str1), neat_strv(any_str2))
 
 #define neat_str_copy(any_str_dst, any_str_src) \
 ( \
-    /*neat_str_assert_mutable(any_str_dst),*/ \
+    neat_str_assert_mutable(any_str_dst), \
     neat_anystr_ref_copy(neat_anystr_ref(any_str_dst), neat_strv(any_str_src)) \
 )
 
@@ -331,15 +331,15 @@ _Generic(str_or_cap,                                           \
 #define neat_strbuf_2(cap, allocator) \
 neat_strbuf_new(cap, allocator)
 
-#define neat_anystr_ref(any_str)                                   \
-_Generic(any_str,                                                  \
-    char*                         : neat_anystr_ref_to_cstr,       \
-    NEAT_UCHAR_CASE(unsigned char*: neat_anystr_ref_to_ucstr,)     \
-    Neat_DString*                 : neat_anystr_ref_to_dstr_ptr,   \
-    Neat_String_View*             : neat_anystr_ref_to_strv_ptr,   \
-    Neat_String_Buffer*           : neat_anystr_ref_to_strbuf_ptr, \
-    Neat_SString_Ref              : neat_anystr_ref_to_sstr_ref,   \
-    Neat_Any_String_Ref           : neat_anystr_ref_to_anystr_ref  \
+#define neat_anystr_ref(any_str)                                     \
+_Generic(any_str,                                                    \
+    char*                         : neat_anystr_ref_to_cstr,         \
+    NEAT_UCHAR_CASE(unsigned char*: neat_anystr_ref_to_ucstr,)       \
+    Neat_DString*                 : neat_anystr_ref_to_dstr_ptr,     \
+    /*Neat_String_View*             : neat_anystr_ref_to_strv_ptr,*/ \
+    Neat_String_Buffer*           : neat_anystr_ref_to_strbuf_ptr,   \
+    Neat_SString_Ref              : neat_anystr_ref_to_sstr_ref,     \
+    Neat_Any_String_Ref           : neat_anystr_ref_to_anystr_ref    \
 )(any_str)
 
 // TODO make this type safe
@@ -727,7 +727,7 @@ Neat_String_Buffer neat_strbuf_of_anystr_ref(Neat_Any_String_Ref str);
 Neat_Any_String_Ref neat_anystr_ref_to_cstr(char *str);
 Neat_Any_String_Ref neat_anystr_ref_to_ucstr(unsigned char *str);
 Neat_Any_String_Ref neat_anystr_ref_to_dstr_ptr(Neat_DString *str);
-Neat_Any_String_Ref neat_anystr_ref_to_strv_ptr(Neat_String_View *str);
+// Neat_Any_String_Ref neat_anystr_ref_to_strv_ptr(Neat_String_View *str);
 Neat_Any_String_Ref neat_anystr_ref_to_strbuf_ptr(Neat_String_Buffer *str);
 Neat_Any_String_Ref neat_anystr_ref_to_sstr_ref(Neat_SString_Ref str);
 Neat_Any_String_Ref neat_anystr_ref_to_anystr_ref(Neat_Any_String_Ref str);

@@ -726,14 +726,14 @@ Neat_Any_String_Ref neat_anystr_ref_to_dstr_ptr(Neat_DString *str)
     };
 }
 
-Neat_Any_String_Ref neat_anystr_ref_to_strv_ptr(Neat_String_View *str)
-{
-    return (Neat_Any_String_Ref){
-        .cap   = str->len,
-        .len   = &str->len,
-        .chars = str->chars
-    };
-}
+// Neat_Any_String_Ref neat_anystr_ref_to_strv_ptr(Neat_String_View *str)
+// {
+//     return (Neat_Any_String_Ref){
+//         .cap   = str->len,
+//         .len   = &str->len,
+//         .chars = str->chars
+//     };
+// }
 
 Neat_Any_String_Ref neat_anystr_ref_to_strbuf_ptr(Neat_String_Buffer *str)
 {
