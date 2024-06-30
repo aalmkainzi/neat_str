@@ -125,6 +125,7 @@ to initialize:
 String_Buffer strbuf(any_str);
 String_Buffer strbuf(cap);
 String_Buffer strbuf(cap, allocator);
+String_Buffer strbuf_carr(carr);
 ```
 ## SString
 
