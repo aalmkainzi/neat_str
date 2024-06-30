@@ -61,16 +61,16 @@ DString           str_print_new(...);
 // Same as above except specify the allocator in arg1
 DString           str_print_new(allocator, ...);
 
-// Reads a line from file stream arg1 into string arg2. If it doesn't fit, it reads as many chars as can fit. Returns how many chars were read and copied
-unsigned int      str_fread_line(stream, any_str);
+// Reads a line from file stream arg2 into string arg1. If it doesn't fit, it reads as many chars as can fit. Returns how many chars were read and copied
+unsigned int      str_fread_line(any_str, stream);
 
-// Same as above except concats into string arg2 rather than copy
-unsigned int      str_concat_fread_line(stream, any_str);
+// Same as above except concats into string arg1 rather than copy
+unsigned int      str_concat_fread_line(any_str, stream);
 
-// Same as str_fread_line(stdio, any_str)
+// Same as str_fread_line(any_str, stdio)
 unsigned int      str_read_line(any_str);
 
-// Same as str_concat_fread_line(stdio, any_str)
+// Same as str_concat_fread_line(any_str, stdio)
 unsigned int      str_concat_read_line(any_str);
 ```
 Note some of these macros require a mutable string type (e.g. `str_replace`), that includes all string types except `String_View`.

@@ -213,17 +213,17 @@ neat_strv_arr_join(neat_anystr_ref(any_str_dst), neat_strv(any_str_delim), strv_
     neat_anystr_ref_delete_range(neat_anystr_ref(any_str), begin, end) \
 )
 
-#define neat_str_fread_line(stream, any_str) \
-neat_anystr_ref_fread_line(stream, neat_anystr_ref(any_str))
+#define neat_str_fread_line(any_str, stream) \
+neat_anystr_ref_fread_line(neat_anystr_ref(any_str), stream)
 
 #define neat_str_concat_fread_line(stream, any_str) \
-neat_anystr_ref_concat_fread_line(stream, neat_anystr_ref(any_str))
+neat_anystr_ref_concat_fread_line(neat_anystr_ref(any_str), stream)
 
 #define neat_str_read_line(any_str) \
-neat_anystr_ref_fread_line(stdin, neat_anystr_ref(any_str))
+neat_anystr_ref_fread_line(neat_anystr_ref(any_str), stdin)
 
 #define neat_str_concat_read_line(any_str) \
-neat_anystr_ref_concat_fread_line(stdin, neat_anystr_ref(any_str))
+neat_anystr_ref_concat_fread_line(neat_anystr_ref(any_str), stdin)
 
 #define neat_str_fread_line_new(stream, ...) \
 neat_str_fread_line_new_(stream, NEAT_VA_OR(neat_get_default_allocator(), __VA_ARGS__))
@@ -442,6 +442,18 @@ neat_dstr_insert_tostr_(dstr, neat_tostr(stringable), idx)
 
 #define neat_dstr_insert_tostr_p(dstr, stringable_ptr, idx) \
 neat_dstr_insert_tostr_(dstr, neat_tostr_p(stringable_ptr), idx)
+
+#define neat_dstr_fread_line(dstr, stream) \
+neat_dstr_fread_line_(dstr, stream)
+
+#define neat_dstr_read_line(dstr) \
+neat_dstr_fread_line_(dstr, stdin)
+
+#define neat_dstr_append_fread_line(dstr, stream) \
+neat_dstr_append_fread_line_(dstr, stream)
+
+#define neat_dstr_append_read_line(dstr) \
+neat_dstr_append_fread_line_(dstr, stdin)
 
 #define neat_dstr_shrink_to_fit(dstr) \
 neat_dstr_shrink_to_fit_(dstr)
@@ -741,6 +753,8 @@ NEAT_NODISCARD("dstr_insert returns error, true if success, false if fail") bool
 void neat_dstr_append_tostr_(Neat_DString *dstr, Neat_DString tostr);
 void neat_dstr_prepend_tostr_(Neat_DString *dstr, Neat_DString tostr);
 NEAT_NODISCARD("dstr_insert returns error, true if success, false if fail") bool neat_dstr_insert_tostr_(Neat_DString *dstr, Neat_DString tostr, unsigned int idx);
+unsigned int neat_dstr_fread_line_(Neat_DString *dstr, FILE *stream);
+unsigned int neat_dstr_append_fread_line_(Neat_DString *dstr, FILE *stream);
 void neat_dstr_shrink_to_fit_(Neat_DString *dstr);
 void neat_dstr_ensure_cap_(Neat_DString *dstr, unsigned int at_least);
 
@@ -762,8 +776,8 @@ bool neat_strv_equal(Neat_String_View str1, Neat_String_View str2);
 Neat_String_View neat_strv_find(Neat_String_View hay, Neat_String_View needle);
 unsigned int neat_strv_count(Neat_String_View hay, Neat_String_View needle);
 
-unsigned int neat_anystr_ref_fread_line(FILE *stream, Neat_Any_String_Ref dst);
-unsigned int neat_anystr_ref_concat_fread_line(FILE *stream, Neat_Any_String_Ref dst);
+unsigned int neat_anystr_ref_fread_line(Neat_Any_String_Ref dst, FILE *stream);
+unsigned int neat_anystr_ref_concat_fread_line(Neat_Any_String_Ref dst, FILE *stream);
 Neat_DString neat_str_fread_line_new_(FILE *stream, Neat_Allocator allocator);
 
 unsigned int neat_fprint_strv(FILE *stream, Neat_String_View str);
@@ -850,7 +864,7 @@ typedef Neat_Any_String_Ref Any_String_Ref;
 #define str_split(any_str, any_str_delim, ...) neat_str_split(any_str, any_str_delim __VA_OPT__(,) __VA_ARGS__)
 #define str_join(mut_str_dst, any_str_delim, strv_arr) neat_str_join(mut_str_dst, any_str_delim, strv_arr)
 #define str_join_new(any_str_delim, strv_arr, ...) neat_str_join_new(any_str_delim, strv_arr __VA_OPT__(,) __VA_ARGS__)
-#define str_fread_line(stream, any_str) neat_str_fread_line(stream, any_str)
+#define str_fread_line(any_str, stream) neat_str_fread_line(any_str, stream)
 #define str_concat_fread_line(stream, any_str) neat_str_concat_fread_line(stream, any_str)
 #define str_read_line(any_str) neat_str_read_line(any_str)
 #define str_read_line_new(...) neat_str_read_line_new(__VA_ARGS__)
@@ -871,6 +885,10 @@ typedef Neat_Any_String_Ref Any_String_Ref;
 #define dstr_insert(dstr, any_str, idx) neat_dstr_insert(dstr, any_str, idx)
 #define dstr_insert_tostr(dstr, stringable, idx) neat_dstr_insert_tostr(dstr, stringable, idx)
 #define dstr_insert_tostr_p(dstr, stringable_ptr, idx) neat_dstr_insert_tostr_p(dstr, stringable_ptr, idx)
+#define dstr_fread_line(dstr, stream) neat_dstr_fread_line(dstr, stream)
+#define dstr_read_line(dstr) neat_dstr_read_line(dstr)
+#define dstr_append_fread_line(dstr, stream) neat_dstr_append_fread_line(dstr, stream)
+#define dstr_append_read_line(dstr) neat_dstr_append_read_line(dstr)
 #define dstr_shrink_to_fit(dstr) neat_dstr_shrink_to_fit(dstr)
 #define dstr_ensure_cap(dstr, new_cap) neat_dstr_ensure_cap(dstr, new_cap)
 

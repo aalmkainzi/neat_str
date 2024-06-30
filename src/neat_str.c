@@ -103,6 +103,31 @@ NEAT_NODISCARD("dstr_insert returns error, true if success, false if fail") bool
     return ret;
 }
 
+unsigned int neat_dstr_fread_line_(Neat_DString *dstr, FILE *stream)
+{
+    dstr->len = 0;
+    if(dstr->cap > 0)
+    {
+        dstr->chars[0] = '\0';
+    }
+    
+    return neat_dstr_append_fread_line_(dstr, stream);
+}
+
+unsigned int neat_dstr_append_fread_line_(Neat_DString *dstr, FILE *stream)
+{
+    unsigned int prev_len = dstr->len;
+    int c = 0;
+    while(c != '\n' && !feof(stream))
+    {
+        c = fgetc(stream);
+        Neat_String_View as_strv = {.chars = (unsigned char*) &c, .len = 1};
+        neat_dstr_append_strv(dstr, as_strv);
+    }
+    
+    return dstr->len - prev_len;
+}
+
 void neat_dstr_ensure_cap_(Neat_DString *dstr, unsigned int at_least)
 {
     if(dstr->cap <= at_least)
@@ -1121,7 +1146,7 @@ Neat_DString neat_tostr_all_into_new_dstr(Neat_Allocator allocator, unsigned int
     return ret;
 }
 
-unsigned int neat_anystr_ref_fread_line(FILE *stream, Neat_Any_String_Ref dst)
+unsigned int neat_anystr_ref_fread_line( Neat_Any_String_Ref dst, FILE *stream)
 {
     if(dst.cap == 0)
     {
@@ -1147,7 +1172,7 @@ unsigned int neat_anystr_ref_fread_line(FILE *stream, Neat_Any_String_Ref dst)
     return len;
 }
 
-unsigned int neat_anystr_ref_concat_fread_line(FILE *stream, Neat_Any_String_Ref dst)
+unsigned int neat_anystr_ref_concat_fread_line(Neat_Any_String_Ref dst, FILE *stream)
 {
     unsigned int dst_len;
     if(dst.len != NULL)
@@ -1167,7 +1192,7 @@ unsigned int neat_anystr_ref_concat_fread_line(FILE *stream, Neat_Any_String_Ref
     };
     right.chars = dst.chars + dst_len;
     
-    unsigned int chars_read = neat_anystr_ref_fread_line(stream, right);
+    unsigned int chars_read = neat_anystr_ref_fread_line(right, stream);
     dst_len += chars_read;
     
     if(dst.len != NULL)
