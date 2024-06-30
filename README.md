@@ -17,7 +17,7 @@ String_View       str_find(any_str_hay, any_str_needle);
 unsigned int      str_count(any_str_hay, any_str_needle);
 
 // Copies arg2 into arg1. If it doesn't fit, it copies as many chars as can fit. Returns how many chars were copied
-unsigned int      str_copy(any_str_dst, any_str_src);
+unsigned int      str_copy(mut_str_dst, any_str_src);
 
 // Concats arg2 into arg1. If it doesn't fit, it concats as many chars as can fit. Returns how many chars were concated
 unsigned int      str_concat(cap_str_dst, any_str_src);
@@ -62,16 +62,16 @@ DString           str_print_new(...);
 DString           str_print_new(allocator, ...);
 
 // Reads a line from file stream arg2 into string arg1. If it doesn't fit, it reads as many chars as can fit. Returns how many chars were read and copied
-unsigned int      str_fread_line(any_str, stream);
+unsigned int      str_fread_line(mut_str, stream);
 
 // Same as above except concats into string arg1 rather than copy
-unsigned int      str_concat_fread_line(any_str, stream);
+unsigned int      str_concat_fread_line(cap_str, stream);
 
 // Same as str_fread_line(any_str, stdio)
-unsigned int      str_read_line(any_str);
+unsigned int      str_read_line(mut_str);
 
 // Same as str_concat_fread_line(any_str, stdio)
-unsigned int      str_concat_read_line(any_str);
+unsigned int      str_concat_read_line(cap_str);
 ```
 Note some of these macros require a mutable string type (e.g. `str_replace`), that includes all string types except `String_View`.
 
