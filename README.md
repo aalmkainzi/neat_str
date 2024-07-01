@@ -181,6 +181,7 @@ This type can be used as a mutable reference to any string type.
 to initialize:
 ```C
 Any_String_Ref anystr_ref(any_str);
+Any_String_Ref anystr_ref_carr(carr);
 ```
 
 for example:
