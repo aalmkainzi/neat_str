@@ -296,11 +296,11 @@ this will prefix all macro definitions with `neat_` and all types with `Neat_`
 
 ## Building and Including
 
-Run:
+1) Run:
 ```
 cmake .
 cmake --build .
 ```
 After which you'll find the static library inside `./bin`.
 
-Add both headers in `./include` to your project.
+2) Add both headers in `./include` to your project.
