@@ -1,6 +1,6 @@
 #include <stdarg.h>
 #define NEAT_STR_PREFIX
-#include "neat_str.h"
+#include "../include/neat_str.h"
 
 static inline unsigned int neat_uint_min(unsigned int a, unsigned int b)
 {

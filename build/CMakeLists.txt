@@ -11,5 +11,4 @@ ENDIF()
 
 set(CMAKE_C_EXTENSIONS on)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "../bin/")
-include_directories("../include")
 add_library(neat_str STATIC "../src/neat_str.c" "../src/neat_core.c")

@@ -1,4 +1,4 @@
-#include "neat_core.h"
+#include "../include/neat_core.h"
 #include <stdalign.h>
 
 void *neat_default_allocator_alloc(void *ctx, size_t alignment, size_t n, size_t *actual)
