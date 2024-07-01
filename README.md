@@ -299,6 +299,7 @@ this will prefix all macro definitions with `neat_` and all types with `Neat_`
 
 1) Run:
 ```
+cd build
 cmake .
 cmake --build .
 ```
