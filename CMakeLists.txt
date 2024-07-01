@@ -1,5 +1,7 @@
 project(neat_str C)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 IF (WIN32)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /std:clatest")
 ELSE()
@@ -8,5 +10,5 @@ ENDIF()
 
 set(CMAKE_C_EXTENSIONS on)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "bin/")
-
+include_directories("./include")
 add_library(neat_str STATIC "src/neat_str.c" "src/neat_core.c")
