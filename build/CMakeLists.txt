@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 project(neat_str C)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE RELEASE)
 
 IF (CMAKE_C_COMPILER_ID STREQUAL "MSVC")
