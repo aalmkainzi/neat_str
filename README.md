@@ -294,8 +294,13 @@ You can choose to prefix the entire lib like this:
 ```
 this will prefix all macro definitions with `neat_` and all types with `Neat_`
 
-## Including
+## Building and Including
 
-to include this lib in your project, add `neat_str.c` and `neat_core.c` to your build script.
+Run:
+```
+cmake .
+cmake --build .
+```
+After which you'll find the static library inside `./bin`.
 
-note that all 4 file must be in the same directory.
+Add both headers in `./include` to your project.
