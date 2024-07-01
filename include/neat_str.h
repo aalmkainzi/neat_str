@@ -331,6 +331,12 @@ _Generic(str_or_cap,                                           \
 #define neat_strbuf_2(cap, allocator) \
 neat_strbuf_new(cap, allocator)
 
+#define neat_strbuf_carr(carr) \
+( \
+    neat_static_assertx(neat_is_array_of(carr, char) || neat_is_array_of(carr, unsigned char), "must be 'char[N]' or 'unsigned char[N]'"), \
+    (Neat_String_Buffer){.chars = (unsigned char*) carr, .cap = sizeof(carr) / sizeof(carr[0]), .len = strlen((char*) carr)} \
+)
+
 #define neat_anystr_ref(any_str)                                     \
 _Generic(any_str,                                                    \
     char*                         : neat_anystr_ref_to_cstr,         \
@@ -342,10 +348,10 @@ _Generic(any_str,                                                    \
     Neat_Any_String_Ref           : neat_anystr_ref_to_anystr_ref    \
 )(any_str)
 
-#define neat_strbuf_carr(carr) \
+#define neat_anystr_ref_carr(carr) \
 ( \
     neat_static_assertx(neat_is_array_of(carr, char) || neat_is_array_of(carr, unsigned char), "must be 'char[N]' or 'unsigned char[N]'"), \
-    (Neat_String_Buffer){.chars = (unsigned char*) carr, .cap = sizeof(carr) / sizeof(carr[0]), .len = strlen((char*) carr)} \
+    (Neat_Any_String_Ref){.chars = (unsigned char*) carr, .cap = sizeof(carr) / sizeof(carr[0]), .len = NULL} \
 )
 
 #define neat_sstr_ref(sstr_ptr) \
@@ -902,6 +908,7 @@ typedef Neat_Any_String_Ref Any_String_Ref;
 #define sstr_ref(sstr_ptr) neat_sstr_ref(sstr_ptr)
 #define strv(...) neat_strv(__VA_ARGS__)
 #define anystr_ref(any_str) neat_anystr_ref(any_str)
+#define anystr_ref_carr(carr) neat_anystr_ref_carr(carr)
 #define strv_arr(...) neat_strv_arr(__VA_ARGS__)
 #define strv_arr_from_carr(strv_carr, ...) neat_strv_arr_from_carr(strv_carr __VA_OPT__(,) __VA_ARGS__)
 
