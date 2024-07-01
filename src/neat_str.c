@@ -15,7 +15,7 @@ static inline unsigned int neat_uint_max(unsigned int a, unsigned int b)
 bool neat_is_strv_intersect(Neat_String_View base, Neat_String_View sub)
 {
     uintptr_t begin = (uintptr_t) base.chars;
-    uintptr_t end   = (uintptr_t) base.chars + base.len;
+    uintptr_t end   = ((uintptr_t) base.chars) + base.len;
     uintptr_t sub_begin = (uintptr_t) sub.chars;
     return sub_begin >= begin && sub_begin <= end;
 }
