@@ -305,4 +305,4 @@ cmake --build .
 ```
 After which you'll find the static library inside `./bin`.
 
-2) Add both headers in `./include` to your project.
+2) Copy both headers from `./include` to your project.
