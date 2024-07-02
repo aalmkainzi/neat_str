@@ -235,27 +235,26 @@ neat_str_fread_line_new(stdin __VA_OPT__(,) __VA_ARGS__)
 #define neat_str_print_each(x) \
 do \
 { \
-    Neat_String_Buffer neat_as_strbuf_window = { .cap = neat_as_strbuf.cap - *neat_len_p }; \
-    neat_as_strbuf_window.chars = neat_as_strbuf.chars + *neat_len_p; \
+    Neat_String_Buffer neat_as_strbuf_window = { .cap = neat_as_strbuf.cap - neat_as_strbuf.len }; \
+    neat_as_strbuf_window.chars = neat_as_strbuf.chars + neat_as_strbuf.len; \
     neat_tostr_into(&neat_as_strbuf_window, x); \
-    *neat_len_p += neat_as_strbuf_window.len; \
+    neat_as_strbuf.len += neat_as_strbuf_window.len; \
+    *neat_as_anystr_ref.len = neat_as_strbuf.len; \
 } while(0);
 
 #define neat_str_print(any_str_dst, ...) \
 do \
 { \
     neat_str_assert_mutable(any_str_dst); \
-    typeof(((void)0, any_str_dst)) neat_anystr_dst = any_str_dst; \
-    Neat_String_Buffer neat_as_strbuf = neat_strbuf(neat_anystr_dst); \
+    Neat_Any_String_Ref neat_as_anystr_ref = neat_anystr_ref(any_str_dst); \
+    unsigned int neat_anystr_ref_len; \
+    if(neat_as_anystr_ref.len == NULL) \
+    { \
+        neat_anystr_ref_len = strlen((char*) neat_as_anystr_ref.chars); \
+        neat_as_anystr_ref.len = &neat_anystr_ref_len; \
+    } \
+    Neat_String_Buffer neat_as_strbuf = neat_strbuf(neat_as_anystr_ref); \
     neat_as_strbuf.len = 0; \
-    unsigned int neat_len; \
-    unsigned int *neat_len_p; \
-    Neat_Any_String_Ref neat_as_anystr_ref = neat_anystr_ref(neat_anystr_dst); \
-    if(neat_as_anystr_ref.len != NULL) \
-        neat_len_p = neat_as_anystr_ref.len; \
-    else \
-        neat_len_p = &neat_len; \
-    *neat_len_p = 0; \
     \
     NEAT_FOREACH(neat_str_print_each, __VA_ARGS__); \
     \
