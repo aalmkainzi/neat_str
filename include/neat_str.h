@@ -133,11 +133,25 @@ _Generic((char(*)[ 1 + (sizeof(*(s)) == sizeof(NEAT_TYPEOF_SSTR(s))) ]){0}, \
     Neat_Any_String_Ref: 1              \
 )
 
+#define neat_str_at(any_str, idx)                            \
+_Generic(any_str,                                            \
+    char*                         : neat_cstr_char_at,       \
+    NEAT_UCHAR_CASE(unsigned char*: neat_ucstr_char_at,      \
+    Neat_DString                  : neat_dstr_char_at,       \
+    Neat_DString*                 : neat_dstr_ptr_char_at,   \
+    Neat_String_View              : neat_strv_char_at,       \
+    Neat_String_View*             : neat_strv_ptr_char_at,   \
+    Neat_String_Buffer            : neat_strbuf_char_at,     \
+    Neat_String_Buffer*           : neat_strbuf_ptr_char_at, \
+    Neat_SString_Ref              : neat_sstr_ref_char_at,   \
+    Neat_Any_String_Ref           : neat_anystr_ref_char_at  \
+)(any_str, idx)
+
 #define neat_str_len(any_str) \
 strv(any_str).len
 
 #define neat_str_cap(any_str) \
-neat_anystr_ref(any_str).cap
+neat_strbuf(any_str).cap
 
 #define neat_str_cstr(any_str) \
 _Generic(any_str, \
@@ -753,6 +767,17 @@ char *neat_strbuf_ptr_as_cstr(Neat_String_Buffer *str);
 char *neat_sstr_ref_as_cstr(Neat_SString_Ref str);
 char *neat_anystr_ref_as_cstr(Neat_Any_String_Ref str);
 
+unsigned char neat_cstr_char_at(char *str, unsigned int idx);
+unsigned char neat_ucstr_char_at(unsigned char *str, unsigned int idx);
+unsigned char neat_dstr_char_at(Neat_DString str, unsigned int idx);
+unsigned char neat_dstr_ptr_char_at(Neat_DString *str, unsigned int idx);
+unsigned char neat_strv_char_at(Neat_String_View str, unsigned int idx);
+unsigned char neat_strv_ptr_char_at(Neat_String_View *str, unsigned int idx);
+unsigned char neat_strbuf_char_at(Neat_String_Buffer str, unsigned int idx);
+unsigned char neat_strbuf_ptr_char_at(Neat_String_Buffer *str, unsigned int idx);
+unsigned char neat_sstr_ref_char_at(Neat_SString_Ref str, unsigned int idx);
+unsigned char neat_anystr_ref_char_at(Neat_Any_String_Ref str, unsigned int idx);
+
 bool neat_is_strv_intersect(Neat_String_View base, Neat_String_View sub);
 
 NEAT_NODISCARD("discarding a new DString will cause memory leak") Neat_DString neat_dstr_new(unsigned int cap, Neat_Allocator allocator);
@@ -858,6 +883,7 @@ typedef Neat_SString_Ref SString_Ref;
 typedef Neat_Any_String_Ref Any_String_Ref;
 #define SString(N) Neat_SString(N)
 
+#define str_at(any_str, idx) neat_str_at(any_str, idx)
 #define str_len(any_str) neat_str_len(any_str)
 #define str_cap(any_str) neat_str_cap(any_str)
 #define str_equal(any_str1, any_str2) neat_str_equal(any_str1, any_str2)

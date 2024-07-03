@@ -189,6 +189,56 @@ char *neat_anystr_ref_as_cstr(Neat_Any_String_Ref str)
     return (char*) str.chars;
 }
 
+unsigned char neat_cstr_char_at(char *str, unsigned int idx)
+{
+    return str[idx];
+}
+
+unsigned char neat_ucstr_char_at(unsigned char *str, unsigned int idx)
+{
+    return str[idx];
+}
+
+unsigned char neat_dstr_char_at(Neat_DString str, unsigned int idx)
+{
+    return str.chars[idx];
+}
+
+unsigned char neat_dstr_ptr_char_at(Neat_DString *str, unsigned int idx)
+{
+    return str->chars[idx];
+}
+
+unsigned char neat_strv_char_at(Neat_String_View str, unsigned int idx)
+{
+    return str.chars[idx];
+}
+
+unsigned char neat_strv_ptr_char_at(Neat_String_View *str, unsigned int idx)
+{
+    return str->chars[idx];
+}
+
+unsigned char neat_strbuf_char_at(Neat_String_Buffer str, unsigned int idx)
+{
+    return str.chars[idx];
+}
+
+unsigned char neat_strbuf_ptr_char_at(Neat_String_Buffer *str, unsigned int idx)
+{
+    return str->chars[idx];
+}
+
+unsigned char neat_sstr_ref_char_at(Neat_SString_Ref str, unsigned int idx)
+{
+    return str.sstring->chars[idx];
+}
+
+unsigned char neat_anystr_ref_char_at(Neat_Any_String_Ref str, unsigned int idx)
+{
+    return str.chars[idx];
+}
+
 Neat_String_View neat_strv_strv2(Neat_String_View str, unsigned int begin)
 {
     return neat_strv_strv_ptr2(&str, begin);
