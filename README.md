@@ -94,13 +94,13 @@ utility:
 ```C
 void         dstr_append(dstr, any_str);
 void         dstr_append_tostr(dstr, stringable);
-void         dstr_append_tostr_p(dstr, stringable_ptr);
+void         dstr_append_tostr_p(dstr, stringable*);
 void         dstr_prepend(dstr, any_str);
 void         dstr_prepend_tostr(dstr, stringable);
-void         dstr_prepend_tostr_p(dstr, stringable_ptr);
+void         dstr_prepend_tostr_p(dstr, stringable*);
 bool         dstr_insert(dstr, any_str, idx);
 bool         dstr_insert_tostr(dstr, stringable, idx);
-bool         dstr_insert_tostr_p(dstr, stringable_ptr, idx);
+bool         dstr_insert_tostr_p(dstr, stringable*, idx);
 unsigned int dstr_fread_line(any_str, stream);
 unsigned int dstr_read_line(dstr);
 unsigned int dstr_append_fread_line(dstr, stream);
@@ -180,7 +180,7 @@ This type can be used as a mutable reference to any string type.
 
 to initialize:
 ```C
-Any_String_Ref anystr_ref(any_str);
+Any_String_Ref anystr_ref(mut_str);
 Any_String_Ref anystr_ref_carr(carr);
 ```
 
@@ -203,8 +203,8 @@ void foo(SString_Ref s1, String_Buffer *s2)
 You can convert any type to string by using `tostr`:
 
 ```C
-DString tostr(Stringable);
-DString tostr_p(Stringable*);
+DString tostr(stringable);
+DString tostr_p(stringable*);
 ```
 e.g.
 ```C
