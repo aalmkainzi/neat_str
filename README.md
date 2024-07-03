@@ -37,11 +37,11 @@ bool              str_replace_first(mut_str, any_str_target, any_str_replacement
 // Deletes the characters specified by the range [begin, end). Returns false if the range is invalid, true otherwise
 bool              str_del(mut_str, begin, end);
 
-// Returns a new String_View_Array containing arg1 splitted using the delimiter arg2
-String_View_Array str_split(any_str, any_str_delim);
+// Returns a new String_View_Array containing arg2 splitted using the delimiter arg1
+String_View_Array str_split(any_str_delim, any_str);
 
 // Same as above except specify the allocator in arg3
-String_View_Array str_split(any_str, any_str_delim, allocator);
+String_View_Array str_split(any_str_delim, any_str, allocator);
 
 // Joins the String_View_Array in arg3 using the delimiter in arg2, store the resulting string in arg1. Returns how many chars were copied
 unsigned int      str_join(mut_str_dst, any_str_delim, strv_arr);
