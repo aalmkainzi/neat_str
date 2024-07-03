@@ -14,7 +14,7 @@ typedef neat_func_ptr(void*, void *ctx, size_t alignment, size_t n, size_t *actu
 typedef neat_func_ptr(void,  void *ctx, void *ptr, size_t n) neat_dealloc_func;
 typedef neat_func_ptr(void*, void *ctx, void *ptr, size_t alignment, size_t old_size, size_t new_size, size_t *actual) neat_realloc_func;
 
-typedef neat_func_ptr(void,  void **ctx) neat_allocator_init_func;
+typedef neat_func_ptr(void,  void **ctx, void *arg) neat_allocator_init_func;
 typedef neat_func_ptr(void,  void *ctx)  neat_allocator_deinit_func;
 
 typedef struct Neat_Allocator
@@ -30,36 +30,21 @@ typedef struct Neat_Allocator
 void *neat_default_allocator_alloc(void *ctx, size_t alignment, size_t n, size_t *actual);
 void neat_default_allocator_dealloc(void *ctx, void *ptr, size_t n);
 void *neat_default_allocator_realloc(void *ctx, void *ptr, size_t alignment, size_t old_size, size_t new_size, size_t *actual);
-void neat_default_allocator_init(void **ctx);
+void neat_default_allocator_init(void **ctx, void *arg);
 void neat_default_allocator_deinit(void *ctx);
 
 void *neat_noop_allocator_alloc(void *ctx, size_t alignment, size_t n, size_t *actual);
 void neat_noop_allocator_dealloc(void *ctx, void *ptr, size_t n);
 void *neat_noop_allocator_realloc(void *ctx, void *ptr, size_t alignment, size_t old_size, size_t new_size, size_t *actual);
-void neat_noop_allocator_init(void **ctx);
+void neat_noop_allocator_init(void **ctx, void *arg);
 void neat_noop_allocator_deinit(void *ctx);
 
 void *neat_allocator_invoke_alloc(Neat_Allocator allocator, size_t alignment, size_t obj_size, size_t nb, size_t *actual);
 void neat_allocator_invoke_dealloc(Neat_Allocator allocator, void *ptr, size_t obj_size, size_t nb);
 void *neat_allocator_invoke_realloc(Neat_Allocator allocator, void *ptr, size_t alignment, size_t obj_size, size_t old_nb, size_t new_nb, size_t *actual);
 
-#define neat_get_default_allocator() ((void)0, \
-(Neat_Allocator){                              \
-    .alloc   = neat_default_allocator_alloc,   \
-    .dealloc = neat_default_allocator_dealloc, \
-    .realloc = neat_default_allocator_realloc, \
-    .init    = neat_default_allocator_init,    \
-    .deinit  = neat_default_allocator_deinit,  \
-})
-
-#define neat_get_noop_allocator() ((void)0, \
-(Neat_Allocator){                           \
-    .alloc   = neat_noop_allocator_alloc,   \
-    .dealloc = neat_noop_allocator_dealloc, \
-    .realloc = neat_noop_allocator_realloc, \
-    .init    = neat_noop_allocator_init,    \
-    .deinit  = neat_noop_allocator_deinit,  \
-})
+Neat_Allocator neat_get_default_allocator();
+Neat_Allocator neat_get_noop_allocator();
 
 #define neat_alloc(allocator, T, n, actual) \
 (T*) neat_allocator_invoke_alloc(allocator, _Alignof(T), sizeof(T), n, actual)

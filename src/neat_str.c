@@ -22,7 +22,9 @@ bool neat_is_strv_intersect(Neat_String_View base, Neat_String_View sub)
 
 NEAT_NODISCARD("discarding a new DString will cause memory leak") Neat_DString neat_dstr_new(unsigned int cap, Neat_Allocator allocator)
 {
-    allocator.init(&allocator.ctx);
+    if(allocator.ctx == NULL)
+        allocator.init(&allocator.ctx, NULL);
+    
     Neat_DString ret = { 0 };
     
     ret.allocator = allocator;
@@ -458,7 +460,8 @@ NEAT_NODISCARD("str_del returns true on success, false on failure") bool neat_an
 
 NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array neat_strv_split(Neat_String_View delim, Neat_String_View str, Neat_Allocator allocator)
 {
-    allocator.init(&allocator.ctx);
+    if(allocator.ctx == NULL)
+        allocator.init(&allocator.ctx, NULL);
     
     if(delim.len > str.len)
     {
@@ -810,7 +813,9 @@ Neat_Any_String_Ref neat_anystr_ref_to_anystr_ref(Neat_Any_String_Ref str)
 
 Neat_String_Buffer neat_strbuf_new(unsigned int cap, Neat_Allocator allocator)
 {
-    allocator.init(&allocator.ctx);
+    if(allocator.ctx == NULL)
+        allocator.init(&allocator.ctx, NULL);
+    
     Neat_String_Buffer ret = { 0 };
     size_t actual_allocated_cap;
     ret.chars = neat_alloc(allocator, unsigned char, cap + 1, &actual_allocated_cap);
