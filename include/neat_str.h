@@ -209,8 +209,8 @@ neat_str_assert_mutable(any_str),                                               
 neat_anystr_ref_replace_first(neat_anystr_ref(any_str), neat_strv(any_str_target), neat_strv(any_str_replacement)) \
 )
 
-#define neat_str_split(any_str, any_str_delim, ...) \
-neat_strv_split(neat_strv(any_str), neat_strv(any_str_delim), NEAT_VA_OR(neat_get_default_allocator(), __VA_ARGS__))
+#define neat_str_split(any_str_delim, any_str, ...) \
+neat_strv_split(neat_strv(any_str_delim), neat_strv(any_str), NEAT_VA_OR(neat_get_default_allocator(), __VA_ARGS__))
 
 #define neat_str_join_new(any_str_delim, strv_arr, ...) \
 neat_strv_arr_join_new(neat_strv(any_str_delim), strv_arr, NEAT_VA_OR(neat_get_default_allocator(), __VA_ARGS__))
@@ -803,7 +803,7 @@ unsigned int neat_anystr_ref_replace(Neat_Any_String_Ref str, Neat_String_View t
 bool neat_anystr_ref_replace_first(Neat_Any_String_Ref str, Neat_String_View target, Neat_String_View replacement);
 Neat_DString neat_tostr_all_into_new_dstr(Neat_Allocator allocator, unsigned int nb, ...);
 
-NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array neat_strv_split(Neat_String_View str, Neat_String_View delim, Neat_Allocator allocator);
+NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array neat_strv_split(Neat_String_View delim, Neat_String_View str, Neat_Allocator allocator);
 NEAT_NODISCARD("str_join_new returns new DString, discarding will cause memory leak") Neat_DString neat_strv_arr_join_new(Neat_String_View delim, Neat_String_View_Array strs, Neat_Allocator allocator);
 unsigned int neat_strv_arr_join(Neat_Any_String_Ref dst, Neat_String_View delim, Neat_String_View_Array strs);
 
@@ -897,7 +897,7 @@ typedef Neat_Any_String_Ref Any_String_Ref;
 #define str_del(any_str, begin, end) neat_str_del(any_str, begin, end)
 #define str_replace(mut_str, any_str_target, any_str_replacement) neat_str_replace(mut_str, any_str_target, any_str_replacement)
 #define str_replace_first(any_str, any_str_target, any_str_replacement) neat_str_replace_first(any_str, any_str_target, any_str_replacement)
-#define str_split(any_str, any_str_delim, ...) neat_str_split(any_str, any_str_delim __VA_OPT__(,) __VA_ARGS__)
+#define str_split(any_str_delim, any_str, ...) neat_str_split(any_str_delim, any_str __VA_OPT__(,) __VA_ARGS__)
 #define str_join(mut_str_dst, any_str_delim, strv_arr) neat_str_join(mut_str_dst, any_str_delim, strv_arr)
 #define str_join_new(any_str_delim, strv_arr, ...) neat_str_join_new(any_str_delim, strv_arr __VA_OPT__(,) __VA_ARGS__)
 #define str_fread_line(any_str, stream) neat_str_fread_line(any_str, stream)

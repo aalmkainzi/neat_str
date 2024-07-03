@@ -456,7 +456,7 @@ NEAT_NODISCARD("str_del returns true on success, false on failure") bool neat_an
     return true;
 }
 
-NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array neat_strv_split(Neat_String_View str, Neat_String_View delim, Neat_Allocator allocator)
+NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array neat_strv_split(Neat_String_View delim, Neat_String_View str, Neat_Allocator allocator)
 {
     allocator.init(&allocator.ctx);
     
