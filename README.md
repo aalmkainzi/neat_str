@@ -126,6 +126,7 @@ String_Buffer strbuf(any_str);
 String_Buffer strbuf(cap);
 String_Buffer strbuf(cap, allocator);
 String_Buffer strbuf_carr(carr);
+String_Buffer strbuf_carr(carr, cap);
 ```
 ## SString
 
@@ -182,6 +183,7 @@ to initialize:
 ```C
 Any_String_Ref anystr_ref(mut_str);
 Any_String_Ref anystr_ref_carr(carr);
+Any_String_Ref anystr_ref_carr(carr_or_ptr, cap);
 ```
 
 for example:
