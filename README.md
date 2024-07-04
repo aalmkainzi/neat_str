@@ -239,8 +239,8 @@ DString foo_to_str( struct FOO *f )
 
 Similar to `tostr`, except it writes to a string instead of returning a new `DString`:
 ```C
-void tostr_into(mut_str, Stringable);
-void tostr_into_p(mut_str, Stringable*);
+void tostr_into(mut_str, stringable);
+void tostr_into_p(mut_str, stringable*);
 ```
 
 Example to add your own ```tostr_into```
