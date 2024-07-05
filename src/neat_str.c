@@ -915,17 +915,7 @@ Neat_String_Buffer neat_strbuf_of_strbuf(Neat_String_Buffer str)
 
 Neat_String_Buffer neat_strbuf_from_ptr(void *ptr, unsigned int cap)
 {
-    char *str_end = memchr(ptr, '\0', cap);
-    unsigned int len;
-    
-    if(str_end != NULL)
-    {
-        len = str_end - (char*) ptr;
-    }
-    else
-    {
-        len = cap;
-    }
+    unsigned int len = neat_chars_strlen(ptr, cap);
     
     return (Neat_String_Buffer){
         .cap = cap,
