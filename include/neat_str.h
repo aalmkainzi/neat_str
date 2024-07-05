@@ -305,7 +305,7 @@ _Generic(stringable_or_allocator, \
 #define neat_str_print_new_() \
 neat_tostr_all_into_new_dstr(neat_get_default_allocator(), 0)
 
-#define neat_strv_arr_from_carr(strv_carr, ...)                                                 \
+#define neat_strv_arr_carr(strv_carr, ...)                                                 \
 NEAT_IF_EMPTY(                                                                                  \
     ((void) _Generic((typeof(strv_carr)*){0}, Neat_String_View(*)[NEAT_CARR_LEN(strv_carr)]: 0) \
     ,(Neat_String_View_Array){.nb = NEAT_CARR_LEN(strv_carr), .strs = strv_carr}), __VA_ARGS__  \
@@ -317,7 +317,7 @@ neat_strv(any_str __VA_OPT__(,) __VA_ARGS__),
 
 #define neat_strv_arr(...)                                                                     \
 (                                                                                              \
-neat_static_assertx(!neat_is_array_of(NEAT_ARG1(__VA_ARGS__), Neat_String_View), "strv_arr accepts variadic arguments of strings, not String_View[], call strv_arr_from_carr instead"), \
+neat_static_assertx(!neat_is_array_of(NEAT_ARG1(__VA_ARGS__), Neat_String_View), "strv_arr accepts variadic arguments of strings, not String_View[], call strv_arr_carr instead"), \
 (Neat_String_View_Array) {                                                                     \
     .nb   = NEAT_CARR_LEN(((Neat_String_View[]){NEAT_FOREACH(NEAT_STRV_COMMA, __VA_ARGS__)})), \
     .strs = (Neat_String_View[]){NEAT_FOREACH(NEAT_STRV_COMMA, __VA_ARGS__)}                   \
@@ -958,7 +958,7 @@ typedef Neat_Any_String_Ref Any_String_Ref;
 #define anystr_ref(any_str) neat_anystr_ref(any_str)
 #define anystr_ref_carr(carr, ...) neat_anystr_ref_carr(carr __VA_OPT__(,) __VA_ARGS__)
 #define strv_arr(...) neat_strv_arr(__VA_ARGS__)
-#define strv_arr_from_carr(strv_carr, ...) neat_strv_arr_from_carr(strv_carr __VA_OPT__(,) __VA_ARGS__)
+#define strv_arr_carr(strv_carr, ...) neat_strv_arr_carr(strv_carr __VA_OPT__(,) __VA_ARGS__)
 
 #define tostr(x) neat_tostr(x)
 #define tostr_p(x) neat_tostr_p(x)
