@@ -264,7 +264,8 @@ do \
     unsigned int neat_anystr_ref_len; \
     if(neat_as_anystr_ref.len == NULL) \
     { \
-        neat_anystr_ref_len = strlen((char*) neat_as_anystr_ref.chars); \
+        unsigned char *neat_str_end_ptr = memchr(neat_as_anystr_ref.chars, '\0', neat_as_anystr_ref.cap); \
+        neat_anystr_ref_len = neat_str_end_ptr ? neat_str_end_ptr - neat_as_anystr_ref.chars : neat_as_anystr_ref.cap; \
         neat_as_anystr_ref.len = &neat_anystr_ref_len; \
     } \
     Neat_String_Buffer neat_as_strbuf = neat_strbuf(neat_as_anystr_ref); \
@@ -350,7 +351,7 @@ neat_strbuf_carr_##__VA_OPT__(2)(carr __VA_OPT__(,) __VA_ARGS__)
 #define neat_strbuf_carr_(carr) \
 ( \
     neat_static_assertx(neat_is_array_of(carr, char) || neat_is_array_of(carr, unsigned char), "must be 'char[N]' or 'unsigned char[N]'"), \
-    (Neat_String_Buffer){.chars = (unsigned char*) carr, .cap = sizeof(carr) / sizeof(carr[0]), .len = strlen((char*) carr)} \
+    neat_strbuf_from_ptr(carr, sizeof(carr) / sizeof(carr[0])) \
 )
 
 #define neat_strbuf_carr_2(carr_or_ptr, nb) \
@@ -768,7 +769,7 @@ Neat_String_Buffer neat_strbuf_of_strbuf(Neat_String_Buffer str);
 Neat_String_Buffer neat_strbuf_of_strbuf_ptr(Neat_String_Buffer *str);
 Neat_String_Buffer neat_strbuf_of_sstr_ref(Neat_SString_Ref str);
 Neat_String_Buffer neat_strbuf_of_anystr_ref(Neat_Any_String_Ref str);
-Neat_String_Buffer neat_strbuf_from_ptr(void *ptr, unsigned int size);
+Neat_String_Buffer neat_strbuf_from_ptr(void *ptr, unsigned int cap);
 
 Neat_Any_String_Ref neat_anystr_ref_to_cstr(char *str);
 Neat_Any_String_Ref neat_anystr_ref_to_ucstr(unsigned char *str);
