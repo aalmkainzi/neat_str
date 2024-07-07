@@ -327,60 +327,54 @@ neat_static_assertx(!neat_is_array_of(NEAT_ARG1(__VA_ARGS__), Neat_String_View),
 #define neat_strbuf(str_or_cap, ...) \
 neat_strbuf_##__VA_OPT__(2)(str_or_cap __VA_OPT__(,) __VA_ARGS__)
 
-#define neat_strbuf_(str_or_cap)                               \
-_Generic(str_or_cap,                                           \
-    char*                         : neat_strbuf_of_cstr,       \
-    NEAT_UCHAR_CASE(unsigned char*: neat_strbuf_of_ucstr,)     \
-    Neat_DString                  : neat_strbuf_of_dstr,       \
-    Neat_DString*                 : neat_strbuf_of_dstr_ptr,   \
-    Neat_String_View              : neat_strbuf_of_strv,       \
-    Neat_String_View*             : neat_strbuf_of_strv_ptr,   \
-    Neat_String_Buffer            : neat_strbuf_of_strbuf,     \
-    Neat_String_Buffer*           : neat_strbuf_of_strbuf_ptr, \
-    Neat_SString_Ref              : neat_strbuf_of_sstr_ref,   \
-    Neat_Any_String_Ref           : neat_strbuf_of_anystr_ref, \
-    default                       : neat_strbuf_new_default    \
-)(str_or_cap)
+#define neat_strbuf_(str_or_cap)                                                       \
+_Generic((typeof(str_or_cap)*){0},                                                     \
+    char**                                               : neat_strbuf_of_cstr,        \
+    NEAT_UCHAR_CASE(unsigned char**                      : neat_strbuf_of_ucstr,)      \
+    Neat_DString*                                        : neat_strbuf_of_dstr,        \
+    Neat_DString**                                       : neat_strbuf_of_dstr_ptr,    \
+    Neat_String_View*                                    : neat_strbuf_of_strv,        \
+    Neat_String_View**                                   : neat_strbuf_of_strv_ptr,    \
+    Neat_String_Buffer*                                  : neat_strbuf_of_strbuf,      \
+    Neat_String_Buffer**                                 : neat_strbuf_of_strbuf_ptr,  \
+    Neat_SString_Ref*                                    : neat_strbuf_of_sstr_ref,    \
+    Neat_Any_String_Ref*                                 : neat_strbuf_of_anystr_ref,  \
+    char(*)[sizeof(typeof(str_or_cap))]                          : neat_strbuf_of_anystr_ref,  \
+    NEAT_UCHAR_CASE(unsigned char(*)[sizeof(typeof(str_or_cap))] : neat_strbuf_of_anystr_ref,) \
+    default                                              : neat_strbuf_new_default     \
+)(_Generic((typeof(str_or_cap)*){0},                                                   \
+    char(*)[sizeof(typeof(str_or_cap))]: (Neat_Any_String_Ref){.len = NULL, .cap = sizeof(typeof(str_or_cap)), .chars = (unsigned char*) neat_gurantee(str_or_cap, char*)}, \
+    NEAT_UCHAR_CASE(unsigned char(*)[sizeof(typeof(str_or_cap))]: (Neat_Any_String_Ref){.len = NULL, .cap = sizeof(typeof(str_or_cap)), .chars = neat_gurantee(str_or_cap, unsigned char*)},) \
+    default: str_or_cap \
+))
 
-#define neat_strbuf_2(cap, allocator) \
-neat_strbuf_new(cap, allocator)
+#define neat_strbuf_2(cap_or_carr, allocator_or_cap) \
+_Generic(allocator_or_cap, \
+    Neat_Allocator: neat_strbuf_new, \
+    default       : neat_strbuf_from_ptr \
+)(cap_or_carr, allocator_or_cap)
 
-#define neat_strbuf_carr(carr, ...) \
-neat_strbuf_carr_##__VA_OPT__(2)(carr __VA_OPT__(,) __VA_ARGS__)
+#define neat_anystr_ref(any_str, ...) \
+neat_anystr_ref_##__VA_OPT__(2)(any_str __VA_OPT__(,) __VA_ARGS__)
 
-#define neat_strbuf_carr_(carr) \
-( \
-    neat_static_assertx(neat_is_array_of(carr, char) || neat_is_array_of(carr, unsigned char), "must be 'char[N]' or 'unsigned char[N]'"), \
-    neat_strbuf_from_ptr(carr, sizeof(carr) / sizeof(carr[0])) \
-)
+#define neat_anystr_ref_(any_str)                                                             \
+_Generic((typeof(any_str)*){0},                                                               \
+    char**                          : neat_anystr_ref_to_cstr,                                \
+    NEAT_UCHAR_CASE(unsigned char** : neat_anystr_ref_to_ucstr,)                              \
+    Neat_DString**                  : neat_anystr_ref_to_dstr_ptr,                            \
+    /*Neat_String_View*             : neat_anystr_ref_to_strv_ptr,*/                          \
+    Neat_String_Buffer**            : neat_anystr_ref_to_strbuf_ptr,                          \
+    Neat_SString_Ref*               : neat_anystr_ref_to_sstr_ref,                            \
+    Neat_Any_String_Ref*            : neat_anystr_ref_to_anystr_ref,                          \
+    char(*)[sizeof(typeof(any_str))]: neat_anystr_ref_to_anystr_ref,                          \
+    NEAT_UCHAR_CASE(unsigned char(*)[sizeof(typeof(any_str))]: neat_anystr_ref_to_anystr_ref) \
+)(_Generic((typeof(any_str)*){0},                                                   \
+    char(*)[sizeof(typeof(any_str))]: (Neat_Any_String_Ref){.len = NULL, .cap = sizeof(typeof(any_str)), .chars = (unsigned char*) neat_gurantee(any_str, char*)}, \
+    NEAT_UCHAR_CASE(unsigned char(*)[sizeof(typeof(any_str))]: (Neat_Any_String_Ref){.len = NULL, .cap = sizeof(typeof(any_str)), .chars = neat_gurantee(any_str, unsigned char*)},) \
+    default: any_str \
+))
 
-#define neat_strbuf_carr_2(carr_or_ptr, nb) \
-( \
-    neat_static_assertx(neat_has_type(carr_or_ptr, char*) || neat_has_type(carr_or_ptr, unsigned char*), "arg1 must be char* or unsigned char*"), \
-    neat_strbuf_from_ptr(carr_or_ptr, nb) \
-)
-
-#define neat_anystr_ref(any_str)                                     \
-_Generic(any_str,                                                    \
-    char*                         : neat_anystr_ref_to_cstr,         \
-    NEAT_UCHAR_CASE(unsigned char*: neat_anystr_ref_to_ucstr,)       \
-    Neat_DString*                 : neat_anystr_ref_to_dstr_ptr,     \
-    /*Neat_String_View*             : neat_anystr_ref_to_strv_ptr,*/ \
-    Neat_String_Buffer*           : neat_anystr_ref_to_strbuf_ptr,   \
-    Neat_SString_Ref              : neat_anystr_ref_to_sstr_ref,     \
-    Neat_Any_String_Ref           : neat_anystr_ref_to_anystr_ref    \
-)(any_str)
-
-#define neat_anystr_ref_carr(carr, ...) \
-neat_anystr_ref_carr_##__VA_OPT__(2)(carr __VA_OPT__(,) __VA_ARGS__)
-
-#define neat_anystr_ref_carr_(carr) \
-( \
-    neat_static_assertx(neat_is_array_of(carr, char) || neat_is_array_of(carr, unsigned char), "must be 'char[N]' or 'unsigned char[N]'"), \
-    (Neat_Any_String_Ref){.chars = (unsigned char*) carr, .cap = sizeof(carr) / sizeof(carr[0]), .len = NULL} \
-)
-
-#define neat_anystr_ref_carr_2(carr_or_ptr, nb) \
+#define neat_anystr_ref_2(carr_or_ptr, nb) \
 ( \
     neat_static_assertx(neat_is_array_of(carr_or_ptr, char) || neat_is_array_of(carr_or_ptr, unsigned char), "arg1 must be char* or unsigned char*"), \
     (Neat_Any_String_Ref){.cap = nb, .chars = (unsigned char*) carr_or_ptr} \
@@ -952,11 +946,9 @@ typedef Neat_Any_String_Ref Any_String_Ref;
 #define dstr_ensure_cap(dstr, new_cap) neat_dstr_ensure_cap(dstr, new_cap)
 
 #define strbuf(str_or_cap, ...) neat_strbuf(str_or_cap __VA_OPT__(,) __VA_ARGS__)
-#define strbuf_carr(carr, ...) neat_strbuf_carr(carr __VA_OPT__(,) __VA_ARGS__)
 #define sstr_ref(sstr_ptr) neat_sstr_ref(sstr_ptr)
 #define strv(...) neat_strv(__VA_ARGS__)
-#define anystr_ref(any_str) neat_anystr_ref(any_str)
-#define anystr_ref_carr(carr, ...) neat_anystr_ref_carr(carr __VA_OPT__(,) __VA_ARGS__)
+#define anystr_ref(any_str, ...) neat_anystr_ref(any_str __VA_OPT__(,) __VA_ARGS__)
 #define strv_arr(...) neat_strv_arr(__VA_ARGS__)
 #define strv_arr_carr(strv_carr, ...) neat_strv_arr_carr(strv_carr __VA_OPT__(,) __VA_ARGS__)
 
