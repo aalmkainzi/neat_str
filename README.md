@@ -125,8 +125,7 @@ to initialize:
 String_Buffer strbuf(any_str);
 String_Buffer strbuf(cap);
 String_Buffer strbuf(cap, allocator);
-String_Buffer strbuf_carr(carr);
-String_Buffer strbuf_carr(carr_or_ptr, cap);
+String_Buffer strbuf(carr, nb);
 ```
 ## SString
 
@@ -182,8 +181,7 @@ This type can be used as a mutable reference to any string type.
 to initialize:
 ```C
 Any_String_Ref anystr_ref(mut_str);
-Any_String_Ref anystr_ref_carr(carr);
-Any_String_Ref anystr_ref_carr(carr_or_ptr, cap);
+Any_String_Ref anystr_ref(carr, cap);
 ```
 
 for example:
