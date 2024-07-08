@@ -2,7 +2,7 @@
 
 NEAT_DECL_SSTRING(127);
 
-void replace_dash(Any_String_Ref str)
+void replace_dash(Mut_String_Ref str)
 {
     str_replace(str, "-", " ");
 }
@@ -17,9 +17,9 @@ int main()
     char *cstr = calloc(128, sizeof(char));
     strcpy(cstr, "c-string");
 
-    replace_dash(anystr_ref(&sb));
-    replace_dash(anystr_ref(ssr));
-    replace_dash(anystr_ref(cstr));
+    replace_dash(mutstr_ref(&sb));
+    replace_dash(mutstr_ref(ssr));
+    replace_dash(mutstr_ref(cstr));
 
     println(sb);
     println(ssr);

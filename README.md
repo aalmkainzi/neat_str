@@ -174,27 +174,27 @@ String_View_Array strv_arr_carr(carr);
 String_View_Array strv_arr_carr(carr_or_ptr, nb);
 ```
 
-## Any_String_Ref
+## Mut_String_Ref
 
-This type can be used as a mutable reference to any string type.
+This type can be used as a mutable reference to any mutable string type.
 
 to initialize:
 ```C
-Any_String_Ref anystr_ref(mut_str);
-Any_String_Ref anystr_ref(carr, cap);
+Mut_String_Ref mutstr_ref(mut_str);
+Mut_String_Ref mutstr_ref(carr, cap);
 ```
 
 for example:
 ```C
-void concat_comma(Any_String_Ref str)
+void concat_comma(Mut_String_Ref str)
 {
     str_concat(str, ",");
 }
 
 void foo(SString_Ref s1, String_Buffer *s2)
 {
-    concat_comma( anystr_ref(s1) );
-    concat_comma( anystr_ref(s2) );
+    concat_comma( mutstr_ref(s1) );
+    concat_comma( mutstr_ref(s2) );
 }
 ```
 
@@ -250,7 +250,7 @@ typedef struct {
     float f;
 } FOO;
 
-void foo_to_str_into(Any_String_Ref dst, FOO *foo)
+void foo_to_str_into(Mut_String_Ref dst, FOO *foo)
 {
     str_print(dst, "FOO{", ".c=", foo->c, ", .f=", foo->f, "}");
 }
