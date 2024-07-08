@@ -359,7 +359,7 @@ _Generic((typeof(str_or_cap)*){0},                                              
 _Generic(allocator_or_cap, \
     Neat_Allocator: neat_strbuf_new, \
     default       : neat_strbuf_from_ptr \
-)(cap_or_carr, allocator_or_cap)
+)((neat_static_assertx(_Generic(allocator_or_cap, Neat_Allocator: 1, default: neat_has_type(cap_or_carr, char*) || neat_has_type(cap_or_carr, unsigned char*) || neat_has_type(cap_or_carr, void*)), "arg1 must be char* or unsigned char*"), cap_or_carr), allocator_or_cap)
 
 #define neat_anystr_ref(any_str, ...) \
 neat_anystr_ref_##__VA_OPT__(2)(any_str __VA_OPT__(,) __VA_ARGS__)
@@ -383,7 +383,7 @@ _Generic((typeof(any_str)*){0},                                                 
 
 #define neat_anystr_ref_2(carr_or_ptr, nb) \
 ( \
-    neat_static_assertx(neat_is_array_of(carr_or_ptr, char) || neat_is_array_of(carr_or_ptr, unsigned char), "arg1 must be char* or unsigned char*"), \
+    neat_static_assertx(neat_has_type(carr_or_ptr, char*) || neat_has_type(carr_or_ptr, unsigned char*) || neat_has_type(carr_or_ptr, void*), "arg1 must be char* or unsigned char*"), \
     (Neat_Any_String_Ref){.cap = nb, .chars = (unsigned char*) carr_or_ptr} \
 )
 
