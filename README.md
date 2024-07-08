@@ -176,7 +176,7 @@ String_View_Array strv_arr_carr(carr_or_ptr, nb);
 
 ## Mut_String_Ref
 
-This type can be used as a mutable reference to any mutable string type.
+This type can be used as a mutable reference to any mutable string type (all string types except `String_View`).
 
 to initialize:
 ```C
