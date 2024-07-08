@@ -14,7 +14,7 @@ int main()
     SString_Ref ssr = sstr_ref(&(SString(127)){0});
     str_copy(ssr, "my-sstring");
 
-    char *cstr = calloc(127, sizeof(char));
+    char *cstr = calloc(128, sizeof(char));
     strcpy(cstr, "c-string");
 
     replace_dash(anystr_ref(&sb));

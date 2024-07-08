@@ -102,16 +102,23 @@ struct \
 NEAT_SSTRING_NTAG(sizeof((sstr)->chars)-1)
 
 #define NEAT_IS_SSTRING_PTR(s) \
-_Generic((char(*)[ 1 + (sizeof(*(s)) == sizeof(NEAT_TYPEOF_SSTR(s))) ]){0}, \
-    char(*)[1]: 0, \
-    char(*)[2]: _Generic((char(*)[ 1 + (_Alignof(typeof(*(s))) == _Alignof(NEAT_TYPEOF_SSTR(s))) ]){0}, \
-            char(*)[1]: 0, \
-            char(*)[2]: _Generic((char(*)[ 1 + neat_has_type(&(s)->chars, typeof(&(NEAT_TYPEOF_SSTR(s)){0}.chars)) ]){0}, \
-                char(*)[1]: 0, \
-                char(*)[2]: 1 \
-            ) \
-        ) \
+(sizeof(*(s)) == sizeof(NEAT_TYPEOF_SSTR(s))) && \
+_Alignof(typeof(*(s))) == _Alignof(NEAT_TYPEOF_SSTR(s)) && \
+neat_has_type(&(s)->chars, typeof(&(NEAT_TYPEOF_SSTR(s)){0}.chars))
+
+#define NEAT_GURANTEE_STRPTR_CHARS_MEM(any_str)                \
+_Generic(any_str,                                              \
+    Neat_String_Buffer            : (Neat_String_Buffer*){0},  \
+    char*                         : (Neat_String_Buffer*){0},  \
+    NEAT_UCHAR_CASE(unsigned char*: (Neat_String_Buffer*){0},) \
+    Neat_DString                  : (Neat_String_Buffer*){0},  \
+    Neat_String_View              : (Neat_String_Buffer*){0},  \
+    Neat_String_Buffer            : (Neat_String_Buffer*){0},  \
+    Neat_SString_Ref              : (Neat_String_Buffer*){0},  \
+    Neat_Any_String_Ref           : (Neat_String_Buffer*){0},  \
+    default                       : any_str                    \
 )
+
 // SString stuff end
 
 // this is to cause compile err if type is not mutable string
