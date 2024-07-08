@@ -1,7 +1,12 @@
 # neat_str
 A library to make dealing with strings more intuitive in C.
 
-It exposes multiple string types for different use cases.
+It exposes multiple string types for different use cases:
+- [DString](#DString)
+- [String_Buffer](#String_Buffer)
+- [SString](#SString)
+- [String_View](#String_View)
+- [Mut_String_Ref](#Mut_String_Ref)
 
 This is a list of the functions (macros) that work with all string types:
 ```C
