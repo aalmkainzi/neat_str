@@ -123,9 +123,9 @@ typedef struct String_Buffer
 to initialize:
 ```C
 String_Buffer strbuf(any_str);
+String_Buffer strbuf(carr, nb);
 String_Buffer strbuf(cap);
 String_Buffer strbuf(cap, allocator);
-String_Buffer strbuf(carr, nb);
 ```
 ## SString
 
