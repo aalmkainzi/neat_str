@@ -433,7 +433,7 @@ _Generic(any_str,                                      \
     Neat_String_Buffer : neat_strv_strbuf3,            \
     Neat_String_Buffer*: neat_strv_strbuf_ptr3,        \
     Neat_SString_Ref   : neat_strv_sstr_ref3,          \
-    Neat_Mut_String_Ref: neat_strv_mutstr_ref3,        \
+    Neat_Mut_String_Ref: neat_strv_mutstr_ref3         \
 )(any_str, begin, end)
 
 #define neat_dstr(...) \
