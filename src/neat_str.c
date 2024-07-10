@@ -1,4 +1,3 @@
-#include <stdarg.h>
 #include <string.h>
 #define NEAT_STR_PREFIX
 #include "../include/neat_str.h"
