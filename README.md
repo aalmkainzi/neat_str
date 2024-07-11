@@ -132,26 +132,6 @@ String_Buffer strbuf(carr, cap);
 String_Buffer strbuf(cap);
 String_Buffer strbuf(cap, allocator);
 ```
-## SString
-
-Static/Small String. Can be stored on the stack or inside structs.
-
-To pass it around to functions, you can use:
-```C
-SString_Ref sstr_ref(sstr_ptr);
-```
-
-Used like this:
-```C
-NEAT_DECL_SSTRING(16); // not necessary as of C23
-
-void foo()
-{
-    SString(16) mystr = {0};
-    SString_Ref ref = sstr_ref(&mystr);
-    // can now use ref with any function (macro) that starts with str_
-}
-```
 
 ## String_View
 
@@ -177,6 +157,26 @@ String_View_Array strv_arr_carr(carr);
 
 // arg 1 can either be String_View[N] or String_View*. arg2 is how many elements in the array
 String_View_Array strv_arr_carr(carr_or_ptr, nb);
+```
+## SString
+
+Static/Small String. Can be stored on the stack or inside structs.
+
+To pass it around to functions, you can use:
+```C
+SString_Ref sstr_ref(sstr_ptr);
+```
+
+Used like this:
+```C
+NEAT_DECL_SSTRING(16); // not necessary as of C23
+
+void foo()
+{
+    SString(16) mystr = {0};
+    SString_Ref ref = sstr_ref(&mystr);
+    // can now use ref with any function (macro) that starts with str_
+}
 ```
 
 ## Mut_String_Ref
