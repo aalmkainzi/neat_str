@@ -36,7 +36,7 @@ unsigned int      str_prepend(cap_str_dst, any_str_src);
 // Replaces all occurrence of arg2 inside arg1 with the replacement arg3. Returns how many replaced
 unsigned int      str_replace(mut_str, any_str_target, any_str_replacement);
 
-// Replaces the first occurance of arg2 inside arg1 with the replacement arg3. Returns whether it was found
+// Replaces the first occurance of arg2 inside arg1 with the replacement arg3. Returns whether it was found and replaced
 bool              str_replace_first(mut_str, any_str_target, any_str_replacement);
 
 // Deletes the characters specified by the range [begin, end). Returns false if the range is invalid, true otherwise
