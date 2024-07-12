@@ -2,7 +2,7 @@
 
 int main()
 {
-    String_View_Array splitted = str_split("-", "1-2-3-4-5-6");
+    String_View_Array splitted = str_split(" XX ", "1 XX 2 XX 3 XX 4 XX 5 XX 6");
 
     char c[128];
     String_Buffer dst = strbuf(c);
