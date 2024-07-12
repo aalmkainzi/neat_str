@@ -524,7 +524,7 @@ NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array
         unsigned int nb_delim = 0;
         unsigned int *delim_idx = (unsigned int*) calloc(str.len, sizeof(unsigned int));
         
-        for(unsigned int i = 0 ; i < str.len - delim.len ; )
+        for(unsigned int i = 0 ; i <= str.len - delim.len ; )
         {
             Neat_String_View sub = neat_strv_strv3(str, i, i + delim.len);
             if(neat_strv_equal(sub, delim))
