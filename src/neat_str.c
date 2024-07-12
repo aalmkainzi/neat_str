@@ -470,59 +470,106 @@ NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array
     
     if(delim.len > str.len)
     {
-        Neat_String_View *copy = neat_alloc(allocator, Neat_String_View, 1, NULL);
-        *copy = str;
-        return (Neat_String_View_Array){
-            .nb   = 1,
-            .strs = copy
-        };
-    }
-    
-    if(delim.len == 0)
-    {
-        Neat_String_View_Array ret = { 0 };
-        ret.nb = str.len;
-        ret.strs = neat_alloc(allocator, Neat_String_View, ret.nb, NULL);
-        for(unsigned int i = 0 ; i < ret.nb ; i++)
+        size_t alloced_size;
+        Neat_String_View *entire_str = neat_alloc(allocator, Neat_String_View, 1, &alloced_size);
+        if(alloced_size < 1)
         {
-            ret.strs[i] = neat_strv_strv3(str, i, i + 1);
-        }
-        return ret;
-    }
-    
-    unsigned int nb_delim = 0;
-    unsigned int *delim_idx = (unsigned int*) calloc(str.len, sizeof(unsigned int));
-    
-    for(unsigned int i = 0 ; i < str.len - delim.len ; )
-    {
-        Neat_String_View sub = neat_strv_strv3(str, i, i + delim.len);
-        if(neat_strv_equal(sub, delim))
-        {
-            delim_idx[nb_delim] = i;
-            nb_delim += 1;
-            i += delim.len;
+            return (Neat_String_View_Array){
+                .cap  = 0,
+                .nb   = 0,
+                .strs = NULL
+            };
         }
         else
         {
-            i += 1;
+            *entire_str = str;
+            return (Neat_String_View_Array){
+                .cap  = alloced_size,
+                .nb   = 1,
+                .strs = entire_str
+            };
         }
     }
-    
-    delim_idx[nb_delim] = str.len;
-    
-    Neat_String_View_Array ret = { 0 };
-    ret.strs = neat_alloc(allocator, Neat_String_View, nb_delim + 1, NULL);
-    
-    ret.nb = nb_delim + 1;
-    
-    ret.strs[0] = neat_strv_strv_ptr3(&str, 0, delim_idx[0]);
-    for(unsigned int i = 1 ; i <= nb_delim ; i++)
+    else if(delim.len == 0)
     {
-        ret.strs[i] = neat_strv_strv_ptr3(&str, delim_idx[i - 1] + delim.len, delim_idx[i]);
+        size_t alloced_size;
+        Neat_String_View *strs = neat_alloc(allocator, Neat_String_View, str.len, &alloced_size);
+        
+        if(alloced_size < str.len)
+        {
+            return (Neat_String_View_Array){
+                .cap  = 0,
+                .nb   = 0,
+                .strs = NULL
+            };
+        }
+        else
+        {
+            Neat_String_View_Array ret = {
+                .cap  = alloced_size,
+                .nb   = str.len,
+                .strs = strs
+            };
+            
+            for(unsigned int i = 0 ; i < ret.nb ; i++)
+            {
+                ret.strs[i] = neat_strv_strv3(str, i, i + 1);
+            }
+            
+            return ret;
+        }
     }
-    
-    free(delim_idx);
-    return ret;
+    else
+    {
+        unsigned int nb_delim = 0;
+        unsigned int *delim_idx = (unsigned int*) calloc(str.len, sizeof(unsigned int));
+        
+        for(unsigned int i = 0 ; i < str.len - delim.len ; )
+        {
+            Neat_String_View sub = neat_strv_strv3(str, i, i + delim.len);
+            if(neat_strv_equal(sub, delim))
+            {
+                delim_idx[nb_delim] = i;
+                nb_delim += 1;
+                i += delim.len;
+            }
+            else
+            {
+                i += 1;
+            }
+        }
+        
+        delim_idx[nb_delim] = str.len;
+        
+        size_t alloced_size;
+        Neat_String_View *strs = neat_alloc(allocator, Neat_String_View, nb_delim + 1, &alloced_size);
+        
+        if(alloced_size < nb_delim + 1)
+        {
+            return (Neat_String_View_Array){
+                .cap  = 0,
+                .nb   = 0,
+                .strs = NULL
+            };
+        }
+        else
+        {
+            Neat_String_View_Array ret = {
+                .cap = alloced_size,
+                .nb  = nb_delim + 1,
+                .strs = strs
+            };
+            
+            ret.strs[0] = neat_strv_strv_ptr3(&str, 0, delim_idx[0]);
+            for(unsigned int i = 1 ; i <= nb_delim ; i++)
+            {
+                ret.strs[i] = neat_strv_strv_ptr3(&str, delim_idx[i - 1] + delim.len, delim_idx[i]);
+            }
+            
+            free(delim_idx);
+            return ret;
+        }
+    }
 }
 
 NEAT_NODISCARD("str_join_new returns new DString, discarding will cause memory leak") Neat_DString neat_strv_arr_join_new(Neat_String_View delim, Neat_String_View_Array strs, Neat_Allocator allocator)
@@ -783,15 +830,6 @@ Neat_Mut_String_Ref neat_mutstr_ref_to_dstr_ptr(Neat_DString *str)
         .chars = str->chars
     };
 }
-
-// Neat_Mut_String_Ref neat_mutstr_ref_to_strv_ptr(Neat_String_View *str)
-// {
-//     return (Neat_Mut_String_Ref){
-//         .cap   = str->len,
-//         .len   = &str->len,
-//         .chars = str->chars
-//     };
-// }
 
 Neat_Mut_String_Ref neat_mutstr_ref_to_strbuf_ptr(Neat_String_Buffer *str)
 {
@@ -1252,22 +1290,6 @@ unsigned int neat_mutstr_ref_concat_fread_line(Neat_Mut_String_Ref dst, FILE *st
     dst.chars[dst_len] = '\0';
     
     return chars_read;
-}
-
-// is this a good approach? maybe it should be dstr_fread_line where it writes to dstr and reallocs when needed
-Neat_DString neat_str_fread_line_new_(FILE *stream, Neat_Allocator allocator)
-{
-    Neat_DString ret = neat_dstr_new(16, allocator);
-    
-    int c = 0;
-    while(c != '\n' && !feof(stream))
-    {
-        c = fgetc(stream);
-        Neat_String_View as_strv = {.chars = (unsigned char*) &c, .len = 1};
-        neat_dstr_append_strv(&ret, as_strv);
-    }
-    
-    return ret;
 }
 
 unsigned int neat_fprint_strv(FILE *stream, Neat_String_View str)

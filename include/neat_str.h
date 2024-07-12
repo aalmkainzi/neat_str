@@ -40,6 +40,7 @@ typedef struct Neat_String_View
 // An array of the above
 typedef struct Neat_String_View_Array
 {
+    unsigned int cap;
     unsigned int nb;
     Neat_String_View *strs;
 } Neat_String_View_Array;
@@ -55,11 +56,10 @@ typedef struct Neat_SString_Ref
 } Neat_SString_Ref;
 
 // Can be used as a reference to any string type
-// (maybe make this a tagged union instead?)
 typedef struct Neat_Mut_String_Ref
 {
     const unsigned int cap;
-    unsigned int *len; /* may be NULL */
+    unsigned int *len; /* may be NULL (in case of cstr) */
     unsigned char *chars;
 } Neat_Mut_String_Ref;
 
@@ -245,12 +245,6 @@ neat_mutstr_ref_fread_line(neat_mutstr_ref(any_str), stdin)
 
 #define neat_str_concat_read_line(any_str) \
 neat_mutstr_ref_concat_fread_line(neat_mutstr_ref(any_str), stdin)
-
-#define neat_str_fread_line_new(stream, ...) \
-neat_str_fread_line_new_(stream, NEAT_VA_OR(neat_get_default_allocator(), __VA_ARGS__))
-
-#define neat_str_read_line_new(...) \
-neat_str_fread_line_new(stdin __VA_OPT__(,) __VA_ARGS__)
 
 // helper macro
 #define neat_str_print_each(x) \
@@ -837,7 +831,6 @@ unsigned int neat_strv_count(Neat_String_View hay, Neat_String_View needle);
 
 unsigned int neat_mutstr_ref_fread_line(Neat_Mut_String_Ref dst, FILE *stream);
 unsigned int neat_mutstr_ref_concat_fread_line(Neat_Mut_String_Ref dst, FILE *stream);
-Neat_DString neat_str_fread_line_new_(FILE *stream, Neat_Allocator allocator);
 
 unsigned int neat_fprint_strv(FILE *stream, Neat_String_View str);
 unsigned int neat_fprintln_strv(FILE *stream, Neat_String_View str);

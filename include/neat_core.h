@@ -47,13 +47,13 @@ Neat_Allocator neat_get_default_allocator();
 Neat_Allocator neat_get_noop_allocator();
 
 #define neat_alloc(allocator, T, n, actual) \
-(T*) neat_allocator_invoke_alloc(allocator, _Alignof(T), sizeof(T), n, actual)
+(typeof(T)*) neat_allocator_invoke_alloc(allocator, _Alignof(T), sizeof(T), n, actual)
 
 #define neat_dealloc(allocator, ptr, T, n) \
 neat_allocator_invoke_dealloc(allocator, ptr, sizeof(T), n)
 
 #define neat_realloc(allocator, ptr, T, old_n, new_n, actual) \
-(T*) neat_allocator_invoke_realloc(allocator, ptr, _Alignof(T), sizeof(T), old_n, new_n, actual)
+(typeof(T)*) neat_allocator_invoke_realloc(allocator, ptr, _Alignof(T), sizeof(T), old_n, new_n, actual)
 
 #define neat_alloc_bytes(allocator, n, actual) \
 neat_allocator_invoke_alloc(allocator, _Alignof(max_align_t), 1, n, actual)

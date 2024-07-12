@@ -1,11 +1,11 @@
 #include "../include/neat_str.h"
 
-NEAT_DECL_SSTRING(127);
-
 void replace_dash(Mut_String_Ref str)
 {
     str_replace(str, "-", " ");
 }
+
+NEAT_DECL_SSTRING(127);
 
 int main()
 {
