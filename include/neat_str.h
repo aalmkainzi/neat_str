@@ -143,7 +143,7 @@ _Generic(any_str,                                              \
 #define neat_str_at(any_str, idx)                            \
 _Generic(any_str,                                            \
     char*                         : neat_cstr_char_at,       \
-    NEAT_UCHAR_CASE(unsigned char*: neat_ucstr_char_at,      \
+    NEAT_UCHAR_CASE(unsigned char*: neat_ucstr_char_at,)     \
     Neat_DString                  : neat_dstr_char_at,       \
     Neat_DString*                 : neat_dstr_ptr_char_at,   \
     Neat_String_View              : neat_strv_char_at,       \
@@ -306,12 +306,11 @@ _Generic(stringable_or_allocator, \
 #define neat_str_print_new_() \
 neat_tostr_all_into_new_dstr(neat_get_default_allocator(), 0)
 
-#define neat_strv_arr_carr(strv_carr, ...)                                                 \
-NEAT_IF_EMPTY(                                                                                  \
-    ((void) _Generic((typeof(strv_carr)*){0}, Neat_String_View(*)[NEAT_CARR_LEN(strv_carr)]: 0) \
-    ,(Neat_String_View_Array){.nb = NEAT_CARR_LEN(strv_carr), .strs = strv_carr}), __VA_ARGS__  \
-)                                                                                               \
-__VA_OPT__((Neat_String_View_Array){.nb = (__VA_ARGS__), .strs = strv_carr})
+#define neat_strv_arr_carr(strv_carr, ...)                                     \
+NEAT_IF_EMPTY(                                                                 \
+    neat_strv_arr_from_carr(strv_carr, NEAT_CARR_LEN(strv_carr)), __VA_ARGS__  \
+)                                                                              \
+__VA_OPT__(neat_strv_arr_from_carr(strv_carr, __VA_ARGS__))
 
 #define NEAT_STRV_COMMA(any_str, ...) \
 neat_strv(any_str __VA_OPT__(,) __VA_ARGS__),
@@ -824,6 +823,8 @@ Neat_DString neat_tostr_all_into_new_dstr(Neat_Allocator allocator, unsigned int
 NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array neat_strv_split(Neat_String_View delim, Neat_String_View str, Neat_Allocator allocator);
 NEAT_NODISCARD("str_join_new returns new DString, discarding will cause memory leak") Neat_DString neat_strv_arr_join_new(Neat_String_View delim, Neat_String_View_Array strs, Neat_Allocator allocator);
 unsigned int neat_strv_arr_join(Neat_Mut_String_Ref dst, Neat_String_View delim, Neat_String_View_Array strs);
+
+Neat_String_View_Array neat_strv_arr_from_carr(Neat_String_View *carr, unsigned int nb);
 
 bool neat_strv_equal(Neat_String_View str1, Neat_String_View str2);
 Neat_String_View neat_strv_find(Neat_String_View hay, Neat_String_View needle);

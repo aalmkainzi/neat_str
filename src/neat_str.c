@@ -385,7 +385,7 @@ Neat_String_View neat_strv_find(Neat_String_View hay, Neat_String_View needle)
         }
     }
     return (Neat_String_View){
-        .len=0,
+        .len = 0,
         .chars = NULL
     };
 }
@@ -461,6 +461,15 @@ NEAT_NODISCARD("str_del returns true on success, false on failure") bool neat_mu
     }
     
     return true;
+}
+
+Neat_String_View_Array neat_strv_arr_from_carr(Neat_String_View *carr, unsigned int nb)
+{
+    return (Neat_String_View_Array){
+        .cap  = nb,
+        .nb   = nb,
+        .strs = carr
+    };
 }
 
 NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array neat_strv_split(Neat_String_View delim, Neat_String_View str, Neat_Allocator allocator)
