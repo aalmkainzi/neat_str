@@ -250,11 +250,15 @@ neat_mutstr_ref_concat_fread_line(neat_mutstr_ref(any_str), stdin)
 #define neat_str_print_each(x) \
 do \
 { \
-    Neat_String_Buffer neat_as_strbuf_window = { .cap = neat_as_strbuf.cap - neat_as_strbuf.len }; \
-    neat_as_strbuf_window.chars = neat_as_strbuf.chars + neat_as_strbuf.len; \
-    neat_tostr_into(&neat_as_strbuf_window, x); \
-    neat_as_strbuf.len += neat_as_strbuf_window.len; \
-    *neat_as_mutstr_ref.len = neat_as_strbuf.len; \
+    unsigned int neat_appended_len = 0; \
+    Neat_Mut_String_Ref neat_anystr_ref_append_buf = \
+    { \
+        .cap = neat_as_mutstr_ref.cap - neat_mutstr_ref_len, \
+        .len = &neat_appended_len, \
+        .chars = neat_as_mutstr_ref.chars + neat_mutstr_ref_len, \
+    }; \
+    neat_tostr_into(neat_anystr_ref_append_buf, x); \
+    *neat_as_mutstr_ref.len += neat_appended_len; \
 } while(0);
 
 #define neat_str_print(any_str_dst, ...) \
@@ -263,17 +267,15 @@ do \
     neat_str_assert_mutable(any_str_dst); \
     Neat_Mut_String_Ref neat_as_mutstr_ref = neat_mutstr_ref(any_str_dst); \
     unsigned int neat_mutstr_ref_len; \
-    if(neat_as_mutstr_ref.len == NULL) \
-    { \
-        unsigned char *neat_str_end_ptr = memchr(neat_as_mutstr_ref.chars, '\0', neat_as_mutstr_ref.cap); \
-        neat_mutstr_ref_len = neat_str_end_ptr ? neat_str_end_ptr - neat_as_mutstr_ref.chars : neat_as_mutstr_ref.cap; \
-        neat_as_mutstr_ref.len = &neat_mutstr_ref_len; \
-    } \
-    Neat_String_Buffer neat_as_strbuf = neat_strbuf(neat_as_mutstr_ref); \
-    neat_as_strbuf.len = 0; \
-    \
+    unsigned int *old_len_ptr_save = neat_as_mutstr_ref.len; \
+    neat_as_mutstr_ref.len = &neat_mutstr_ref_len; \
+    *neat_as_mutstr_ref.len = 0; \
     NEAT_FOREACH(neat_str_print_each, __VA_ARGS__); \
     \
+    if(old_len_ptr_save != NULL) \
+    { \
+        *old_len_ptr_save = *neat_as_mutstr_ref.len; \
+    } \
 } while(0)
 
 #define neat_comma_tostr(s) \
