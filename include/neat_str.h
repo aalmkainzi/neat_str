@@ -81,13 +81,16 @@ typedef struct Neat_Mut_String_Ref
     #define Neat_SString(cap) \
     Neat_SString_##cap
     
-    #define NEAT_DECL_SSTRING(cap) \
+    #define NEAT_DECL_SSTRING_(cap) \
     typedef struct Neat_SString_##cap \
     { \
         _Static_assert((1##cap##1ul || cap##8ul || 1) && (cap > 0), "argument must be positive decimal integer literal"); /* the first term is to make sure cap is an integer literal */ \
         unsigned int len; \
         unsigned char chars[ cap + 1 ]; /* + 1 for the nul */ \
     } Neat_SString_##cap
+
+    #define NEAT_DECL_SSTRING(cap) \
+    NEAT_DECL_SSTRING_(cap)
 #endif
 
 // SString stuff
@@ -253,9 +256,9 @@ do \
     unsigned int neat_appended_len = 0; \
     Neat_Mut_String_Ref neat_anystr_ref_append_buf = \
     { \
-        .cap = neat_as_mutstr_ref.cap - neat_mutstr_ref_len, \
+        .cap = neat_as_mutstr_ref.cap - *neat_as_mutstr_ref.len, \
         .len = &neat_appended_len, \
-        .chars = neat_as_mutstr_ref.chars + neat_mutstr_ref_len, \
+        .chars = neat_as_mutstr_ref.chars + *neat_as_mutstr_ref.len, \
     }; \
     neat_tostr_into(neat_anystr_ref_append_buf, x); \
     *neat_as_mutstr_ref.len += neat_appended_len; \
@@ -267,15 +270,21 @@ do \
     neat_str_assert_mutable(any_str_dst); \
     Neat_Mut_String_Ref neat_as_mutstr_ref = neat_mutstr_ref(any_str_dst); \
     unsigned int neat_mutstr_ref_len; \
-    unsigned int *old_len_ptr_save = neat_as_mutstr_ref.len; \
-    neat_as_mutstr_ref.len = &neat_mutstr_ref_len; \
-    *neat_as_mutstr_ref.len = 0; \
+    if(neat_as_mutstr_ref.len == NULL) \
+    { \
+        unsigned char *neat_str_end = memchr(neat_as_mutstr_ref.chars, '\0', neat_as_mutstr_ref.cap); \
+        if(neat_str_end != NULL) \
+        { \
+            neat_mutstr_ref_len = neat_str_end - neat_as_mutstr_ref.chars; \
+        } \
+        else \
+        { \
+            neat_mutstr_ref_len = neat_as_mutstr_ref.cap - 1; \
+        } \
+        neat_as_mutstr_ref.len = &neat_mutstr_ref_len; \
+    } \
     NEAT_FOREACH(neat_str_print_each, __VA_ARGS__); \
     \
-    if(old_len_ptr_save != NULL) \
-    { \
-        *old_len_ptr_save = *neat_as_mutstr_ref.len; \
-    } \
 } while(0)
 
 #define neat_comma_tostr(s) \

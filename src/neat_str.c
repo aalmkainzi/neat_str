@@ -1533,7 +1533,7 @@ static const unsigned long long neat_ten_pows[] = {
 };
 
 #define neat_tostr_into_signed() \
-if(dst.cap == 0) \
+if(dst.cap <= 1) \
     return; \
  \
 typeof(*obj) i = *obj; \
