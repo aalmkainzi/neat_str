@@ -127,8 +127,8 @@ typedef struct String_Buffer
 ```
 to initialize:
 ```C
-String_Buffer strbuf(any_str);
-String_Buffer strbuf(carr, cap);
+String_Buffer strbuf(carr);
+String_Buffer strbuf(carr_or_ptr, cap);
 String_Buffer strbuf(cap);
 String_Buffer strbuf(cap, allocator);
 ```
