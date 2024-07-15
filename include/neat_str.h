@@ -63,6 +63,11 @@ typedef struct Neat_Mut_String_Ref
     unsigned char *chars;
 } Neat_Mut_String_Ref;
 
+typedef struct Neat_Buffer {
+    unsigned int size;
+    void *ptr;
+} Neat_Buffer;
+
 // in C23 structs can be defined multiple times with the same tag and members,
 // in which NEAT_DECL_SSTRING is useless, but older standards require it.
 #if __STDC_VERSION__ >= 202311L
@@ -338,24 +343,14 @@ neat_static_assertx(!neat_is_array_of(NEAT_ARG1(__VA_ARGS__), Neat_String_View),
 #define neat_strbuf(str_or_cap, ...) \
 neat_strbuf_##__VA_OPT__(2)(str_or_cap __VA_OPT__(,) __VA_ARGS__)
 
-#define neat_strbuf_(str_or_cap)                                                       \
-_Generic((typeof(str_or_cap)*){0},                                                     \
-    char**                                               : neat_strbuf_of_cstr,        \
-    NEAT_UCHAR_CASE(unsigned char**                      : neat_strbuf_of_ucstr,)      \
-    Neat_DString*                                        : neat_strbuf_of_dstr,        \
-    Neat_DString**                                       : neat_strbuf_of_dstr_ptr,    \
-    Neat_String_View*                                    : neat_strbuf_of_strv,        \
-    Neat_String_View**                                   : neat_strbuf_of_strv_ptr,    \
-    Neat_String_Buffer*                                  : neat_strbuf_of_strbuf,      \
-    Neat_String_Buffer**                                 : neat_strbuf_of_strbuf_ptr,  \
-    Neat_SString_Ref*                                    : neat_strbuf_of_sstr_ref,    \
-    Neat_Mut_String_Ref*                                 : neat_strbuf_of_mutstr_ref,  \
-    char(*)[sizeof(typeof(str_or_cap))]                          : neat_strbuf_of_mutstr_ref,  \
-    NEAT_UCHAR_CASE(unsigned char(*)[sizeof(typeof(str_or_cap))] : neat_strbuf_of_mutstr_ref,) \
-    default                                              : neat_strbuf_new_default     \
-)(_Generic((typeof(str_or_cap)*){0},                                                   \
-    char(*)[sizeof(typeof(str_or_cap))]: (Neat_Mut_String_Ref){.len = NULL, .cap = sizeof(typeof(str_or_cap)), .chars = (unsigned char*) neat_gurantee(str_or_cap, char*)}, \
-    NEAT_UCHAR_CASE(unsigned char(*)[sizeof(typeof(str_or_cap))]: (Neat_Mut_String_Ref){.len = NULL, .cap = sizeof(typeof(str_or_cap)), .chars = neat_gurantee(str_or_cap, unsigned char*)},) \
+#define neat_strbuf_(str_or_cap)                                                           \
+_Generic((typeof(str_or_cap)*){0},                                                         \
+    char(*)[sizeof(typeof(str_or_cap))]                          : neat_strbuf_from_buf,   \
+    NEAT_UCHAR_CASE(unsigned char(*)[sizeof(typeof(str_or_cap))] : neat_strbuf_from_buf,)  \
+    default                                                      : neat_strbuf_new_default \
+)(_Generic((typeof(str_or_cap)*){0},                                                       \
+    char(*)[sizeof(typeof(str_or_cap))]: (Neat_Buffer){.ptr = neat_gurantee(str_or_cap, char*), .size = sizeof(typeof(str_or_cap))}, \
+    NEAT_UCHAR_CASE(unsigned char(*)[sizeof(typeof(str_or_cap))]: (Neat_Buffer){.ptr = neat_gurantee(str_or_cap, unsigned char*), .size = sizeof(typeof(str_or_cap))},) \
     default: str_or_cap \
 ))
 
@@ -775,6 +770,7 @@ Neat_String_Buffer neat_strbuf_of_strbuf_ptr(Neat_String_Buffer *str);
 Neat_String_Buffer neat_strbuf_of_sstr_ref(Neat_SString_Ref str);
 Neat_String_Buffer neat_strbuf_of_mutstr_ref(Neat_Mut_String_Ref str);
 Neat_String_Buffer neat_strbuf_from_ptr(void *ptr, unsigned int cap);
+Neat_String_Buffer neat_strbuf_from_buf(Neat_Buffer buf);
 
 Neat_Mut_String_Ref neat_mutstr_ref_to_cstr(char *str);
 Neat_Mut_String_Ref neat_mutstr_ref_to_ucstr(unsigned char *str);

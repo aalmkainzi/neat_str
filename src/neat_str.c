@@ -962,12 +962,17 @@ Neat_String_Buffer neat_strbuf_of_strbuf(Neat_String_Buffer str)
 Neat_String_Buffer neat_strbuf_from_ptr(void *ptr, unsigned int cap)
 {
     unsigned int len = neat_chars_strlen(ptr, cap);
-    
+
     return (Neat_String_Buffer){
         .cap = cap,
         .len = len,
         .chars = ptr
     };
+}
+
+Neat_String_Buffer neat_strbuf_from_buf(Neat_Buffer buf)
+{
+    return neat_strbuf_from_ptr(buf.ptr, buf.size);
 }
 
 Neat_String_View neat_strv_cstr2(char *str, unsigned int begin)
