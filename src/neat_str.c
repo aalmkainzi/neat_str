@@ -809,6 +809,20 @@ unsigned int neat_strv_count(Neat_String_View hay, Neat_String_View needle)
     return count;
 }
 
+bool neat_strv_starts_with(Neat_String_View hay, Neat_String_View needle)
+{
+    if(needle.len > hay.len)
+        return false;
+    return (memcmp(hay.chars, needle.chars, needle.len) == 0);
+}
+
+bool neat_strv_ends_with(Neat_String_View hay, Neat_String_View needle)
+{
+    if(needle.len > hay.len)
+        return false;
+    return (memcmp(hay.chars + hay.len - needle.len, needle.chars, needle.len) == 0);
+}
+
 Neat_Mut_String_Ref neat_mutstr_ref_to_cstr(char *str)
 {
     unsigned int len = strlen(str);
@@ -879,84 +893,6 @@ Neat_String_Buffer neat_strbuf_new(unsigned int cap, Neat_Allocator allocator)
 Neat_String_Buffer neat_strbuf_new_default(unsigned int cap)
 {
     return neat_strbuf_new(cap, neat_get_default_allocator());
-}
-
-Neat_String_Buffer neat_strbuf_of_cstr(char *str)
-{
-    unsigned int len = strlen(str);
-    return (Neat_String_Buffer){
-        .cap   = len + 1,
-        .len   = len,
-        .chars = (unsigned char*) str
-    };
-}
-
-Neat_String_Buffer neat_strbuf_of_ucstr(unsigned char *str)
-{
-    unsigned int len = strlen((char*) str);
-    return (Neat_String_Buffer){
-        .cap   = len + 1,
-        .len   = len,
-        .chars = (unsigned char*) str
-    };
-}
-
-Neat_String_Buffer neat_strbuf_of_dstr_ptr(Neat_DString *str)
-{
-    return (Neat_String_Buffer){
-        .cap   = str->cap,
-        .len   = str->len,
-        .chars = str->chars
-    };
-}
-
-Neat_String_Buffer neat_strbuf_of_strv_ptr(Neat_String_View *str)
-{
-    return (Neat_String_Buffer){
-        .cap   = str->len,
-        .len   = str->len,
-        .chars = str->chars
-    };
-}
-
-Neat_String_Buffer neat_strbuf_of_strbuf_ptr(Neat_String_Buffer *str)
-{
-    return *str;
-}
-
-Neat_String_Buffer neat_strbuf_of_sstr_ref(Neat_SString_Ref str)
-{
-    return (Neat_String_Buffer){
-        .cap   = str.cap,
-        .len   = str.sstring->len,
-        .chars = str.sstring->chars
-    };
-}
-
-Neat_String_Buffer neat_strbuf_of_mutstr_ref(Neat_Mut_String_Ref str)
-{
-    unsigned int len = neat_mutstr_ref_len(str);
-    
-    return (Neat_String_Buffer){
-        .cap   = str.cap,
-        .len   = len,
-        .chars = str.chars
-    };
-}
-
-Neat_String_Buffer neat_strbuf_of_dstr(Neat_DString str)
-{
-    return neat_strbuf_of_dstr_ptr(&str);
-}
-
-Neat_String_Buffer neat_strbuf_of_strv(Neat_String_View str)
-{
-    return neat_strbuf_of_strv_ptr(&str);
-}
-
-Neat_String_Buffer neat_strbuf_of_strbuf(Neat_String_Buffer str)
-{
-    return str;
 }
 
 Neat_String_Buffer neat_strbuf_from_ptr(void *ptr, unsigned int cap)

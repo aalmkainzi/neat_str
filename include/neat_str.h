@@ -212,6 +212,12 @@ neat_strv_find(neat_strv(any_str_hay), neat_strv(any_str_needle))
 #define neat_str_count(any_str_hay, any_str_needle) \
 neat_strv_count(neat_strv(any_str_hay), neat_strv(any_str_needle))
 
+#define neat_str_starts_with(any_str_hay, any_str_needle) \
+neat_strv_starts_with(neat_strv(any_str_hay), neat_strv(any_str_needle))
+
+#define neat_str_ends_with(any_str_hay, any_str_needle) \
+neat_strv_ends_with(neat_strv(any_str_hay), neat_strv(any_str_needle))
+
 #define neat_str_replace(any_str, any_str_target, any_str_replacement)                                       \
 (                                                                                                            \
 neat_str_assert_mutable(any_str),                                                                            \
@@ -759,16 +765,6 @@ Neat_String_View neat_strv_mutstr_ref3(Neat_Mut_String_Ref str, unsigned int beg
 Neat_String_Buffer neat_strbuf_new(unsigned int cap, Neat_Allocator allocator);
 Neat_String_Buffer neat_strbuf_new_default(unsigned int cap);
 
-Neat_String_Buffer neat_strbuf_of_cstr(char *str);
-Neat_String_Buffer neat_strbuf_of_ucstr(unsigned char *str);
-Neat_String_Buffer neat_strbuf_of_dstr(Neat_DString str);
-Neat_String_Buffer neat_strbuf_of_dstr_ptr(Neat_DString *str);
-Neat_String_Buffer neat_strbuf_of_strv(Neat_String_View str);
-Neat_String_Buffer neat_strbuf_of_strv_ptr(Neat_String_View *str);
-Neat_String_Buffer neat_strbuf_of_strbuf(Neat_String_Buffer str);
-Neat_String_Buffer neat_strbuf_of_strbuf_ptr(Neat_String_Buffer *str);
-Neat_String_Buffer neat_strbuf_of_sstr_ref(Neat_SString_Ref str);
-Neat_String_Buffer neat_strbuf_of_mutstr_ref(Neat_Mut_String_Ref str);
 Neat_String_Buffer neat_strbuf_from_ptr(void *ptr, unsigned int cap);
 Neat_String_Buffer neat_strbuf_from_buf(Neat_Buffer buf);
 
@@ -836,6 +832,8 @@ Neat_String_View_Array neat_strv_arr_from_carr(Neat_String_View *carr, unsigned 
 bool neat_strv_equal(Neat_String_View str1, Neat_String_View str2);
 Neat_String_View neat_strv_find(Neat_String_View hay, Neat_String_View needle);
 unsigned int neat_strv_count(Neat_String_View hay, Neat_String_View needle);
+bool neat_strv_starts_with(Neat_String_View hay, Neat_String_View needle);
+bool neat_strv_ends_with(Neat_String_View hay, Neat_String_View needle);
 
 unsigned int neat_mutstr_ref_fread_line(Neat_Mut_String_Ref dst, FILE *stream);
 unsigned int neat_mutstr_ref_concat_fread_line(Neat_Mut_String_Ref dst, FILE *stream);
@@ -915,6 +913,8 @@ typedef Neat_Mut_String_Ref Mut_String_Ref;
 #define str_cstr(any_str) neat_str_cstr(any_str)
 #define str_find(any_str_hay, any_str_needle) neat_str_find(any_str_hay, any_str_needle)
 #define str_count(any_str_hay, any_str_needle) neat_str_count(any_str_hay, any_str_needle)
+#define str_starts_with(any_str_hay, any_str_needle) neat_str_starts_with(any_str_hay, any_str_needle)
+#define str_ends_with(any_str_hay, any_str_needle) neat_str_ends_with(any_str_hay, any_str_needle)
 #define str_copy(any_str_dst, any_str_src) neat_str_copy(any_str_dst, any_str_src)
 #define str_concat(cap_str_dst, any_str_src) neat_str_concat(cap_str_dst, any_str_src)
 #define str_insert(any_str_dst, any_str_src, idx) neat_str_insert(any_str_dst, any_str_src, idx)
