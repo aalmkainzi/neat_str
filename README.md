@@ -21,6 +21,9 @@ String_View       str_find(any_str_hay, any_str_needle);
 // Returns how many times arg2 was found in arg1
 unsigned int      str_count(any_str_hay, any_str_needle);
 
+bool              str_starts_with(any_str_hay, any_str_needle);
+bool              str_ends_with(any_str_hay, any_str_needle);
+
 // Copies arg2 into arg1. If it doesn't fit, it copies as many chars as can fit. Returns how many chars were copied
 unsigned int      str_copy(mut_str_dst, any_str_src);
 
