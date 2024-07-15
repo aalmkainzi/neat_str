@@ -109,7 +109,7 @@ bool         dstr_insert(dstr, any_str, idx);
 bool         dstr_insert_tostr(dstr, stringable, idx);
 bool         dstr_insert_tostr_p(dstr, stringable*, idx);
 
-unsigned int dstr_fread_line(any_str, stream);
+unsigned int dstr_fread_line(dstr, stream);
 unsigned int dstr_read_line(dstr);
 unsigned int dstr_append_fread_line(dstr, stream);
 unsigned int dstr_append_read_line(dstr);
