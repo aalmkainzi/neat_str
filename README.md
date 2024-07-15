@@ -132,7 +132,7 @@ typedef struct String_Buffer
 to initialize:
 ```C
 String_Buffer strbuf(carr);
-String_Buffer strbuf(carr_or_ptr, cap);
+String_Buffer strbuf(ptr, cap);
 String_Buffer strbuf(cap);
 String_Buffer strbuf(cap, allocator);
 ```
@@ -159,8 +159,8 @@ String_View_Array strv_arr(...any_str);
 // arg1 is String_View[N]
 String_View_Array strv_arr_carr(carr);
 
-// arg 1 can either be String_View[N] or String_View*. arg2 is how many elements in the array
-String_View_Array strv_arr_carr(carr_or_ptr, nb);
+// arg 1 is String_View*. arg2 is how many elements in the array
+String_View_Array strv_arr_carr(ptr, nb);
 ```
 ## SString
 
