@@ -100,16 +100,20 @@ utility:
 void         dstr_append(dstr, any_str);
 void         dstr_append_tostr(dstr, stringable);
 void         dstr_append_tostr_p(dstr, stringable*);
+
 void         dstr_prepend(dstr, any_str);
 void         dstr_prepend_tostr(dstr, stringable);
 void         dstr_prepend_tostr_p(dstr, stringable*);
+
 bool         dstr_insert(dstr, any_str, idx);
 bool         dstr_insert_tostr(dstr, stringable, idx);
 bool         dstr_insert_tostr_p(dstr, stringable*, idx);
+
 unsigned int dstr_fread_line(any_str, stream);
 unsigned int dstr_read_line(dstr);
 unsigned int dstr_append_fread_line(dstr, stream);
 unsigned int dstr_append_read_line(dstr);
+
 void         dstr_shrink_to_fit(dstr);
 void         dstr_ensure_cap(dstr, new_cap);
 ```
