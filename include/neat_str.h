@@ -551,11 +551,12 @@ do                                                                              
 #define neat_print(...) \
 neat_fprint(stdout, __VA_ARGS__)
 
-#define neat_fprintln(f, ...)    \
-do                               \
-{                                \
-    neat_fprint(f, __VA_ARGS__); \
-    fputc('\n', f);              \
+#define neat_fprintln(f, ...)              \
+do                                         \
+{                                          \
+    FILE *neat_temp_f = f;                 \
+    neat_fprint(neat_temp_f, __VA_ARGS__); \
+    fputc('\n', neat_temp_f);              \
 } while(0)
 
 #define neat_println(...) \
