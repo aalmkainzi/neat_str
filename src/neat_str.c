@@ -390,13 +390,6 @@ Neat_String_View neat_strv_find(Neat_String_View hay, Neat_String_View needle)
     };
 }
 
-Neat_SString_Ref neat_sstr_ref_from_sstr_ptr(void *sstr_ptr, unsigned int cap)
-{
-    Neat_SString_Ref ret = {.cap = cap};
-    ret.sstring = (typeof(ret.sstring)) sstr_ptr;
-    return ret;
-}
-
 unsigned int neat_mutstr_ref_copy(Neat_Mut_String_Ref dst, Neat_String_View src)
 {
     unsigned int chars_to_copy = neat_uint_min(src.len, dst.cap - 1);

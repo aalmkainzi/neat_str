@@ -395,7 +395,7 @@ _Generic((typeof(any_str)*){0},                                                 
 #define neat_sstr_ref(sstr_ptr) \
 ( \
     neat_static_assertx(NEAT_IS_SSTRING_PTR(sstr_ptr), "Must pass SString(N)*"), \
-    neat_sstr_ref_from_sstr_ptr(sstr_ptr, sizeof((sstr_ptr)->chars)) \
+    (Neat_SString_Ref){.cap = sizeof((sstr_ptr)->chars), .sstring = (void*) sstr_ptr} \
 )
 
 #define neat_sstr_ref_new(nb)                 \
@@ -812,8 +812,6 @@ unsigned int neat_dstr_fread_line_(Neat_DString *dstr, FILE *stream);
 unsigned int neat_dstr_append_fread_line_(Neat_DString *dstr, FILE *stream);
 void neat_dstr_shrink_to_fit_(Neat_DString *dstr);
 void neat_dstr_ensure_cap_(Neat_DString *dstr, unsigned int at_least);
-
-Neat_SString_Ref neat_sstr_ref_from_sstr_ptr(void *sstr_ptr, unsigned int cap);
 
 unsigned int neat_mutstr_ref_copy(Neat_Mut_String_Ref dst, Neat_String_View src);
 unsigned int neat_mutstr_ref_concat(Neat_Mut_String_Ref dst, Neat_String_View src);
