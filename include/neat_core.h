@@ -231,7 +231,7 @@ _Generic(exp, \
 )
 
 #define neat_as_pointer(scalar) \
-&(struct { typeof((void)0,scalar) t; }){scalar}.t
+(&(typeof(((void)0, scalar))[]){scalar}[0])
 
 #define NEAT_CARR_LEN(carr) (sizeof(carr) / sizeof(carr[0]))
 

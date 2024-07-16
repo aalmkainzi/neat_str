@@ -218,6 +218,12 @@ neat_strv_starts_with(neat_strv(any_str_hay), neat_strv(any_str_needle))
 #define neat_str_ends_with(any_str_hay, any_str_needle) \
 neat_strv_ends_with(neat_strv(any_str_hay), neat_strv(any_str_needle))
 
+#define neat_str_tolower(any_str) \
+neat_mutstr_ref_tolower(neat_mutstr_ref(any_str))
+
+#define neat_str_toupper(any_str) \
+neat_mutstr_ref_toupper(neat_mutstr_ref(any_str))
+
 #define neat_str_replace(any_str, any_str_target, any_str_replacement)                                       \
 (                                                                                                            \
 neat_str_assert_mutable(any_str),                                                                            \
@@ -711,9 +717,6 @@ _Generic((ty){0}, \
 #define neat_has_tostr_into(ty) \
 (!neat_has_type(neat_get_tostr_into_func_ft(ty), neat_tostr_fail))
 
-#define neat_tostr_into_dst_mutstr_ref(dst, x) \
-neat_get_tostr_into_func(typeof(x))(dst, neat_as_pointer(x))
-
 #define neat_tostr_into_p(dst, xp) \
 ( \
     neat_str_assert_mutable(dst), \
@@ -833,6 +836,9 @@ unsigned int neat_strv_count(Neat_String_View hay, Neat_String_View needle);
 bool neat_strv_starts_with(Neat_String_View hay, Neat_String_View needle);
 bool neat_strv_ends_with(Neat_String_View hay, Neat_String_View needle);
 
+Neat_String_View neat_mutstr_ref_tolower(Neat_Mut_String_Ref str);
+Neat_String_View neat_mutstr_ref_toupper(Neat_Mut_String_Ref str);
+
 unsigned int neat_mutstr_ref_fread_line(Neat_Mut_String_Ref dst, FILE *stream);
 unsigned int neat_mutstr_ref_concat_fread_line(Neat_Mut_String_Ref dst, FILE *stream);
 
@@ -913,6 +919,8 @@ typedef Neat_Mut_String_Ref Mut_String_Ref;
 #define str_count(any_str_hay, any_str_needle) neat_str_count(any_str_hay, any_str_needle)
 #define str_starts_with(any_str_hay, any_str_needle) neat_str_starts_with(any_str_hay, any_str_needle)
 #define str_ends_with(any_str_hay, any_str_needle) neat_str_ends_with(any_str_hay, any_str_needle)
+#define str_tolower(any_str) neat_str_tolower(any_str)
+#define str_toupper(any_str) neat_str_toupper(any_str)
 #define str_copy(any_str_dst, any_str_src) neat_str_copy(any_str_dst, any_str_src)
 #define str_concat(cap_str_dst, any_str_src) neat_str_concat(cap_str_dst, any_str_src)
 #define str_insert(any_str_dst, any_str_src, idx) neat_str_insert(any_str_dst, any_str_src, idx)

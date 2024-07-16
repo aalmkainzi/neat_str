@@ -1,4 +1,5 @@
 #include <string.h>
+#include <ctype.h>
 #define NEAT_STR_PREFIX
 #include "../include/neat_str.h"
 
@@ -812,6 +813,34 @@ bool neat_strv_starts_with(Neat_String_View hay, Neat_String_View needle)
 bool neat_strv_ends_with(Neat_String_View hay, Neat_String_View needle)
 {
     return (needle.len <= hay.len) && (memcmp(hay.chars + hay.len - needle.len, needle.chars, needle.len) == 0);
+}
+
+Neat_String_View neat_mutstr_ref_tolower(Neat_Mut_String_Ref str)
+{
+    unsigned int len = neat_mutstr_ref_len(str);
+    for(unsigned int i = 0 ; i < len ; i++)
+    {
+        str.chars[i] = tolower(str.chars[i]);
+    }
+    return
+    (Neat_String_View){
+        .len = len,
+        .chars = str.chars
+    };
+}
+
+Neat_String_View neat_mutstr_ref_toupper(Neat_Mut_String_Ref str)
+{
+    unsigned int len = neat_mutstr_ref_len(str);
+    for(unsigned int i = 0 ; i < len ; i++)
+    {
+        str.chars[i] = toupper(str.chars[i]);
+    }
+    return
+    (Neat_String_View){
+        .len = len,
+        .chars = str.chars
+    };
 }
 
 Neat_Mut_String_Ref neat_mutstr_ref_to_cstr(char *str)
