@@ -525,8 +525,8 @@ do                                                                              
 {                                                                                                                                                                    \
     Neat_DString neat_temp;                                                                                                                                          \
     _Generic(x,                                                                                                                                                      \
-        char*                         : fputs(neat_gurantee(x, char*), neat_file_stream),                                                                            \
-        NEAT_UCHAR_CASE(unsigned char*: fputs((char*) neat_gurantee(x, unsigned char*), neat_file_stream),)                                                          \
+        char*                         : neat_fprint_strv(neat_file_stream, neat_strv_cstr2(neat_gurantee(x, char*), 0)),                                             \
+        NEAT_UCHAR_CASE(unsigned char*: neat_fprint_strv(neat_file_stream, neat_strv_ucstr2(neat_gurantee(x, unsigned char*), 0)),)                                  \
         Neat_DString                  : neat_fprint_strv(neat_file_stream, neat_strv_dstr2(neat_gurantee(x, Neat_DString), 0)),                                      \
         Neat_DString*                 : neat_fprint_strv(neat_file_stream, neat_strv_dstr_ptr2(neat_gurantee(x, Neat_DString*), 0)),                                 \
         Neat_String_View              : neat_fprint_strv(neat_file_stream, neat_gurantee(x, Neat_String_View)),                                                      \

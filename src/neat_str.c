@@ -1235,7 +1235,14 @@ unsigned int neat_mutstr_ref_concat_fread_line(Neat_Mut_String_Ref dst, FILE *st
 
 unsigned int neat_fprint_strv(FILE *stream, Neat_String_View str)
 {
-    return fwrite(str.chars, sizeof(unsigned char), str.len, stream);
+    if(str.chars != NULL)
+    {
+        return fwrite(str.chars, sizeof(unsigned char), str.len, stream);
+    }
+    else
+    {
+        return fwrite("(null)", sizeof(char), sizeof("(null)") - 1, stream);
+    }
 }
 
 unsigned int neat_fprintln_strv(FILE *stream, Neat_String_View str)
