@@ -77,7 +77,7 @@ typedef struct Neat_Buffer {
     { \
         _Static_assert((1##cap##1ul || cap##8ul || 1) && (cap > 0), "argument must be positive decimal integer literal"); /* the first term is to make sure cap is an integer literal */ \
         unsigned int len; \
-        unsigned char chars[ cap + 1 ]; /* + 1 for the nul */ \
+        unsigned char chars[ cap ]; \
     }
     
     #define NEAT_DECL_SSTRING(cap)
@@ -91,7 +91,7 @@ typedef struct Neat_Buffer {
     { \
         _Static_assert((1##cap##1ul || cap##8ul || 1) && (cap > 0), "argument must be positive decimal integer literal"); /* the first term is to make sure cap is an integer literal */ \
         unsigned int len; \
-        unsigned char chars[ cap + 1 ]; /* + 1 for the nul */ \
+        unsigned char chars[ cap ]; \
     } Neat_SString_##cap
 
     #define NEAT_DECL_SSTRING(cap) \
@@ -103,7 +103,7 @@ typedef struct Neat_Buffer {
 struct \
 { \
     unsigned int len; \
-    unsigned char chars[ cap + 1 ]; /* + 1 for the nul */ \
+    unsigned char chars[ cap ]; \
 }
 
 #define NEAT_TYPEOF_SSTR(sstr) \
