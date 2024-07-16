@@ -24,6 +24,9 @@ unsigned int      str_count(any_str_hay, any_str_needle);
 bool              str_starts_with(any_str_hay, any_str_needle);
 bool              str_ends_with(any_str_hay, any_str_needle);
 
+void              str_toupper(any_str);
+void              str_tolower(any_str);
+
 // Copies arg2 into arg1. If it doesn't fit, it copies as many chars as can fit. Returns how many chars were copied
 unsigned int      str_copy(mut_str_dst, any_str_src);
 
