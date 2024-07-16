@@ -140,12 +140,14 @@ _Generic(any_str,                                              \
     Neat_Mut_String_Ref           : 1   \
 )
 
-#define neat_str_assert_appendable(str) \
-(void)_Generic(str,                     \
-    Neat_DString*      : 1,             \
-    Neat_String_Buffer*: 1,             \
-    Neat_SString_Ref   : 1,             \
-    Neat_Mut_String_Ref: 1              \
+#define neat_str_assert_appendable(str)                \
+(void)_Generic((typeof(str)*){0},                      \
+    char(*)[sizeof(str)]: 1,                           \
+    NEAT_UCHAR_CASE(unsigned char(*)[sizeof(str)]: 1,) \
+    Neat_DString**      : 1,                           \
+    Neat_String_Buffer**: 1,                           \
+    Neat_SString_Ref*   : 1,                           \
+    Neat_Mut_String_Ref*: 1                            \
 )
 
 #define neat_str_at(any_str, idx)                            \
