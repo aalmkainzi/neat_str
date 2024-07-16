@@ -481,7 +481,7 @@ NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array
     {
         size_t alloced_size;
         Neat_String_View *entire_str = neat_alloc(allocator, Neat_String_View, 1, &alloced_size);
-        if(alloced_size < 1)
+        if(alloced_size < 1 || entire_str == NULL)
         {
             return (Neat_String_View_Array){
                 .cap  = 0,
@@ -504,7 +504,7 @@ NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array
         size_t alloced_size;
         Neat_String_View *strs = neat_alloc(allocator, Neat_String_View, str.len, &alloced_size);
         
-        if(alloced_size < str.len)
+        if(alloced_size < str.len || strs == NULL)
         {
             return (Neat_String_View_Array){
                 .cap  = 0,
@@ -553,8 +553,10 @@ NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array
         size_t alloced_size;
         Neat_String_View *strs = neat_alloc(allocator, Neat_String_View, nb_delim + 1, &alloced_size);
         
-        if(alloced_size < nb_delim + 1)
+        if(alloced_size < nb_delim + 1 || strs == NULL)
         {
+            free(delim_idx);
+            
             return (Neat_String_View_Array){
                 .cap  = 0,
                 .nb   = 0,
@@ -811,16 +813,12 @@ unsigned int neat_strv_count(Neat_String_View hay, Neat_String_View needle)
 
 bool neat_strv_starts_with(Neat_String_View hay, Neat_String_View needle)
 {
-    if(needle.len > hay.len)
-        return false;
-    return (memcmp(hay.chars, needle.chars, needle.len) == 0);
+    return (needle.len <= hay.len) && (memcmp(hay.chars, needle.chars, needle.len) == 0);
 }
 
 bool neat_strv_ends_with(Neat_String_View hay, Neat_String_View needle)
 {
-    if(needle.len > hay.len)
-        return false;
-    return (memcmp(hay.chars + hay.len - needle.len, needle.chars, needle.len) == 0);
+    return (needle.len <= hay.len) && (memcmp(hay.chars + hay.len - needle.len, needle.chars, needle.len) == 0);
 }
 
 Neat_Mut_String_Ref neat_mutstr_ref_to_cstr(char *str)
