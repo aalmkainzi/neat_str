@@ -838,8 +838,8 @@ unsigned int neat_strv_count(Neat_String_View hay, Neat_String_View needle);
 bool neat_strv_starts_with(Neat_String_View hay, Neat_String_View needle);
 bool neat_strv_ends_with(Neat_String_View hay, Neat_String_View needle);
 
-Neat_String_View neat_mutstr_ref_tolower(Neat_Mut_String_Ref str);
-Neat_String_View neat_mutstr_ref_toupper(Neat_Mut_String_Ref str);
+void neat_mutstr_ref_tolower(Neat_Mut_String_Ref str);
+void neat_mutstr_ref_toupper(Neat_Mut_String_Ref str);
 
 unsigned int neat_mutstr_ref_fread_line(Neat_Mut_String_Ref dst, FILE *stream);
 unsigned int neat_mutstr_ref_concat_fread_line(Neat_Mut_String_Ref dst, FILE *stream);
