@@ -94,14 +94,25 @@ void neat_dstr_maybe_grow(Neat_DString *dstr, unsigned int len_to_append)
 
 void neat_dstr_append_strv(Neat_DString *dstr, Neat_String_View str)
 {
-    Neat_String_View to_append = str;
-    
-    if(neat_is_strv_intersect(neat_strv_dstr_ptr2(dstr, 0), str))
+    Neat_String_View to_append;
+    if(str.chars == NULL)
     {
-        unsigned int begin_idx = str.chars - dstr->chars;
-        neat_dstr_maybe_grow(dstr, str.len);
         to_append = (Neat_String_View){
-            .len = str.len, 
+            .chars = (unsigned char*) "(null)",
+            .len   = sizeof("(null)") - 1
+        };
+    }
+    else
+    {
+        to_append = str;
+    }
+    
+    if(neat_is_strv_intersect(neat_strv_dstr_ptr2(dstr, 0), to_append))
+    {
+        unsigned int begin_idx = to_append.chars - dstr->chars;
+        neat_dstr_maybe_grow(dstr, to_append.len);
+        to_append = (Neat_String_View){
+            .len   = to_append.len,
             .chars = dstr->chars + begin_idx
         };
     }
@@ -275,16 +286,24 @@ Neat_String_View neat_strv_strv2(Neat_String_View str, unsigned int begin)
     return neat_strv_strv_ptr2(&str, begin);
 }
 
-void neat_dstr_prepend_strv(Neat_DString *dstr, Neat_String_View str)
+void neat_dstr_prepend_strv(Neat_DString *dstr, Neat_String_View src)
 {
-    Neat_String_View to_prepend = str;
-    
-    if(neat_is_strv_intersect(neat_strv_dstr_ptr2(dstr, 0), str))
+    if(src.chars == NULL)
     {
-        unsigned int begin_idx = str.chars - dstr->chars;
-        neat_dstr_maybe_grow(dstr, str.len);
+        src = (Neat_String_View){
+            .chars = (unsigned char*) "(null)",
+            .len   = sizeof("(null)") - 1
+        };
+    }
+    
+    Neat_String_View to_prepend = src;
+    
+    if(neat_is_strv_intersect(neat_strv_dstr_ptr2(dstr, 0), src))
+    {
+        unsigned int begin_idx = src.chars - dstr->chars;
+        neat_dstr_maybe_grow(dstr, src.len);
         to_prepend = (Neat_String_View){
-            .len = str.len, 
+            .len = src.len, 
             .chars = dstr->chars + begin_idx
         };
     }
@@ -293,28 +312,36 @@ void neat_dstr_prepend_strv(Neat_DString *dstr, Neat_String_View str)
         neat_dstr_maybe_grow(dstr, to_prepend.len);
     }
     
-    memmove(dstr->chars + str.len, dstr->chars, dstr->len);
-    memmove(dstr->chars, str.chars, str.len);
+    memmove(dstr->chars + src.len, dstr->chars, dstr->len);
+    memmove(dstr->chars, src.chars, src.len);
     
-    dstr->len += str.len;
+    dstr->len += src.len;
     dstr->chars[dstr->len] = '\0';
 }
 
-NEAT_NODISCARD("dstr_insert returns error, true if success, false if fail") bool neat_dstr_insert_strv(Neat_DString *dstr, Neat_String_View str, unsigned int idx)
+NEAT_NODISCARD("dstr_insert returns error, true if success, false if fail") bool neat_dstr_insert_strv(Neat_DString *dstr, Neat_String_View src, unsigned int idx)
 {
+    if(src.chars == NULL)
+    {
+        src = (Neat_String_View){
+            .chars = (unsigned char*) "(null)",
+            .len   = sizeof("(null)") - 1
+        };
+    }
+    
     if(idx > dstr->len)
     {
         return false;
     }
     
-    Neat_String_View to_insert = str;
+    Neat_String_View to_insert = src;
     
-    if(neat_is_strv_intersect(neat_strv_dstr_ptr2(dstr, 0), str))
+    if(neat_is_strv_intersect(neat_strv_dstr_ptr2(dstr, 0), src))
     {
-        unsigned int begin_idx = str.chars - dstr->chars;
-        neat_dstr_maybe_grow(dstr, str.len);
+        unsigned int begin_idx = src.chars - dstr->chars;
+        neat_dstr_maybe_grow(dstr, src.len);
         to_insert = (Neat_String_View){
-            .len = str.len, 
+            .len = src.len, 
             .chars = dstr->chars + begin_idx
         };
     }
@@ -334,6 +361,14 @@ NEAT_NODISCARD("dstr_insert returns error, true if success, false if fail") bool
 
 unsigned int neat_mutstr_ref_insert_strv(Neat_Mut_String_Ref dst, Neat_String_View src, unsigned int idx)
 {
+    if(src.chars == NULL)
+    {
+        src = (Neat_String_View){
+            .chars = (unsigned char*) "(null)",
+            .len   = sizeof("(null)") - 1
+        };
+    }
+    
     unsigned int len = neat_mutstr_ref_len(dst);
     
     if(idx > len)
@@ -392,6 +427,14 @@ Neat_String_View neat_strv_find(Neat_String_View hay, Neat_String_View needle)
 
 unsigned int neat_mutstr_ref_copy(Neat_Mut_String_Ref dst, Neat_String_View src)
 {
+    if(src.chars == NULL)
+    {
+        src = (Neat_String_View){
+            .chars = (unsigned char*) "(null)",
+            .len   = sizeof("(null)") - 1
+        };
+    }
+    
     unsigned int chars_to_copy = neat_uint_min(src.len, dst.cap - 1);
     
     memmove(dst.chars, src.chars, chars_to_copy);
@@ -405,6 +448,14 @@ unsigned int neat_mutstr_ref_copy(Neat_Mut_String_Ref dst, Neat_String_View src)
 
 unsigned int neat_mutstr_ref_concat(Neat_Mut_String_Ref dst, Neat_String_View src)
 {
+    if(src.chars == NULL)
+    {
+        src = (Neat_String_View){
+            .chars = (unsigned char*) "(null)",
+            .len   = sizeof("(null)") - 1
+        };
+    }
+    
     unsigned int dst_len = neat_mutstr_ref_len(dst);
     
     if(dst_len >= dst.cap - 1)
