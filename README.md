@@ -1,7 +1,23 @@
 # neat_str
 A library to make dealing with strings more intuitive in C.
 
-It exposes multiple string types for different use cases:
+## Quick Example
+```C
+#include "neat_str.h"
+
+int main()
+{
+    char C[64] = {0};
+    String_Buffer str = strbuf(C);
+    
+    // sprintf replacement
+    str_print(&str, "he", 110, " world", "\n");
+    
+    println("generated string: ", str);
+}
+```
+## Features
+The library exposes multiple string types for different use cases:
 - [DString](#DString)
 - [String_Buffer](#String_Buffer)
 - [String_View](#String_View)
