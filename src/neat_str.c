@@ -969,6 +969,9 @@ Neat_String_Buffer neat_strbuf_from_buf(Neat_Buffer buf)
 
 Neat_String_View neat_strv_cstr2(char *str, unsigned int begin)
 {
+    if(str == NULL)
+        str = "(null)";
+    
     unsigned int len = strlen(str);
     
     if(begin > len)
@@ -987,6 +990,9 @@ Neat_String_View neat_strv_cstr2(char *str, unsigned int begin)
 
 Neat_String_View neat_strv_ucstr2(unsigned char *str, unsigned int begin)
 {
+    if(str == NULL)
+        str = (unsigned char*) "(null)";
+    
     unsigned int len = strlen((char*) str);
     
     if(begin > len)
@@ -1097,6 +1103,9 @@ Neat_String_View neat_strv_mutstr_ref2(Neat_Mut_String_Ref str, unsigned int beg
 
 Neat_String_View neat_strv_cstr3(char *str, unsigned int begin, unsigned int end)
 {
+    if(str == NULL)
+        str = "(null)";
+    
     unsigned int len = strlen(str);
     
     if(begin > len || end > len || begin > end)
@@ -1115,6 +1124,9 @@ Neat_String_View neat_strv_cstr3(char *str, unsigned int begin, unsigned int end
 
 Neat_String_View neat_strv_ucstr3(unsigned char *str, unsigned int begin, unsigned int end)
 {
+    if(str == NULL)
+        str = (unsigned char*) "(null)";
+    
     unsigned int len = strlen((char*) str);
     
     if(begin > len || end > len || begin > end)
@@ -1312,6 +1324,14 @@ unsigned int neat_fprint_strv(FILE *stream, Neat_String_View str)
 
 unsigned int neat_fprintln_strv(FILE *stream, Neat_String_View str)
 {
+    if(str.chars == NULL)
+    {
+        str = (Neat_String_View){
+            .chars = (unsigned char*) "(null)",
+            .len   = sizeof("(null)") - 1
+        };
+    }
+    
     unsigned int written = fwrite(str.chars, sizeof(unsigned char), str.len, stream);
     written += fwrite(u8"\n", sizeof(unsigned char), 1, stream);
     return written;
@@ -1334,14 +1354,14 @@ NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak")
 NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_cstr(char **obj)
 {
     Neat_DString ret = neat_dstr_new(15, neat_get_default_allocator());
-    neat_str_copy(&ret, *obj);
+    neat_dstr_append(&ret, *obj);
     return ret;
 }
 
 NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_ucstr(unsigned char **obj)
 {
     Neat_DString ret = neat_dstr_new(15, neat_get_default_allocator());
-    neat_str_copy(&ret, *obj);
+    neat_dstr_append(&ret, *obj);
     return ret;
 }
 
