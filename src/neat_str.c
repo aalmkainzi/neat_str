@@ -779,11 +779,15 @@ bool neat_mutstr_ref_replace_first(Neat_Mut_String_Ref str, Neat_String_View tar
 
 unsigned int neat_strv_count(Neat_String_View hay, Neat_String_View needle)
 {
+    if(needle.len == 0)
+        return 0;
+    
     unsigned int count = 0;
     for(unsigned int i = 0 ; i <= hay.len - needle.len ; )
     {
-        Neat_String_View view = neat_strv_strv3(hay, i, i + needle.len);
-        if(neat_strv_equal(view, needle))
+        //Neat_String_View view = neat_strv_strv3(hay, i, i + needle.len);
+        if(memcmp(hay.chars + i, needle.chars, needle.len) == 0)
+            //neat_strv_equal(view, needle))
         {
             count++;
             i += needle.len;

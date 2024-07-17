@@ -140,14 +140,14 @@ _Generic(any_str,                                              \
     Neat_Mut_String_Ref           : 1   \
 )
 
-#define neat_str_assert_appendable(str)                \
-(void)_Generic((typeof(str)*){0},                      \
-    char(*)[sizeof(str)]: 1,                           \
-    NEAT_UCHAR_CASE(unsigned char(*)[sizeof(str)]: 1,) \
-    Neat_DString**      : 1,                           \
-    Neat_String_Buffer**: 1,                           \
-    Neat_SString_Ref*   : 1,                           \
-    Neat_Mut_String_Ref*: 1                            \
+#define neat_str_assert_appendable(str)                        \
+(void)_Generic((typeof(str)*){0},                              \
+    char(*)[sizeof(typeof(str))]: 1,                           \
+    NEAT_UCHAR_CASE(unsigned char(*)[sizeof(typeof(str))]: 1,) \
+    Neat_DString**      : 1,                                   \
+    Neat_String_Buffer**: 1,                                   \
+    Neat_SString_Ref*   : 1,                                   \
+    Neat_Mut_String_Ref*: 1                                    \
 )
 
 #define neat_str_at(any_str, idx)                            \
@@ -188,22 +188,13 @@ _Generic(any_str, \
 neat_strv_equal(neat_strv(any_str1), neat_strv(any_str2))
 
 #define neat_str_copy(any_str_dst, any_str_src) \
-( \
-    neat_str_assert_mutable(any_str_dst), \
-    neat_mutstr_ref_copy(neat_mutstr_ref(any_str_dst), neat_strv(any_str_src)) \
-)
+neat_mutstr_ref_copy(neat_mutstr_ref(any_str_dst), neat_strv(any_str_src))
 
-#define neat_str_concat(any_str_dst, any_str_src)                            \
-(                                                                            \
-neat_str_assert_appendable(any_str_dst),                                     \
-neat_mutstr_ref_concat(neat_mutstr_ref(any_str_dst), neat_strv(any_str_src)) \
-)
+#define neat_str_concat(any_str_dst, any_str_src) \
+neat_mutstr_ref_concat(neat_mutstr_ref(any_str_dst), neat_strv(any_str_src))
 
 #define neat_str_insert(any_str_dst, any_str_src, idx) \
-( \
-    neat_str_assert_appendable(any_str_dst), \
-    neat_mutstr_ref_insert_strv(neat_mutstr_ref(any_str_dst), neat_strv(any_str_src), idx) \
-)
+neat_mutstr_ref_insert_strv(neat_mutstr_ref(any_str_dst), neat_strv(any_str_src), idx)
 
 #define neat_str_prepend(neat_str_dst, neat_str_src) \
 neat_str_insert(neat_str_dst, neat_str_src, 0)
@@ -226,17 +217,11 @@ neat_mutstr_ref_tolower(neat_mutstr_ref(any_str))
 #define neat_str_toupper(any_str) \
 neat_mutstr_ref_toupper(neat_mutstr_ref(any_str))
 
-#define neat_str_replace(any_str, any_str_target, any_str_replacement)                                       \
-(                                                                                                            \
-neat_str_assert_mutable(any_str),                                                                            \
-neat_mutstr_ref_replace(neat_mutstr_ref(any_str), neat_strv(any_str_target), neat_strv(any_str_replacement)) \
-)
+#define neat_str_replace(any_str, any_str_target, any_str_replacement) \
+neat_mutstr_ref_replace(neat_mutstr_ref(any_str), neat_strv(any_str_target), neat_strv(any_str_replacement))
 
-#define neat_str_replace_first(any_str, any_str_target, any_str_replacement)                                       \
-(                                                                                                                  \
-neat_str_assert_mutable(any_str),                                                                                  \
-neat_mutstr_ref_replace_first(neat_mutstr_ref(any_str), neat_strv(any_str_target), neat_strv(any_str_replacement)) \
-)
+#define neat_str_replace_first(any_str, any_str_target, any_str_replacement) \
+neat_mutstr_ref_replace_first(neat_mutstr_ref(any_str), neat_strv(any_str_target), neat_strv(any_str_replacement))
 
 #define neat_str_split(any_str_delim, any_str, ...) \
 neat_strv_split(neat_strv(any_str_delim), neat_strv(any_str), NEAT_VA_OR(neat_get_default_allocator(), __VA_ARGS__))
@@ -244,17 +229,11 @@ neat_strv_split(neat_strv(any_str_delim), neat_strv(any_str), NEAT_VA_OR(neat_ge
 #define neat_str_join_new(any_str_delim, strv_arr, ...) \
 neat_strv_arr_join_new(neat_strv(any_str_delim), strv_arr, NEAT_VA_OR(neat_get_default_allocator(), __VA_ARGS__))
 
-#define neat_str_join(any_str_dst, any_str_delim, strv_arr)                          \
-(                                                                                    \
-neat_str_assert_mutable(any_str_dst),                                                \
-neat_strv_arr_join(neat_mutstr_ref(any_str_dst), neat_strv(any_str_delim), strv_arr) \
-)
+#define neat_str_join(any_str_dst, any_str_delim, strv_arr) \
+neat_strv_arr_join(neat_mutstr_ref(any_str_dst), neat_strv(any_str_delim), strv_arr)
 
 #define neat_str_del(any_str, begin, end) \
-( \
-    neat_str_assert_mutable(any_str), \
-    neat_mutstr_ref_delete_range(neat_mutstr_ref(any_str), begin, end) \
-)
+neat_mutstr_ref_delete_range(neat_mutstr_ref(any_str), begin, end)
 
 #define neat_str_fread_line(any_str, stream) \
 neat_mutstr_ref_fread_line(neat_mutstr_ref(any_str), stream)
@@ -286,7 +265,6 @@ do \
 #define neat_str_print(any_str_dst, ...) \
 do \
 { \
-    neat_str_assert_mutable(any_str_dst); \
     Neat_Mut_String_Ref neat_as_mutstr_ref = neat_mutstr_ref(any_str_dst); \
     unsigned int neat_mutstr_ref_len; \
     if(neat_as_mutstr_ref.len == NULL) \
@@ -721,10 +699,7 @@ _Generic((ty){0}, \
 (!neat_has_type(neat_get_tostr_into_func_ft(ty), neat_tostr_fail))
 
 #define neat_tostr_into_p(dst, xp) \
-( \
-    neat_str_assert_mutable(dst), \
-    neat_get_tostr_into_func(typeof(*xp))(neat_mutstr_ref(dst), xp) \
-)
+neat_get_tostr_into_func(typeof(*xp))(neat_mutstr_ref(dst), xp)
 
 #define neat_tostr_into(dst, x) \
 neat_tostr_into_p(dst, neat_as_pointer(x))
