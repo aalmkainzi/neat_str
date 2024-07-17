@@ -190,11 +190,17 @@ neat_strv_equal(neat_strv(any_str1), neat_strv(any_str2))
 #define neat_str_copy(any_str_dst, any_str_src) \
 neat_mutstr_ref_copy(neat_mutstr_ref(any_str_dst), neat_strv(any_str_src))
 
-#define neat_str_concat(any_str_dst, any_str_src) \
-neat_mutstr_ref_concat(neat_mutstr_ref(any_str_dst), neat_strv(any_str_src))
+#define neat_str_concat(any_str_dst, any_str_src)                            \
+(                                                                            \
+neat_str_assert_appendable(any_str_dst),                                     \
+neat_mutstr_ref_concat(neat_mutstr_ref(any_str_dst), neat_strv(any_str_src)) \
+)
 
-#define neat_str_insert(any_str_dst, any_str_src, idx) \
-neat_mutstr_ref_insert_strv(neat_mutstr_ref(any_str_dst), neat_strv(any_str_src), idx)
+#define neat_str_insert(any_str_dst, any_str_src, idx)                                 \
+(                                                                                      \
+neat_str_assert_appendable(any_str_dst),                                               \
+neat_mutstr_ref_insert_strv(neat_mutstr_ref(any_str_dst), neat_strv(any_str_src), idx) \
+)
 
 #define neat_str_prepend(neat_str_dst, neat_str_src) \
 neat_str_insert(neat_str_dst, neat_str_src, 0)
