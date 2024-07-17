@@ -107,7 +107,7 @@ struct \
 }
 
 #define NEAT_TYPEOF_SSTR(sstr) \
-NEAT_SSTRING_NTAG(sizeof((sstr)->chars)-1)
+NEAT_SSTRING_NTAG(sizeof((sstr)->chars))
 
 #define NEAT_IS_SSTRING_PTR(s) \
 (sizeof(*(s)) == sizeof(NEAT_TYPEOF_SSTR(s))) && \
