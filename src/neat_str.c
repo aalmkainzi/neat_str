@@ -457,7 +457,7 @@ Neat_String_View_Array neat_strv_arr_from_carr(Neat_String_View *carr, unsigned 
     };
 }
 
-NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array neat_strv_split(Neat_String_View delim, Neat_String_View str, Neat_Allocator allocator)
+NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array neat_strv_split(Neat_String_View str, Neat_String_View delim, Neat_Allocator allocator)
 {
     if(allocator.ctx == NULL)
         allocator.init(&allocator.ctx, NULL);
