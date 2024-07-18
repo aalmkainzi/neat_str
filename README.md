@@ -242,15 +242,16 @@ Mut_String_Ref mutstr_ref(carr, cap);
 
 for example:
 ```C
-void concat_comma(Mut_String_Ref str)
+void set_to_bar(Mut_String_Ref str)
 {
-    str_concat(str, ",");
+    str_copy(str, "bar");
 }
 
-void foo(SString_Ref s1, String_Buffer *s2)
+void foo(SString_Ref s1, String_Buffer *s2, char *s3)
 {
-    concat_comma( mutstr_ref(s1) );
-    concat_comma( mutstr_ref(s2) );
+    set_to_bar( mutstr_ref(s1) );
+    set_to_bar( mutstr_ref(s2) );
+    set_to_bar( mutstr_ref(s3) );
 }
 ```
 
