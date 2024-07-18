@@ -94,18 +94,7 @@ void neat_dstr_maybe_grow(Neat_DString *dstr, unsigned int len_to_append)
 
 void neat_dstr_append_strv(Neat_DString *dstr, Neat_String_View str)
 {
-    Neat_String_View to_append;
-    if(str.chars == NULL)
-    {
-        to_append = (Neat_String_View){
-            .chars = (unsigned char*) "(null)",
-            .len   = sizeof("(null)") - 1
-        };
-    }
-    else
-    {
-        to_append = str;
-    }
+    Neat_String_View to_append = str;
     
     if(neat_is_strv_intersect(neat_strv_dstr_ptr2(dstr, 0), to_append))
     {
@@ -288,14 +277,7 @@ Neat_String_View neat_strv_strv2(Neat_String_View str, unsigned int begin)
 
 void neat_dstr_prepend_strv(Neat_DString *dstr, Neat_String_View src)
 {
-    if(src.chars == NULL)
-    {
-        src = (Neat_String_View){
-            .chars = (unsigned char*) "(null)",
-            .len   = sizeof("(null)") - 1
-        };
-    }
-    
+        
     Neat_String_View to_prepend = src;
     
     if(neat_is_strv_intersect(neat_strv_dstr_ptr2(dstr, 0), src))
@@ -321,14 +303,7 @@ void neat_dstr_prepend_strv(Neat_DString *dstr, Neat_String_View src)
 
 NEAT_NODISCARD("dstr_insert returns error, true if success, false if fail") bool neat_dstr_insert_strv(Neat_DString *dstr, Neat_String_View src, unsigned int idx)
 {
-    if(src.chars == NULL)
-    {
-        src = (Neat_String_View){
-            .chars = (unsigned char*) "(null)",
-            .len   = sizeof("(null)") - 1
-        };
-    }
-    
+        
     if(idx > dstr->len)
     {
         return false;
@@ -361,14 +336,7 @@ NEAT_NODISCARD("dstr_insert returns error, true if success, false if fail") bool
 
 unsigned int neat_mutstr_ref_insert_strv(Neat_Mut_String_Ref dst, Neat_String_View src, unsigned int idx)
 {
-    if(src.chars == NULL)
-    {
-        src = (Neat_String_View){
-            .chars = (unsigned char*) "(null)",
-            .len   = sizeof("(null)") - 1
-        };
-    }
-    
+        
     unsigned int len = neat_mutstr_ref_len(dst);
     
     if(idx > len)
@@ -427,14 +395,7 @@ Neat_String_View neat_strv_find(Neat_String_View hay, Neat_String_View needle)
 
 unsigned int neat_mutstr_ref_copy(Neat_Mut_String_Ref dst, Neat_String_View src)
 {
-    if(src.chars == NULL)
-    {
-        src = (Neat_String_View){
-            .chars = (unsigned char*) "(null)",
-            .len   = sizeof("(null)") - 1
-        };
-    }
-    
+        
     unsigned int chars_to_copy = neat_uint_min(src.len, dst.cap - 1);
     
     memmove(dst.chars, src.chars, chars_to_copy);
@@ -448,14 +409,7 @@ unsigned int neat_mutstr_ref_copy(Neat_Mut_String_Ref dst, Neat_String_View src)
 
 unsigned int neat_mutstr_ref_concat(Neat_Mut_String_Ref dst, Neat_String_View src)
 {
-    if(src.chars == NULL)
-    {
-        src = (Neat_String_View){
-            .chars = (unsigned char*) "(null)",
-            .len   = sizeof("(null)") - 1
-        };
-    }
-    
+        
     unsigned int dst_len = neat_mutstr_ref_len(dst);
     
     if(dst_len >= dst.cap - 1)
@@ -510,6 +464,7 @@ Neat_String_View_Array neat_strv_arr_from_carr(Neat_String_View *carr, unsigned 
 
 NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array neat_strv_split(Neat_String_View str, Neat_String_View delim, Neat_Allocator allocator)
 {
+            
     if(allocator.ctx == NULL)
         allocator.init(&allocator.ctx, NULL);
     
@@ -621,6 +576,7 @@ NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array
 
 NEAT_NODISCARD("str_join_new returns new DString, discarding will cause memory leak") Neat_DString neat_strv_arr_join_new(Neat_String_View delim, Neat_String_View_Array strs, Neat_Allocator allocator)
 {
+        
     Neat_DString ret = neat_dstr_new(16, allocator);
     
     if(strs.nb > 0)
@@ -628,7 +584,7 @@ NEAT_NODISCARD("str_join_new returns new DString, discarding will cause memory l
     
     for(unsigned int i = 1 ; i < strs.nb ; i++)
     {
-        neat_dstr_append_strv(&ret, delim);
+                neat_dstr_append_strv(&ret, delim);
         neat_dstr_append_strv(&ret, strs.strs[i]);
     }
     
@@ -647,11 +603,12 @@ unsigned int neat_strv_arr_join(Neat_Mut_String_Ref dst, Neat_String_View delim,
     Neat_Mut_String_Ref dst2 = neat_mutstr_ref_to_strbuf_ptr(&dst_as_buf);
     
     if(strs.nb > 0)
-        chars_copied += neat_mutstr_ref_concat(dst2, strs.strs[0]);
-    
+    {
+                chars_copied += neat_mutstr_ref_concat(dst2, strs.strs[0]);
+    }
     for(unsigned int i = 1 ; i < strs.nb ; i++)
     {
-        chars_copied += neat_mutstr_ref_concat(dst2, delim);
+                chars_copied += neat_mutstr_ref_concat(dst2, delim);
         chars_copied += neat_mutstr_ref_concat(dst2, strs.strs[i]);
     }
     
@@ -665,6 +622,7 @@ unsigned int neat_strv_arr_join(Neat_Mut_String_Ref dst, Neat_String_View delim,
 
 unsigned int neat_mutstr_ref_replace(Neat_Mut_String_Ref str, Neat_String_View target, Neat_String_View replacement)
 {
+            
     unsigned int replacements = 0;
     unsigned int *len_p;
     unsigned int len;
@@ -765,6 +723,7 @@ unsigned int neat_mutstr_ref_replace(Neat_Mut_String_Ref str, Neat_String_View t
 
 bool neat_mutstr_ref_replace_first(Neat_Mut_String_Ref str, Neat_String_View target, Neat_String_View replacement)
 {
+            
     bool replaced = false;
     
     unsigned int *len_p;
@@ -830,6 +789,7 @@ bool neat_mutstr_ref_replace_first(Neat_Mut_String_Ref str, Neat_String_View tar
 
 unsigned int neat_strv_count(Neat_String_View hay, Neat_String_View needle)
 {
+        
     if(needle.len == 0)
         return 0;
     
@@ -853,12 +813,12 @@ unsigned int neat_strv_count(Neat_String_View hay, Neat_String_View needle)
 
 bool neat_strv_starts_with(Neat_String_View hay, Neat_String_View needle)
 {
-    return (needle.len <= hay.len) && (memcmp(hay.chars, needle.chars, needle.len) == 0);
+            return (needle.len <= hay.len) && (memcmp(hay.chars, needle.chars, needle.len) == 0);
 }
 
 bool neat_strv_ends_with(Neat_String_View hay, Neat_String_View needle)
 {
-    return (needle.len <= hay.len) && (memcmp(hay.chars + hay.len - needle.len, needle.chars, needle.len) == 0);
+            return (needle.len <= hay.len) && (memcmp(hay.chars + hay.len - needle.len, needle.chars, needle.len) == 0);
 }
 
 void neat_mutstr_ref_tolower(Neat_Mut_String_Ref str)
@@ -969,9 +929,6 @@ Neat_String_Buffer neat_strbuf_from_buf(Neat_Buffer buf)
 
 Neat_String_View neat_strv_cstr2(char *str, unsigned int begin)
 {
-    if(str == NULL)
-        str = "(null)";
-    
     unsigned int len = strlen(str);
     
     if(begin > len)
@@ -990,9 +947,6 @@ Neat_String_View neat_strv_cstr2(char *str, unsigned int begin)
 
 Neat_String_View neat_strv_ucstr2(unsigned char *str, unsigned int begin)
 {
-    if(str == NULL)
-        str = (unsigned char*) "(null)";
-    
     unsigned int len = strlen((char*) str);
     
     if(begin > len)
@@ -1103,9 +1057,6 @@ Neat_String_View neat_strv_mutstr_ref2(Neat_Mut_String_Ref str, unsigned int beg
 
 Neat_String_View neat_strv_cstr3(char *str, unsigned int begin, unsigned int end)
 {
-    if(str == NULL)
-        str = "(null)";
-    
     unsigned int len = strlen(str);
     
     if(begin > len || end > len || begin > end)
@@ -1124,9 +1075,6 @@ Neat_String_View neat_strv_cstr3(char *str, unsigned int begin, unsigned int end
 
 Neat_String_View neat_strv_ucstr3(unsigned char *str, unsigned int begin, unsigned int end)
 {
-    if(str == NULL)
-        str = (unsigned char*) "(null)";
-    
     unsigned int len = strlen((char*) str);
     
     if(begin > len || end > len || begin > end)
@@ -1312,26 +1260,11 @@ unsigned int neat_mutstr_ref_concat_fread_line(Neat_Mut_String_Ref dst, FILE *st
 
 unsigned int neat_fprint_strv(FILE *stream, Neat_String_View str)
 {
-    if(str.chars != NULL)
-    {
-        return fwrite(str.chars, sizeof(unsigned char), str.len, stream);
-    }
-    else
-    {
-        return fwrite("(null)", sizeof(char), sizeof("(null)") - 1, stream);
-    }
+    return fwrite(str.chars, sizeof(unsigned char), str.len, stream);
 }
 
 unsigned int neat_fprintln_strv(FILE *stream, Neat_String_View str)
 {
-    if(str.chars == NULL)
-    {
-        str = (Neat_String_View){
-            .chars = (unsigned char*) "(null)",
-            .len   = sizeof("(null)") - 1
-        };
-    }
-    
     unsigned int written = fwrite(str.chars, sizeof(unsigned char), str.len, stream);
     written += fwrite(u8"\n", sizeof(unsigned char), 1, stream);
     return written;
