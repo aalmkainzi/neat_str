@@ -244,7 +244,7 @@ neat_mutstr_ref_delete_range(neat_mutstr_ref(any_str), begin, end)
 #define neat_str_fread_line(any_str, stream) \
 neat_mutstr_ref_fread_line(neat_mutstr_ref(any_str), stream)
 
-#define neat_str_concat_fread_line(stream, any_str) \
+#define neat_str_concat_fread_line(any_str, stream) \
 neat_mutstr_ref_concat_fread_line(neat_mutstr_ref(any_str), stream)
 
 #define neat_str_read_line(any_str) \
@@ -916,7 +916,7 @@ typedef Neat_Mut_String_Ref Mut_String_Ref;
 #define str_join(mut_str_dst, any_str_delim, strv_arr) neat_str_join(mut_str_dst, any_str_delim, strv_arr)
 #define str_join_new(any_str_delim, strv_arr, ...) neat_str_join_new(any_str_delim, strv_arr __VA_OPT__(,) __VA_ARGS__)
 #define str_fread_line(any_str, stream) neat_str_fread_line(any_str, stream)
-#define str_concat_fread_line(stream, any_str) neat_str_concat_fread_line(stream, any_str)
+#define str_concat_fread_line(any_str, stream) neat_str_concat_fread_line(any_str, stream)
 #define str_read_line(any_str) neat_str_read_line(any_str)
 #define str_read_line_new(...) neat_str_read_line_new(__VA_ARGS__)
 #define str_fread_line_new(stream, ...) neat_str_fread_line_new(stream __VA_OPT__(,) __VA_ARGS__)

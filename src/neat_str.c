@@ -150,9 +150,8 @@ unsigned int neat_dstr_append_fread_line_(Neat_DString *dstr, FILE *stream)
 {
     unsigned int prev_len = dstr->len;
     int c = 0;
-    while(c != '\n' && !feof(stream))
+    while(c != '\n' && (c=fgetc(stream)) != EOF)
     {
-        c = fgetc(stream);
         Neat_String_View as_strv = {.chars = (unsigned char*) &c, .len = 1};
         neat_dstr_append_strv(dstr, as_strv);
     }
@@ -1207,9 +1206,8 @@ unsigned int neat_mutstr_ref_fread_line( Neat_Mut_String_Ref dst, FILE *stream)
     
     unsigned int len = 0;
     int c = 0;
-    while(len < dst.cap - 1 && c != '\n' && !feof(stream))
+    while(len < dst.cap - 1 && c != '\n' && (c=fgetc(stream)) != EOF)
     {
-        c = fgetc(stream);
         dst.chars[len] = c;
         len += 1;
     }
