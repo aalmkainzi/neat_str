@@ -152,7 +152,8 @@ unsigned int neat_dstr_append_fread_line_(Neat_DString *dstr, FILE *stream)
     int c = 0;
     while(c != '\n' && (c=fgetc(stream)) != EOF)
     {
-        Neat_String_View as_strv = {.chars = (unsigned char*) &c, .len = 1};
+        unsigned char as_char = c;
+        Neat_String_View as_strv = {.chars = &as_char, .len = 1};
         neat_dstr_append_strv(dstr, as_strv);
     }
     
