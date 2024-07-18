@@ -1,7 +1,7 @@
 # neat_str
 A library to make dealing with strings more intuitive in C.
 
-## Quick Example
+## Quick Examples
 ```C
 #include "neat_str.h"
 
@@ -14,6 +14,30 @@ int main()
     str_print(&str, "he", 110, " world", "\n");
     
     println("generated string: ", str);
+}
+```
+```C
+int main()
+{
+    DString str = dstr();
+    
+    dstr_append(&str, "world");
+    dstr_prepend(&str, "hello, ");
+    
+    println(str);
+    
+    dstr_deinit(&str);
+}
+```
+```C
+int main()
+{
+    String_View s     = strv("hello, world");
+    String_View hello = strv(s, 0, 5);
+    String_View world = strv(s, 7);
+    
+    println(hello);
+    println(world);
 }
 ```
 ## Features
