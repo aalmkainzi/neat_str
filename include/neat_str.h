@@ -253,10 +253,6 @@ neat_mutstr_ref_fread_line(neat_mutstr_ref(any_str), stdin)
 #define neat_str_concat_read_line(any_str) \
 neat_mutstr_ref_concat_fread_line(neat_mutstr_ref(any_str), stdin)
 
-
-/*
-str_print(dst, dst, 1)
-*/
 // helper macro
 #define neat_str_print_each(x) \
 do \
