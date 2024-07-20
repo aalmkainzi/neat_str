@@ -213,7 +213,7 @@ String_View_Array strv_arr_carr(ptr, nb);
 
 Static/Small String. Can be stored on the stack or inside structs.
 
-To pass it around to functions, you can use:
+To pass it around to functions, you can use `SString_Ref`:
 ```C
 SString_Ref sstr_ref(sstr_ptr);
 ```
