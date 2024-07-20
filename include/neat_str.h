@@ -253,6 +253,10 @@ neat_mutstr_ref_fread_line(neat_mutstr_ref(any_str), stdin)
 #define neat_str_concat_read_line(any_str) \
 neat_mutstr_ref_concat_fread_line(neat_mutstr_ref(any_str), stdin)
 
+
+/*
+str_print(dst, dst, 1)
+*/
 // helper macro
 #define neat_str_print_each(x) \
 do \
@@ -286,8 +290,20 @@ do \
         } \
         neat_as_mutstr_ref.len = &neat_mutstr_ref_len; \
     } \
-    NEAT_FOREACH(neat_str_print_each, __VA_ARGS__); \
+    __VA_OPT__( \
     \
+    unsigned int neat_appended_len = 0; \
+    Neat_Mut_String_Ref neat_anystr_ref_append_buf = \
+    { \
+        .cap = neat_as_mutstr_ref.cap, \
+        .len = &neat_appended_len, \
+        .chars = neat_as_mutstr_ref.chars, \
+    }; \
+    neat_tostr_into(neat_anystr_ref_append_buf, NEAT_ARG1(__VA_ARGS__)); \
+    *neat_as_mutstr_ref.len = neat_appended_len; \
+    \
+    NEAT_FOREACH(neat_str_print_each, NEAT_OMIT1(__VA_ARGS__)); \
+    ) \
 } while(0)
 
 #define neat_comma_tostr(s) \
