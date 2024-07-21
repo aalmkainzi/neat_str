@@ -531,10 +531,11 @@ neat_dstr_shrink_to_fit_(dstr)
 #define neat_dstr_ensure_cap(dstr, new_cap) \
 neat_dstr_ensure_cap_(dstr, new_cap)
 
-#define neat_fprint(f, ...) \
-do \
-{ \
-    FILE *neat_file_stream = f; \
+#define neat_fprint(f, ...)                  \
+do                                           \
+{                                            \
+    FILE *neat_file_stream = f;              \
+    (void) neat_file_stream;                 \
     NEAT_FOREACH(neat_fprint_, __VA_ARGS__); \
 } while(0)
 
@@ -565,6 +566,7 @@ neat_fprint(stdout, __VA_ARGS__)
 do                                         \
 {                                          \
     FILE *neat_temp_f = f;                 \
+    (void) neat_temp_f;                    \
     neat_fprint(neat_temp_f, __VA_ARGS__); \
     fputc('\n', neat_temp_f);              \
 } while(0)
