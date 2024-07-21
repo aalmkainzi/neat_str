@@ -270,6 +270,40 @@ unsigned char neat_mutstr_ref_char_at(Neat_Mut_String_Ref str, unsigned int idx)
     return str.chars[idx];
 }
 
+unsigned int neat_dstr_cap(Neat_DString str)
+{
+    return str.cap;
+}
+
+unsigned int neat_dstr_ptr_cap(Neat_DString *str)
+{
+    return str->cap;
+}
+
+unsigned int neat_strbuf_cap(Neat_String_Buffer str)
+{
+    return str.cap;
+}
+
+unsigned int neat_strbuf_ptr_cap(Neat_String_Buffer *str)
+{
+    return str->cap;
+}
+unsigned int neat_sstr_ref_cap(Neat_SString_Ref str)
+{
+    return str.cap;
+}
+
+unsigned int neat_mutstr_ref_cap(Neat_Mut_String_Ref str)
+{
+    return str.cap;
+}
+
+unsigned int neat_buf_cap(Neat_Buffer buf)
+{
+    return buf.size;
+}
+
 Neat_String_View neat_strv_strv2(Neat_String_View str, unsigned int begin)
 {
     return neat_strv_strv_ptr2(&str, begin);

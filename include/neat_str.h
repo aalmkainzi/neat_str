@@ -165,10 +165,24 @@ _Generic(any_str,                                            \
 )(any_str, idx)
 
 #define neat_str_len(any_str) \
-strv(any_str).len
+((void) 0, neat_strv(any_str).len)
 
-#define neat_str_cap(any_str) \
-neat_strbuf(any_str).cap
+#define neat_str_cap(any_str)                                                                                                                             \
+_Generic((typeof(any_str)*){0},                                                                                                                           \
+    char(*)[sizeof(typeof(any_str))]       : neat_buf_cap,                                                                                                \
+    NEAT_UCHAR_CASE(unsigned char(*)[sizeof(typeof(any_str))]: neat_buf_cap,)                                                                             \
+    Neat_DString*                  : neat_dstr_cap,                                                                                                       \
+    Neat_DString**                 : neat_dstr_ptr_cap,                                                                                                   \
+    Neat_String_Buffer*            : neat_strbuf_cap,                                                                                                     \
+    Neat_String_Buffer**           : neat_strbuf_ptr_cap,                                                                                                 \
+    Neat_SString_Ref*              : neat_sstr_ref_cap,                                                                                                   \
+    Neat_Mut_String_Ref*           : neat_mutstr_ref_cap                                                                                                  \
+)(_Generic((typeof(any_str)*){0},                                                                                                                         \
+char(*)[sizeof(typeof(any_str))]: (Neat_Buffer){.ptr = neat_gurantee(any_str, char*), .size = sizeof(typeof(any_str))},                                   \
+NEAT_UCHAR_CASE(unsigned char(*)[sizeof(typeof(any_str))]: (Neat_Buffer){.ptr = neat_gurantee(any_str, unsigned char*), .size = sizeof(typeof(any_str))},) \
+default: any_str \
+) \
+)
 
 #define neat_str_cstr(any_str) \
 _Generic(any_str, \
@@ -785,6 +799,14 @@ char *neat_strbuf_as_cstr(Neat_String_Buffer str);
 char *neat_strbuf_ptr_as_cstr(Neat_String_Buffer *str);
 char *neat_sstr_ref_as_cstr(Neat_SString_Ref str);
 char *neat_mutstr_ref_as_cstr(Neat_Mut_String_Ref str);
+
+unsigned int neat_dstr_cap(Neat_DString str);
+unsigned int neat_dstr_ptr_cap(Neat_DString *str);
+unsigned int neat_strbuf_cap(Neat_String_Buffer str);
+unsigned int neat_strbuf_ptr_cap(Neat_String_Buffer *str);
+unsigned int neat_sstr_ref_cap(Neat_SString_Ref str);
+unsigned int neat_mutstr_ref_cap(Neat_Mut_String_Ref str);
+unsigned int neat_buf_cap(Neat_Buffer buf);
 
 unsigned char neat_cstr_char_at(char *str, unsigned int idx);
 unsigned char neat_ucstr_char_at(unsigned char *str, unsigned int idx);
