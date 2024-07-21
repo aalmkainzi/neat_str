@@ -1324,7 +1324,7 @@ NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak")
 
 NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_char(char *obj)
 {
-    Neat_DString ret = neat_dstr_new(5, neat_get_default_allocator());
+    Neat_DString ret = neat_dstr_new(2, neat_get_default_allocator());
     char cstr[2] = {*obj, 0};
     neat_dstr_append(&ret, cstr);
     return ret;
@@ -1339,7 +1339,7 @@ NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak")
 
 NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak") Neat_DString neat_tostr_uchar(unsigned char *obj)
 {
-    Neat_DString ret = neat_dstr_new(5, neat_get_default_allocator());
+    Neat_DString ret = neat_dstr_new(2, neat_get_default_allocator());
     unsigned char cstr[2] = {*obj, 0};
     neat_dstr_append(&ret, cstr);
     return ret;
