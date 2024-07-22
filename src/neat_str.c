@@ -368,7 +368,6 @@ NEAT_NODISCARD("dstr_insert returns error, true if success, false if fail") bool
 
 unsigned int neat_mutstr_ref_insert_strv(Neat_Mut_String_Ref dst, Neat_String_View src, unsigned int idx)
 {
-        
     unsigned int len = neat_mutstr_ref_len(dst);
     
     if(idx > len)
@@ -651,36 +650,44 @@ unsigned int neat_strv_arr_join(Neat_Mut_String_Ref dst, Neat_String_View delim,
 unsigned int neat_mutstr_ref_replace(Neat_Mut_String_Ref str, Neat_String_View target, Neat_String_View replacement)
 {
     unsigned int replacements = 0;
-    unsigned int *len_p;
     unsigned int len;
-    if(str.len != NULL)
-    {
-        len_p = str.len;
-    }
-    else
+    if(str.len == NULL)
     {
         len = neat_chars_strlen(str.chars, str.cap);
-        len_p = &len;
+        str.len = &len;
+    }
+    
+    
+    if(target.len == 0)
+    {
+        unsigned int total_inserted = 0;
+        unsigned int inserted = 1;
+        for(unsigned int i = 0 ; i <= *str.len && inserted ; i += replacement.len + 1)
+        {
+            inserted = neat_mutstr_ref_insert_strv(str, replacement, i);
+            total_inserted += inserted;
+        }
+        return total_inserted;
     }
     
     if(target.len < replacement.len)
     {
-        for(unsigned int i = 0 ; i <= *len_p - target.len; )
+        for(unsigned int i = 0 ; i <= *str.len - target.len; )
         {
             Neat_String_View match = neat_strv_find(neat_strv_mutstr_ref2(str, i), target);
             if(match.chars != NULL)
             {
                 unsigned int idx = match.chars - str.chars;
                 
-                if(str.cap > *len_p + (replacement.len - target.len))
+                if(str.cap > *str.len + (replacement.len - target.len))
                 {
                     // shift right
-                    memmove(str.chars + idx + replacement.len, str.chars + idx + target.len, (*len_p - idx - target.len) * sizeof(unsigned char));
+                    memmove(str.chars + idx + replacement.len, str.chars + idx + target.len, (*str.len - idx - target.len) * sizeof(unsigned char));
                     
                     // put the replacement
                     memmove(str.chars + idx, replacement.chars, replacement.len * sizeof(unsigned char));
                     
-                    *len_p += (replacement.len - target.len);
+                    *str.len += (replacement.len - target.len);
                     
                     i = idx + replacement.len;
                     replacements++;
@@ -698,7 +705,7 @@ unsigned int neat_mutstr_ref_replace(Neat_Mut_String_Ref str, Neat_String_View t
     }
     else if(target.len > replacement.len)
     {
-        for(unsigned int i = 0 ; i <= *len_p - target.len; )
+        for(unsigned int i = 0 ; i <= *str.len - target.len; )
         {
             Neat_String_View match = neat_strv_find(neat_strv_mutstr_ref2(str, i), target);
             if(match.chars != NULL)
@@ -706,12 +713,12 @@ unsigned int neat_mutstr_ref_replace(Neat_Mut_String_Ref str, Neat_String_View t
                 unsigned int idx = match.chars - str.chars;
                 
                 // shift left
-                memmove(str.chars + idx + replacement.len, str.chars + idx + target.len, (*len_p - idx - target.len) * sizeof(unsigned char));
+                memmove(str.chars + idx + replacement.len, str.chars + idx + target.len, (*str.len - idx - target.len) * sizeof(unsigned char));
                 
                 // put the replacement
                 memmove(str.chars + idx, replacement.chars, replacement.len * sizeof(unsigned char));
                 
-                *len_p -= (target.len - replacement.len);
+                *str.len -= (target.len - replacement.len);
                 
                 i = idx + replacement.len;
                 replacements++;
@@ -724,7 +731,7 @@ unsigned int neat_mutstr_ref_replace(Neat_Mut_String_Ref str, Neat_String_View t
     }
     else
     {
-        for(unsigned int i = 0 ; i <= *len_p - target.len; )
+        for(unsigned int i = 0 ; i <= *str.len - target.len; )
         {
             Neat_String_View match = neat_strv_find(neat_strv_mutstr_ref2(str, i), target);
             if(match.chars != NULL)
@@ -744,7 +751,7 @@ unsigned int neat_mutstr_ref_replace(Neat_Mut_String_Ref str, Neat_String_View t
         }
     }
     
-    str.chars[*len_p] = '\0';
+    str.chars[*str.len] = '\0';
     return replacements;
 }
 
