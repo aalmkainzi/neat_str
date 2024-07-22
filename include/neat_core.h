@@ -88,7 +88,7 @@ neat_allocator_invoke_realloc(allocator, ptr, _Alignof(max_align_t), 1, old_n, n
 
 #if defined(_MSC_VER)
 
-#define NEAT_NODISCARD(...) _Check_return_
+    #define NEAT_NODISCARD(...) _Check_return_
 
 #elif __STDC_VERSION__ >= 202311L
 
