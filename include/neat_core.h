@@ -86,17 +86,17 @@ neat_allocator_invoke_realloc(allocator, ptr, _Alignof(max_align_t), 1, old_n, n
 
 #endif
 
-#if __STDC_VERSION__ >= 202311L
+#if defined(_MSC_VER)
+
+#define NEAT_NODISCARD(...) _Check_return_
+
+#elif __STDC_VERSION__ >= 202311L
 
     #define NEAT_NODISCARD(...) [[nodiscard __VA_OPT__((__VA_ARGS__))]]
 
 #elif defined(__GNUC__)
 
     #define NEAT_NODISCARD(...) __attribute__ ((warn_unused_result))
-
-#elif defined(_MSC_VER)
-
-    #define NEAT_NODISCARD(...) _Check_Return_
 
 #else
 
