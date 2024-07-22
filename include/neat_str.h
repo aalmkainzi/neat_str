@@ -335,7 +335,7 @@ neat_tostr_all_into_new_dstr(a, neat_count_args(__VA_ARGS__) neat_tostr_all_args
 neat_tostr_all_into_new_dstr(neat_get_default_allocator(), neat_count_args(__VA_ARGS__) neat_tostr_all_args(__VA_ARGS__))
 
 #define neat_str_print_new(...) \
-neat_str_print_new_##__VA_OPT__(1)(__VA_ARGS__)
+NEAT_CAT(neat_str_print_new_, __VA_OPT__(1))(__VA_ARGS__)
 
 #define neat_str_print_new_1(stringable_or_allocator, ...) \
 _Generic(stringable_or_allocator, \
@@ -365,7 +365,7 @@ neat_static_assertx(!neat_is_array_of(NEAT_ARG1(__VA_ARGS__), Neat_String_View),
 )
 
 #define neat_strbuf(str_or_cap, ...) \
-neat_strbuf_##__VA_OPT__(2)(str_or_cap __VA_OPT__(,) __VA_ARGS__)
+NEAT_CAT(neat_strbuf_, __VA_OPT__(2))(str_or_cap __VA_OPT__(,) __VA_ARGS__)
 
 #define neat_strbuf_(str_or_cap)                                                           \
 _Generic((typeof(str_or_cap)*){0},                                                         \
@@ -385,7 +385,7 @@ _Generic(allocator_or_cap, \
 )((neat_static_assertx(_Generic(allocator_or_cap, Neat_Allocator: 1, default: neat_has_type(cap_or_carr, char*) || neat_has_type(cap_or_carr, unsigned char*) || neat_has_type(cap_or_carr, void*)), "arg1 must be char* or unsigned char*"), cap_or_carr), allocator_or_cap)
 
 #define neat_mutstr_ref(any_str, ...) \
-neat_mutstr_ref_##__VA_OPT__(2)(any_str __VA_OPT__(,) __VA_ARGS__)
+NEAT_CAT(neat_mutstr_ref_, __VA_OPT__(2))(any_str __VA_OPT__(,) __VA_ARGS__)
 
 #define neat_mutstr_ref_(any_str)                                                             \
 _Generic((typeof(any_str)*){0},                                                               \
@@ -460,7 +460,7 @@ _Generic(any_str,                                      \
 )(any_str, begin, end)
 
 #define neat_dstr(...) \
-neat_dstr0##__VA_OPT__(1)(__VA_ARGS__)
+NEAT_CAT(neat_dstr0, __VA_OPT__(1))(__VA_ARGS__)
 
 #define neat_dstr0() \
 neat_dstr_new(16, neat_get_default_allocator())
