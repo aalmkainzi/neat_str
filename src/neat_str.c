@@ -650,13 +650,13 @@ unsigned int neat_strv_arr_join(Neat_Mut_String_Ref dst, Neat_String_View delim,
 unsigned int neat_mutstr_ref_replace(Neat_Mut_String_Ref str, Neat_String_View target, Neat_String_View replacement)
 {
     unsigned int replacements = 0;
+    
     unsigned int len;
     if(str.len == NULL)
     {
         len = neat_chars_strlen(str.chars, str.cap);
         str.len = &len;
     }
-    
     
     if(target.len == 0)
     {
