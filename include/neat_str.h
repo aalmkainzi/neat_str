@@ -246,11 +246,11 @@ neat_mutstr_ref_replace_first(neat_mutstr_ref(any_str), neat_strv(any_str_target
 #define neat_str_split(any_str, any_str_delim, ...) \
 neat_strv_split(neat_strv(any_str), neat_strv(any_str_delim), NEAT_VA_OR(neat_get_default_allocator(), __VA_ARGS__))
 
-#define neat_str_join_new(any_str_delim, strv_arr, ...) \
-neat_strv_arr_join_new(neat_strv(any_str_delim), strv_arr, NEAT_VA_OR(neat_get_default_allocator(), __VA_ARGS__))
+#define neat_str_join_new(strv_arr, any_str_delim, ...) \
+neat_strv_arr_join_new(strv_arr, neat_strv(any_str_delim), NEAT_VA_OR(neat_get_default_allocator(), __VA_ARGS__))
 
-#define neat_str_join(any_str_dst, any_str_delim, strv_arr) \
-neat_strv_arr_join(neat_mutstr_ref(any_str_dst), neat_strv(any_str_delim), strv_arr)
+#define neat_str_join(any_str_dst, strv_arr, any_str_delim) \
+neat_strv_arr_join(neat_mutstr_ref(any_str_dst), strv_arr, neat_strv(any_str_delim))
 
 #define neat_str_del(any_str, begin, end) \
 neat_mutstr_ref_delete_range(neat_mutstr_ref(any_str), begin, end)
@@ -845,8 +845,8 @@ bool neat_mutstr_ref_replace_first(Neat_Mut_String_Ref str, Neat_String_View tar
 Neat_DString neat_tostr_all_into_new_dstr(Neat_Allocator allocator, unsigned int nb, ...);
 
 NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array neat_strv_split(Neat_String_View str, Neat_String_View delim, Neat_Allocator allocator);
-NEAT_NODISCARD("str_join_new returns new DString, discarding will cause memory leak") Neat_DString neat_strv_arr_join_new(Neat_String_View delim, Neat_String_View_Array strs, Neat_Allocator allocator);
-unsigned int neat_strv_arr_join(Neat_Mut_String_Ref dst, Neat_String_View delim, Neat_String_View_Array strs);
+NEAT_NODISCARD("str_join_new returns new DString, discarding will cause memory leak") Neat_DString neat_strv_arr_join_new(Neat_String_View_Array strs, Neat_String_View delim, Neat_Allocator allocator);
+unsigned int neat_strv_arr_join(Neat_Mut_String_Ref dst, Neat_String_View_Array strs, Neat_String_View delim);
 
 Neat_String_View_Array neat_strv_arr_from_carr(Neat_String_View *carr, unsigned int nb);
 
@@ -949,8 +949,8 @@ typedef Neat_Mut_String_Ref Mut_String_Ref;
 #define str_replace(mut_str, any_str_target, any_str_replacement) neat_str_replace(mut_str, any_str_target, any_str_replacement)
 #define str_replace_first(any_str, any_str_target, any_str_replacement) neat_str_replace_first(any_str, any_str_target, any_str_replacement)
 #define str_split(any_str, any_str_delim, ...) neat_str_split(any_str, any_str_delim __VA_OPT__(,) __VA_ARGS__)
-#define str_join(mut_str_dst, any_str_delim, strv_arr) neat_str_join(mut_str_dst, any_str_delim, strv_arr)
-#define str_join_new(any_str_delim, strv_arr, ...) neat_str_join_new(any_str_delim, strv_arr __VA_OPT__(,) __VA_ARGS__)
+#define str_join(mut_str_dst, strv_arr, any_str_delim) neat_str_join(mut_str_dst, strv_arr, any_str_delim)
+#define str_join_new(strv_arr, any_str_delim, ...) neat_str_join_new(strv_arr, any_str_delim __VA_OPT__(,) __VA_ARGS__)
 #define str_fread_line(any_str, stream) neat_str_fread_line(any_str, stream)
 #define str_concat_fread_line(any_str, stream) neat_str_concat_fread_line(any_str, stream)
 #define str_read_line(any_str) neat_str_read_line(any_str)

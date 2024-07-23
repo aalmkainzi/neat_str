@@ -602,7 +602,7 @@ NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array
     }
 }
 
-NEAT_NODISCARD("str_join_new returns new DString, discarding will cause memory leak") Neat_DString neat_strv_arr_join_new(Neat_String_View delim, Neat_String_View_Array strs, Neat_Allocator allocator)
+NEAT_NODISCARD("str_join_new returns new DString, discarding will cause memory leak") Neat_DString neat_strv_arr_join_new(Neat_String_View_Array strs, Neat_String_View delim, Neat_Allocator allocator)
 {
     Neat_DString ret = neat_dstr_new(16, allocator);
     
@@ -618,7 +618,7 @@ NEAT_NODISCARD("str_join_new returns new DString, discarding will cause memory l
     return ret;
 }
 
-unsigned int neat_strv_arr_join(Neat_Mut_String_Ref dst, Neat_String_View delim, Neat_String_View_Array strs)
+unsigned int neat_strv_arr_join(Neat_Mut_String_Ref dst, Neat_String_View_Array strs, Neat_String_View delim)
 {
     unsigned int chars_copied = 0;
     
