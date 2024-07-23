@@ -6,7 +6,7 @@ int main()
 
     char c[128];
     String_Buffer dst = strbuf(c);
-    str_join(&dst, ", ", splitted);
+    str_join(&dst, splitted, ", ");
 
     println("the joined string: \n", dst);
 
