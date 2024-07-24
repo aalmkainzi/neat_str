@@ -353,8 +353,6 @@ You can choose to prefix the entire lib like this:
 this will prefix all macro definitions with `neat_` and all types with `Neat_`
 
 ## Building and Including
-
-1)
 for Windows:
 ```
 premake5.exe gmake2
@@ -367,4 +365,4 @@ make
 ```
 After which you'll find the static library inside `./bin`.
 
-2) include the headers in `./include` to your project.
+then include the headers in `./include` to your project.
