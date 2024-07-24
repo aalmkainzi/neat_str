@@ -9,8 +9,8 @@ project "neat_str"
     files { "include/**.h", "src/**.c" }
     
     os.mkdir("bin/Debug")
-    os.mkdir("obj/Debug")
     os.mkdir("bin/Release")
+    os.mkdir("obj/Debug")
     os.mkdir("obj/Release")
     
     filter "configurations:Debug"
