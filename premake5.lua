@@ -7,6 +7,7 @@ project "neat_str"
     language "C"
     cdialect "gnu17"
     files { "include/**.h", "src/**.c" }
+    includedirs { "include", "src" }
     
     os.mkdir("bin/Debug")
     os.mkdir("bin/Release")

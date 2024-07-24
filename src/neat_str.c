@@ -1,7 +1,7 @@
 #include <string.h>
 #include <ctype.h>
 #define NEAT_STR_PREFIX
-#include "../include/neat_str.h"
+#include "neat_str.h"
 
 static inline unsigned int neat_uint_min(unsigned int a, unsigned int b)
 {
