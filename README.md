@@ -354,7 +354,7 @@ this will prefix all macro definitions with `neat_` and all types with `Neat_`
 
 ## Building and Including
 
-1) Run:
+1)
 for Windows:
 ```
 premake5.exe gmake2
