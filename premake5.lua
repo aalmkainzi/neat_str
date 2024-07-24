@@ -21,3 +21,6 @@ project "neat_str"
     filter "configurations:Release"
         defines { "NDEBUG" }
         optimize "On"
+        
+    filter "action:vs*"
+        buildoptions { "/std:clatest" }
