@@ -1,5 +1,5 @@
 lib_src = ../src/neat_str.c ../src/neat_core.c
-build_cmnd = cc $(lib_src) -Wall -Wextra
+build_cmnd = cc -I../include $(lib_src) -Wall -Wextra
 
 all: $(wildcard *.c)
 	$(build_cmnd) sstring.c -o sstring
