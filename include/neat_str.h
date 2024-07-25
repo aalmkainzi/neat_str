@@ -352,14 +352,15 @@ NEAT_IF_EMPTY(                                                                 \
 )                                                                              \
 __VA_OPT__(neat_strv_arr_from_carr(strv_carr, __VA_ARGS__))
 
-#define NEAT_STRV_COMMA(any_str, ...) \
-neat_strv(any_str __VA_OPT__(,) __VA_ARGS__),
+#define NEAT_STRV_COMMA(any_str) \
+neat_strv(any_str),
 
 #define neat_strv_arr(...)                                                                     \
 (                                                                                              \
 neat_static_assertx(!neat_is_array_of(NEAT_ARG1(__VA_ARGS__), Neat_String_View), "strv_arr accepts variadic arguments of strings, not String_View[], call strv_arr_carr instead"), \
 (Neat_String_View_Array) {                                                                     \
     .nb   = NEAT_CARR_LEN(((Neat_String_View[]){NEAT_FOREACH(NEAT_STRV_COMMA, __VA_ARGS__)})), \
+    .cap  = NEAT_CARR_LEN(((Neat_String_View[]){NEAT_FOREACH(NEAT_STRV_COMMA, __VA_ARGS__)})), \
     .strs = (Neat_String_View[]){NEAT_FOREACH(NEAT_STRV_COMMA, __VA_ARGS__)}                   \
 }                                                                                              \
 )

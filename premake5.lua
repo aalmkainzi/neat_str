@@ -17,10 +17,10 @@ project "neat_str"
     filter "configurations:Debug"
         defines { "DEBUG" }
         symbols "On"
-        
+    
     filter "configurations:Release"
         defines { "NDEBUG" }
         optimize "On"
-        
+    
     filter "action:vs*"
         buildoptions { "/std:clatest" }
