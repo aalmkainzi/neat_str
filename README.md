@@ -237,7 +237,7 @@ This type can be used as a mutable reference to any mutable string type (all str
 to initialize:
 ```C
 Mut_String_Ref mutstr_ref(mut_str);
-Mut_String_Ref mutstr_ref(carr, cap);
+Mut_String_Ref mutstr_ref(ptr, cap);
 ```
 
 for example:
