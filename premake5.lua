@@ -14,14 +14,6 @@ includedirs { "include", "src" }
 filter "action:vs*"
     buildoptions { "/std:clatest" }
 
-project "neat_str_debug"
-    targetdir "./bin/Debug"
-    targetname "neat_str"
-    kind "StaticLib"
-    
-    defines { "DEBUG" }
-    symbols "On"
-
 project "neat_str_release_static"
     targetdir "./bin/Release"
     targetname "neat_str"
@@ -33,6 +25,7 @@ project "neat_str_release_static"
 project "neat_str_debug_static"
     targetdir "./bin/Debug"
     targetname "neat_str"
+    kind "StaticLib"
     
     defines { "DEBUG" }
     symbols "On"
