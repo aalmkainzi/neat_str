@@ -1,26 +1,54 @@
 workspace "neat_str"
-    configurations { "Release", "Debug" }
+    configurations { "Default" }
 
-project "neat_str"
+os.mkdir("bin/Debug")
+os.mkdir("bin/Release")
+os.mkdir("obj/Debug")
+os.mkdir("obj/Release")
+
+language "C"
+cdialect "gnu17"
+files { "include/**.h", "src/**.c" }
+includedirs { "include", "src" }
+
+filter "action:vs*"
+    buildoptions { "/std:clatest" }
+
+project "neat_str_debug"
+    targetdir "./bin/Debug"
+    targetname "neat_str"
     kind "StaticLib"
-    targetdir "./bin/%{cfg.buildcfg}"
-    language "C"
-    cdialect "gnu17"
-    files { "include/**.h", "src/**.c" }
-    includedirs { "include", "src" }
     
-    os.mkdir("bin/Debug")
-    os.mkdir("bin/Release")
-    os.mkdir("obj/Debug")
-    os.mkdir("obj/Release")
+    defines { "DEBUG" }
+    symbols "On"
+
+project "neat_str_release"
+    targetdir "./bin/Release"
+    targetname "neat_str"
+    kind "StaticLib"
     
-    filter "configurations:Debug"
-        defines { "DEBUG" }
-        symbols "On"
+    defines { "NDEBUG" }
+    optimize "On"
+
+project "neat_str_debug"
+    targetdir "./bin/Debug"
+    targetname "neat_str"
     
-    filter "configurations:Release"
-        defines { "NDEBUG" }
-        optimize "On"
+    defines { "DEBUG" }
+    symbols "On"
+
+project "neat_str_release_dynamic"
+    targetdir "./bin/Release"
+    targetname "neat_str"
+    kind "SharedLib"
     
-    filter "action:vs*"
-        buildoptions { "/std:clatest" }
+    defines { "NDEBUG" }
+    optimize "On"
+
+project "neat_str_debug_dynamic"
+    targetdir "./bin/Debug"
+    targetname "neat_str"
+    kind "SharedLib"
+    
+    defines { "NDEBUG" }
+    optimize "On"
