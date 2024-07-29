@@ -22,7 +22,7 @@ project "neat_str_debug"
     defines { "DEBUG" }
     symbols "On"
 
-project "neat_str_release"
+project "neat_str_release_static"
     targetdir "./bin/Release"
     targetname "neat_str"
     kind "StaticLib"
@@ -30,7 +30,7 @@ project "neat_str_release"
     defines { "NDEBUG" }
     optimize "On"
 
-project "neat_str_debug"
+project "neat_str_debug_static"
     targetdir "./bin/Debug"
     targetname "neat_str"
     
