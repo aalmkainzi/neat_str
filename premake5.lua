@@ -1,5 +1,5 @@
 workspace "neat_str"
-    configurations { "Debug", "Release" }
+    configurations { "Release", "Debug" }
 
 project "neat_str"
     kind "StaticLib"
