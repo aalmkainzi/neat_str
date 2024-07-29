@@ -50,5 +50,5 @@ project "neat_str_debug_dynamic"
     targetname "neat_str"
     kind "SharedLib"
     
-    defines { "NDEBUG" }
-    optimize "On"
+    defines { "DEBUG" }
+    symbols "On"
