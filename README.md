@@ -353,7 +353,12 @@ You can choose to prefix the entire lib like this:
 this will prefix all macro definitions with `neat_` and all types with `Neat_`
 
 ## Building and Including
-for Windows:
+for Windows using Visual Studio:
+```
+premake5.exe vs2022
+## then open the .sln file with Visual Studio and build
+```
+for Windows using MinGW
 ```
 premake5.exe gmake2
 make
@@ -363,6 +368,6 @@ for Linux:
 ./premake5 gmake2
 make
 ```
-After which you'll find the static library inside `./bin`.
+After which you'll find static and dynamic versions of the library inside `./bin`.
 
 then include the headers in `./include` to your project.
