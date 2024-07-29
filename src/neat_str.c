@@ -1,5 +1,6 @@
 #include <string.h>
 #include <ctype.h>
+#include <limits.h>
 #define NEAT_STR_PREFIX
 #include "neat_str.h"
 
@@ -1472,109 +1473,184 @@ NEAT_NODISCARD("tostr returns a new DString, discarding will cause memory leak")
     return ret;
 }
 
-static const char neat_digit_ones[] = {
-'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-};
+#define neat_sinteger_min(ty) \
+_Generic((ty){0},             \
+    signed char: SCHAR_MIN,   \
+    short      : SHRT_MIN,    \
+    int        : INT_MIN,     \
+    long       : LONG_MIN,    \
+    long long  : LLONG_MIN    \
+)
 
-static const char neat_digit_tens[] = {
-'0', '0', '0', '0', '0', '0', '0', '0', '0', '0',
-'1', '1', '1', '1', '1', '1', '1', '1', '1', '1',
-'2', '2', '2', '2', '2', '2', '2', '2', '2', '2',
-'3', '3', '3', '3', '3', '3', '3', '3', '3', '3',
-'4', '4', '4', '4', '4', '4', '4', '4', '4', '4',
-'5', '5', '5', '5', '5', '5', '5', '5', '5', '5',
-'6', '6', '6', '6', '6', '6', '6', '6', '6', '6',
-'7', '7', '7', '7', '7', '7', '7', '7', '7', '7',
-'8', '8', '8', '8', '8', '8', '8', '8', '8', '8',
-'9', '9', '9', '9', '9', '9', '9', '9', '9', '9',
-};
+#define neat_tostr_into_min(ty) \
+_Generic((ty){0},          \
+    signed char: neat_tostr_into_schar_min, \
+    short      : neat_tostr_into_short_min, \
+    int        : neat_tostr_into_int_min,   \
+    long       : neat_tostr_into_long_min,  \
+    long long  : neat_tostr_into_llong_min  \
+)
 
-static const unsigned long long neat_ten_pows[] = {
-1ull,
-10ull,
-100ull,
-1000ull,
-10000ull,
-100000ull,
-1000000ull,
-10000000ull,
-100000000ull,
-1000000000ull,
-10000000000ull,
-100000000000ull,
-1000000000000ull,
-10000000000000ull,
-100000000000000ull,
-1000000000000000ull,
-10000000000000000ull,
-100000000000000000ull,
-1000000000000000000ull,
-10000000000000000000ull
-};
-
-#define neat_tostr_into_signed() \
-if(dst.cap <= 1) \
-    return; \
- \
-typeof(*obj) i = *obj; \
-int q, r; \
-unsigned char size_of_str = neat_string_size_of_ll(i); \
-if(size_of_str >= dst.cap) \
-{ \
-    i /= neat_ten_pows[size_of_str - dst.cap + 1]; \
-    size_of_str = dst.cap - 1; \
-} \
-int charPos = size_of_str; \
- \
-bool negative = i < 0; \
-if (!negative) { \
-    i = -i; \
-} \
- \
-while (i <= -100) { \
-    q = i / 100; \
-    r = (q * 100) - i; \
-    i = q; \
-    dst.chars[--charPos] = neat_digit_ones[r]; \
-    dst.chars[--charPos] = neat_digit_tens[r]; \
-} \
-\
-dst.chars[--charPos] = neat_digit_ones[-i]; \
-if (i < -9) { \
-    dst.chars[--charPos] = neat_digit_tens[-i]; \
-} \
-\
-if (negative) { \
-    dst.chars[--charPos] = '-'; \
-} \
-\
-if(dst.len != NULL) \
-    *dst.len = size_of_str;
-
-
-static unsigned char neat_string_size_of_ll(long long x) {
-    int d = 1;
-    if (x >= 0) {
-        d = 0;
-        x = -x;
+void neat_tostr_into_schar_min(Neat_Mut_String_Ref dst)
+{
+    if(SCHAR_MIN == -128)
+    {
+        const char *numstr = "-128";
+        Neat_String_View s = {.chars = (unsigned char*) numstr, .len = strlen(numstr)};
+        neat_mutstr_ref_concat(dst, s);
     }
-    int p = -10;
-    for (int i = 1; i < 10; i++) {
-        if (x > p)
-            return i + d;
-        p = 10 * p;
+    else
+    {
+        char temp[16] = {0};
+        int len = snprintf(temp, sizeof(temp), "%hhd", SCHAR_MIN);
+        neat_mutstr_ref_concat(dst, (Neat_String_View){.chars = (unsigned char*) temp, .len = len});
     }
-    return 10 + d;
 }
+
+void neat_tostr_into_short_min(Neat_Mut_String_Ref dst)
+{
+    if(SHRT_MIN == -32768)
+    {
+        const char *numstr = "-32768";
+        Neat_String_View s = {.chars = (unsigned char*) numstr, .len = strlen(numstr)};
+        neat_mutstr_ref_concat(dst, s);
+    }
+    else
+    {
+        char temp[16] = {0};
+        int len = snprintf(temp, sizeof(temp), "%hd", SHRT_MIN);
+        neat_mutstr_ref_concat(dst, (Neat_String_View){.chars = (unsigned char*) temp, .len = len});
+    }
+}
+
+void neat_tostr_into_int_min(Neat_Mut_String_Ref dst)
+{
+    if(INT_MIN == -2147483648)
+    {
+        const char *numstr = "-2147483648";
+        Neat_String_View s = {.chars = (unsigned char*) numstr, .len = strlen(numstr)};
+        neat_mutstr_ref_concat(dst, s);
+    }
+    else
+    {
+        char temp[32] = {0};
+        int len = snprintf(temp, sizeof(temp), "%d", INT_MIN);
+        neat_mutstr_ref_concat(dst, (Neat_String_View){.chars = (unsigned char*) temp, .len = len});
+    }
+}
+
+void neat_tostr_into_long_min(Neat_Mut_String_Ref dst)
+{
+    if(LONG_MIN == INT_MIN)
+    {
+        neat_tostr_into_int_min(dst);
+        return;
+    }
+    else if(LONG_MIN == -9223372036854775807 - 1)
+    {
+        const char *numstr = "-9223372036854775808";
+        Neat_String_View s = {.chars = (unsigned char*) numstr, .len = strlen(numstr)};
+        neat_mutstr_ref_concat(dst, s);
+    }
+    else
+    {
+        char temp[32] = {0};
+        int len = snprintf(temp, sizeof(temp), "%ld", LONG_MIN);
+        neat_mutstr_ref_concat(dst, (Neat_String_View){.chars = (unsigned char*) temp, .len = len});
+    }
+}
+
+void neat_tostr_into_llong_min(Neat_Mut_String_Ref dst)
+{
+    if(LLONG_MIN == LONG_MIN)
+    {
+        neat_tostr_into_long_min(dst);
+        return;
+    }
+    else if(LLONG_MIN == -9223372036854775807 - 1)
+    {
+        const char *numstr = "-9223372036854775808";
+        Neat_String_View s = {.chars = (unsigned char*) numstr, .len = strlen(numstr)};
+        neat_mutstr_ref_concat(dst, s);
+    }
+    else
+    {
+        char temp[32] = {0};
+        int len = snprintf(temp, sizeof(temp), "%lld", LLONG_MIN);
+        neat_mutstr_ref_concat(dst, (Neat_String_View){.chars = (unsigned char*) temp, .len = len});
+    }
+}
+
+#define neat_tostr_into_sinteger() \
+do { \
+    if(dst.cap < 1) \
+        return; \
+    if(*obj == neat_sinteger_min(typeof(*obj))) \
+    { \
+        neat_tostr_into_min(typeof(*obj))(dst); \
+        return; \
+    } \
+unsigned int len_temp; \
+unsigned int *len_p = &len_temp; \
+if(dst.len != NULL) \
+{ \
+    len_p = dst.len; \
+} \
+\
+typeof(*obj) num = *obj; \
+int len = 0; \
+\
+for(typeof(*obj) n = num ; n != 0 ; len++, n/=10); \
+\
+bool isneg = num < 0; \
+if(isneg) \
+{ \
+    num *= -1; \
+    if(dst.cap > 1) \
+    { \
+        dst.chars[0] = '-'; \
+    } \
+} \
+\
+unsigned char chars_to_copy = neat_uint_min(dst.cap - (1 + isneg), len); \
+\
+for (unsigned char i = 0; i < chars_to_copy ; i++) \
+{ \
+    unsigned char rem = num % 10; \
+    num = num / 10; \
+    dst.chars[isneg + len - (i + 1)] = rem + '0'; \
+} \
+\
+*len_p += chars_to_copy; \
+} while(0)
+
+#define neat_tostr_into_uinteger() \
+do { \
+    if(dst.cap < 1) \
+        return; \
+    unsigned int len_temp; \
+    unsigned int *len_p = &len_temp; \
+    if(dst.len != NULL) \
+    { \
+        len_p = dst.len; \
+    } \
+    \
+    typeof(*obj) num = *obj; \
+    int len = 0; \
+    \
+    for(typeof(*obj) n = num ; n != 0 ; len++, n/=10); \
+\
+    unsigned char chars_to_copy = neat_uint_min(dst.cap - 1, len); \
+    \
+    for (unsigned char i = 0; i < chars_to_copy ; i++) \
+    { \
+        unsigned char rem = num % 10; \
+        num = num / 10; \
+        dst.chars[len - (i + 1)] = rem + '0'; \
+    } \
+    \
+    *len_p += chars_to_copy; \
+} while(0)
 
 void neat_tostr_into_bool(Neat_Mut_String_Ref dst, bool *obj)
 {
@@ -1604,7 +1680,7 @@ void neat_tostr_into_char(Neat_Mut_String_Ref dst, char *obj)
 
 void neat_tostr_into_schar(Neat_Mut_String_Ref dst, signed char *obj)
 {
-    neat_tostr_into_signed();
+    neat_tostr_into_sinteger();
 }
 
 void neat_tostr_into_uchar(Neat_Mut_String_Ref dst, unsigned char *obj)
@@ -1619,31 +1695,27 @@ void neat_tostr_into_uchar(Neat_Mut_String_Ref dst, unsigned char *obj)
 
 void neat_tostr_into_short(Neat_Mut_String_Ref dst, short *obj)
 {
-    neat_tostr_into_signed();
+    neat_tostr_into_sinteger();
 }
 
 void neat_tostr_into_ushort(Neat_Mut_String_Ref dst, unsigned short *obj)
 {
-    snprintf((char*) dst.chars, dst.cap, "%hu", *obj);
-    if(dst.len != NULL)
-        *dst.len = strlen((char*) dst.chars);
+    neat_tostr_into_uinteger();
 }
 
 void neat_tostr_into_int(Neat_Mut_String_Ref dst, int *obj)
 {
-    neat_tostr_into_signed();
+    neat_tostr_into_sinteger();
 }
 
 void neat_tostr_into_uint(Neat_Mut_String_Ref dst, unsigned int *obj)
 {
-    snprintf((char*) dst.chars, dst.cap, "%u", *obj);
-    if(dst.len != NULL)
-        *dst.len = strlen((char*) dst.chars);
+    neat_tostr_into_uinteger();
 }
 
 void neat_tostr_into_long(Neat_Mut_String_Ref dst, long *obj)
 {
-    neat_tostr_into_signed();
+    neat_tostr_into_sinteger();
 }
 
 void neat_tostr_into_ulong(Neat_Mut_String_Ref dst, unsigned long *obj)
@@ -1655,14 +1727,12 @@ void neat_tostr_into_ulong(Neat_Mut_String_Ref dst, unsigned long *obj)
 
 void neat_tostr_into_llong(Neat_Mut_String_Ref dst, long long *obj)
 {
-    neat_tostr_into_signed();
+    neat_tostr_into_sinteger();
 }
 
 void neat_tostr_into_ullong(Neat_Mut_String_Ref dst, unsigned long long *obj)
 {
-    snprintf((char*) dst.chars, dst.cap, "%llu", *obj);
-    if(dst.len != NULL)
-        *dst.len = strlen((char*) dst.chars);
+    neat_tostr_into_uinteger();
 }
 
 void neat_tostr_into_float(Neat_Mut_String_Ref dst, float *obj)
