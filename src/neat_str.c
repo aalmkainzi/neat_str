@@ -1581,6 +1581,35 @@ void neat_tostr_into_llong_min(Neat_Mut_String_Ref dst)
     }
 }
 
+static const long long neat_ten_pows[] = {
+    1,
+    10,
+    100,
+    1000,
+    10000,
+    100000,
+    1000000,
+    10000000,
+    100000000,
+    1000000000,
+    10000000000,
+    100000000000,
+    1000000000000,
+    10000000000000,
+    100000000000000,
+    1000000000000000,
+    10000000000000000,
+    100000000000000000,
+    1000000000000000000,
+};
+
+unsigned char neat_numstr_len(long long num)
+{
+    unsigned char len = 1;
+    for(unsigned char i = 1 ; i < NEAT_CARR_LEN(neat_ten_pows) && num >= neat_ten_pows[i++] ; len++);
+    return len;
+}
+
 #define neat_tostr_into_sinteger() \
 do { \
     if(dst.cap < 1) \
@@ -1590,17 +1619,15 @@ do { \
         neat_tostr_into_min(typeof(*obj))(dst); \
         return; \
     } \
-unsigned int len_temp; \
+unsigned int len_temp = 0; \
 unsigned int *len_p = &len_temp; \
 if(dst.len != NULL) \
 { \
     len_p = dst.len; \
+    *len_p = 0; \
 } \
 \
 typeof(*obj) num = *obj; \
-int len = 0; \
-\
-for(typeof(*obj) n = num ; n != 0 ; len++, n/=10); \
 \
 bool isneg = num < 0; \
 if(isneg) \
@@ -1611,7 +1638,7 @@ if(isneg) \
         dst.chars[0] = '-'; \
     } \
 } \
-\
+unsigned char len = neat_numstr_len(num); \
 unsigned char chars_to_copy = neat_uint_min(dst.cap - (1 + isneg), len); \
 \
 for (unsigned char i = 0; i < chars_to_copy ; i++) \
