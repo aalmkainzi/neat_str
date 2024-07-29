@@ -1497,13 +1497,13 @@ void neat_tostr_into_schar_min(Neat_Mut_String_Ref dst)
     {
         const char *numstr = "-128";
         Neat_String_View s = {.chars = (unsigned char*) numstr, .len = strlen(numstr)};
-        neat_mutstr_ref_concat(dst, s);
+        neat_mutstr_ref_copy(dst, s);
     }
     else
     {
         char temp[16] = {0};
         int len = snprintf(temp, sizeof(temp), "%hhd", SCHAR_MIN);
-        neat_mutstr_ref_concat(dst, (Neat_String_View){.chars = (unsigned char*) temp, .len = len});
+        neat_mutstr_ref_copy(dst, (Neat_String_View){.chars = (unsigned char*) temp, .len = len});
     }
 }
 
@@ -1513,13 +1513,13 @@ void neat_tostr_into_short_min(Neat_Mut_String_Ref dst)
     {
         const char *numstr = "-32768";
         Neat_String_View s = {.chars = (unsigned char*) numstr, .len = strlen(numstr)};
-        neat_mutstr_ref_concat(dst, s);
+        neat_mutstr_ref_copy(dst, s);
     }
     else
     {
         char temp[16] = {0};
         int len = snprintf(temp, sizeof(temp), "%hd", SHRT_MIN);
-        neat_mutstr_ref_concat(dst, (Neat_String_View){.chars = (unsigned char*) temp, .len = len});
+        neat_mutstr_ref_copy(dst, (Neat_String_View){.chars = (unsigned char*) temp, .len = len});
     }
 }
 
@@ -1529,13 +1529,13 @@ void neat_tostr_into_int_min(Neat_Mut_String_Ref dst)
     {
         const char *numstr = "-2147483648";
         Neat_String_View s = {.chars = (unsigned char*) numstr, .len = strlen(numstr)};
-        neat_mutstr_ref_concat(dst, s);
+        neat_mutstr_ref_copy(dst, s);
     }
     else
     {
         char temp[32] = {0};
         int len = snprintf(temp, sizeof(temp), "%d", INT_MIN);
-        neat_mutstr_ref_concat(dst, (Neat_String_View){.chars = (unsigned char*) temp, .len = len});
+        neat_mutstr_ref_copy(dst, (Neat_String_View){.chars = (unsigned char*) temp, .len = len});
     }
 }
 
@@ -1550,13 +1550,13 @@ void neat_tostr_into_long_min(Neat_Mut_String_Ref dst)
     {
         const char *numstr = "-9223372036854775808";
         Neat_String_View s = {.chars = (unsigned char*) numstr, .len = strlen(numstr)};
-        neat_mutstr_ref_concat(dst, s);
+        neat_mutstr_ref_copy(dst, s);
     }
     else
     {
         char temp[32] = {0};
         int len = snprintf(temp, sizeof(temp), "%ld", LONG_MIN);
-        neat_mutstr_ref_concat(dst, (Neat_String_View){.chars = (unsigned char*) temp, .len = len});
+        neat_mutstr_ref_copy(dst, (Neat_String_View){.chars = (unsigned char*) temp, .len = len});
     }
 }
 
@@ -1571,13 +1571,13 @@ void neat_tostr_into_llong_min(Neat_Mut_String_Ref dst)
     {
         const char *numstr = "-9223372036854775808";
         Neat_String_View s = {.chars = (unsigned char*) numstr, .len = strlen(numstr)};
-        neat_mutstr_ref_concat(dst, s);
+        neat_mutstr_ref_copy(dst, s);
     }
     else
     {
         char temp[32] = {0};
         int len = snprintf(temp, sizeof(temp), "%lld", LLONG_MIN);
-        neat_mutstr_ref_concat(dst, (Neat_String_View){.chars = (unsigned char*) temp, .len = len});
+        neat_mutstr_ref_copy(dst, (Neat_String_View){.chars = (unsigned char*) temp, .len = len});
     }
 }
 
@@ -1603,10 +1603,40 @@ static const long long neat_ten_pows[] = {
     1000000000000000000,
 };
 
-unsigned char neat_numstr_len(long long num)
+static const unsigned long long neat_ten_pows_ull[] = {
+    1ull,
+    10ull,
+    100ull,
+    1000ull,
+    10000ull,
+    100000ull,
+    1000000ull,
+    10000000ull,
+    100000000ull,
+    1000000000ull,
+    10000000000ull,
+    100000000000ull,
+    1000000000000ull,
+    10000000000000ull,
+    100000000000000ull,
+    1000000000000000ull,
+    10000000000000000ull,
+    100000000000000000ull,
+    1000000000000000000ull,
+    10000000000000000000ull,
+};
+
+unsigned int neat_numstr_len(long long num)
 {
-    unsigned char len = 1;
-    for(unsigned char i = 1 ; i < NEAT_CARR_LEN(neat_ten_pows) && num >= neat_ten_pows[i++] ; len++);
+    unsigned int len = 1;
+    for(unsigned int i = 1 ; i < NEAT_CARR_LEN(neat_ten_pows) && num >= neat_ten_pows[i++] ; len++);
+    return len;
+}
+
+unsigned int neat_numstr_len_ull(unsigned long long num)
+{
+    unsigned int len = 1;
+    for(unsigned int i = 1 ; i < NEAT_CARR_LEN(neat_ten_pows_ull) && num >= neat_ten_pows_ull[i++] ; len++);
     return len;
 }
 
@@ -1638,14 +1668,14 @@ if(isneg) \
         dst.chars[0] = '-'; \
     } \
 } \
-unsigned char len = neat_numstr_len(num); \
-unsigned char chars_to_copy = neat_uint_min(dst.cap - (1 + isneg), len); \
-\
-for (unsigned char i = 0; i < chars_to_copy ; i++) \
+unsigned int len = neat_numstr_len(num); \
+unsigned int chars_to_copy = neat_uint_min(dst.cap - (1 + isneg), len); \
+num /= neat_ten_pows[len - chars_to_copy]; \
+for (unsigned int i = 0; i < chars_to_copy ; i++) \
 { \
-    unsigned char rem = num % 10; \
+    unsigned int rem = num % 10; \
     num = num / 10; \
-    dst.chars[isneg + len - (i + 1)] = rem + '0'; \
+    dst.chars[isneg + chars_to_copy - (i + 1)] = rem + '0'; \
 } \
 \
 *len_p += chars_to_copy; \
@@ -1663,17 +1693,14 @@ do { \
     } \
     \
     typeof(*obj) num = *obj; \
-    int len = 0; \
-    \
-    for(typeof(*obj) n = num ; n != 0 ; len++, n/=10); \
-\
-    unsigned char chars_to_copy = neat_uint_min(dst.cap - 1, len); \
-    \
-    for (unsigned char i = 0; i < chars_to_copy ; i++) \
+    unsigned int len = neat_numstr_len_ull(num); \
+    unsigned int chars_to_copy = neat_uint_min(dst.cap - 1, len); \
+    num /= neat_ten_pows[len - chars_to_copy]; \
+    for (unsigned int i = 0; i < chars_to_copy ; i++) \
     { \
-        unsigned char rem = num % 10; \
+        unsigned int rem = num % 10; \
         num = num / 10; \
-        dst.chars[len - (i + 1)] = rem + '0'; \
+        dst.chars[chars_to_copy - (i + 1)] = rem + '0'; \
     } \
     \
     *len_p += chars_to_copy; \
