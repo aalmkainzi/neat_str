@@ -328,10 +328,10 @@ void neat_dstr_prepend_strv(Neat_DString *dstr, Neat_String_View src)
         neat_dstr_maybe_grow(dstr, to_prepend.len);
     }
     
-    memmove(dstr->chars + src.len, dstr->chars, dstr->len);
-    memmove(dstr->chars, src.chars, src.len);
+    memmove(dstr->chars + to_prepend.len, dstr->chars, dstr->len);
+    memmove(dstr->chars, to_prepend.chars, to_prepend.len);
     
-    dstr->len += src.len;
+    dstr->len += to_prepend.len;
     dstr->chars[dstr->len] = '\0';
 }
 
@@ -1685,7 +1685,7 @@ for (unsigned int i = 0; i < chars_to_copy ; i++) \
 do { \
     if(dst.cap < 1) \
         return; \
-    unsigned int len_temp; \
+    unsigned int len_temp = 0; \
     unsigned int *len_p = &len_temp; \
     if(dst.len != NULL) \
     { \
