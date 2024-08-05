@@ -179,7 +179,7 @@ typedef struct String_Buffer
 to initialize:
 ```C
 String_Buffer strbuf(carr);
-String_Buffer strbuf(ptr, cap);
+String_Buffer strbuf(cstr, cap);
 String_Buffer strbuf(cap);
 String_Buffer strbuf(cap, allocator);
 ```
@@ -237,7 +237,7 @@ This type can be used as a mutable reference to any mutable string type (all str
 to initialize:
 ```C
 Mut_String_Ref mutstr_ref(mut_str);
-Mut_String_Ref mutstr_ref(ptr, cap);
+Mut_String_Ref mutstr_ref(cstr, cap);
 ```
 
 for example:
