@@ -80,6 +80,13 @@ void neat_dstr_deinit_(Neat_DString *dstr)
     dstr->chars = NULL;
 }
 
+void neat_dstr_shrink_to_fit_(Neat_DString *dstr)
+{
+    size_t actual_new_cap;
+    dstr->chars = neat_realloc(dstr->allocator, dstr->chars, unsigned char, dstr->cap, dstr->len + 1, &actual_new_cap);
+    dstr->cap = actual_new_cap;
+}
+
 void neat_dstr_maybe_grow(Neat_DString *dstr, unsigned int len_to_append)
 {
     if(dstr->cap - dstr->len <= len_to_append)
@@ -117,6 +124,63 @@ void neat_dstr_append_strv(Neat_DString *dstr, Neat_String_View str)
     dstr->chars[dstr->len] = '\0';
 }
 
+void neat_dstr_prepend_strv(Neat_DString *dstr, Neat_String_View src)
+{
+    Neat_String_View to_prepend = src;
+    
+    if(neat_is_strv_intersect(neat_strv_dstr_ptr2(dstr, 0), src))
+    {
+        unsigned int begin_idx = src.chars - dstr->chars;
+        neat_dstr_maybe_grow(dstr, src.len);
+        to_prepend = (Neat_String_View){
+            .len = src.len, 
+            .chars = dstr->chars + begin_idx
+        };
+    }
+    else
+    {
+        neat_dstr_maybe_grow(dstr, to_prepend.len);
+    }
+    
+    memmove(dstr->chars + to_prepend.len, dstr->chars, dstr->len);
+    memmove(dstr->chars, to_prepend.chars, to_prepend.len);
+    
+    dstr->len += to_prepend.len;
+    dstr->chars[dstr->len] = '\0';
+}
+
+NEAT_NODISCARD("dstr_insert returns error, true if success, false if fail") bool neat_dstr_insert_strv(Neat_DString *dstr, Neat_String_View src, unsigned int idx)
+{
+    if(idx > dstr->len)
+    {
+        return false;
+    }
+    
+    Neat_String_View to_insert = src;
+    
+    if(neat_is_strv_intersect(neat_strv_dstr_ptr2(dstr, 0), src))
+    {
+        unsigned int begin_idx = src.chars - dstr->chars;
+        neat_dstr_maybe_grow(dstr, src.len);
+        to_insert = (Neat_String_View){
+            .len = src.len, 
+            .chars = dstr->chars + begin_idx
+        };
+    }
+    else
+    {
+        neat_dstr_maybe_grow(dstr, to_insert.len);
+    }
+    
+    memmove(dstr->chars + idx + to_insert.len, dstr->chars + idx, dstr->len - idx);
+    memmove(dstr->chars + idx, to_insert.chars, to_insert.len);
+    
+    dstr->len += to_insert.len;
+    dstr->chars[dstr->len] = '\0';
+    
+    return true;
+}
+
 void neat_dstr_append_tostr_(Neat_DString *dstr, Neat_DString tostr)
 {
     neat_dstr_append_strv(dstr, neat_strv_dstr2(tostr, 0));
@@ -149,6 +213,7 @@ unsigned int neat_dstr_fread_line_(Neat_DString *dstr, FILE *stream)
 
 unsigned int neat_dstr_append_fread_line_(Neat_DString *dstr, FILE *stream)
 {
+    // TODO optimize this
     unsigned int prev_len = dstr->len;
     int c = 0;
     while(c != '\n' && (c=fgetc(stream)) != EOF)
@@ -310,63 +375,6 @@ Neat_String_View neat_strv_strv2(Neat_String_View str, unsigned int begin)
     return neat_strv_strv_ptr2(&str, begin);
 }
 
-void neat_dstr_prepend_strv(Neat_DString *dstr, Neat_String_View src)
-{
-    Neat_String_View to_prepend = src;
-    
-    if(neat_is_strv_intersect(neat_strv_dstr_ptr2(dstr, 0), src))
-    {
-        unsigned int begin_idx = src.chars - dstr->chars;
-        neat_dstr_maybe_grow(dstr, src.len);
-        to_prepend = (Neat_String_View){
-            .len = src.len, 
-            .chars = dstr->chars + begin_idx
-        };
-    }
-    else
-    {
-        neat_dstr_maybe_grow(dstr, to_prepend.len);
-    }
-    
-    memmove(dstr->chars + to_prepend.len, dstr->chars, dstr->len);
-    memmove(dstr->chars, to_prepend.chars, to_prepend.len);
-    
-    dstr->len += to_prepend.len;
-    dstr->chars[dstr->len] = '\0';
-}
-
-NEAT_NODISCARD("dstr_insert returns error, true if success, false if fail") bool neat_dstr_insert_strv(Neat_DString *dstr, Neat_String_View src, unsigned int idx)
-{
-    if(idx > dstr->len)
-    {
-        return false;
-    }
-    
-    Neat_String_View to_insert = src;
-    
-    if(neat_is_strv_intersect(neat_strv_dstr_ptr2(dstr, 0), src))
-    {
-        unsigned int begin_idx = src.chars - dstr->chars;
-        neat_dstr_maybe_grow(dstr, src.len);
-        to_insert = (Neat_String_View){
-            .len = src.len, 
-            .chars = dstr->chars + begin_idx
-        };
-    }
-    else
-    {
-        neat_dstr_maybe_grow(dstr, to_insert.len);
-    }
-    
-    memmove(dstr->chars + idx + to_insert.len, dstr->chars + idx, dstr->len - idx);
-    memmove(dstr->chars + idx, to_insert.chars, to_insert.len);
-    
-    dstr->len += to_insert.len;
-    dstr->chars[dstr->len] = '\0';
-    
-    return true;
-}
-
 unsigned int neat_mutstr_ref_insert_strv(Neat_Mut_String_Ref dst, Neat_String_View src, unsigned int idx)
 {
     unsigned int len = neat_mutstr_ref_len(dst);
@@ -392,13 +400,6 @@ unsigned int neat_mutstr_ref_insert_strv(Neat_Mut_String_Ref dst, Neat_String_Vi
     }
     
     return nb_chars_to_insert;
-}
-
-void neat_dstr_shrink_to_fit_(Neat_DString *dstr)
-{
-    size_t actual_new_cap;
-    dstr->chars = neat_realloc(dstr->allocator, dstr->chars, unsigned char, dstr->cap, dstr->len + 1, &actual_new_cap);
-    dstr->cap = actual_new_cap;
 }
 
 bool neat_strv_equal(Neat_String_View str1, Neat_String_View str2)
