@@ -748,10 +748,10 @@ static inline Neat_DString neat_tostr_func_##n (neat_tostr_type_##n *obj) \
 }
 
 #define NEAT_DECL_TOSTR_INTO_FUNC(n) \
-typedef typeof(NEAT_ARG1(ADD_TOSTR_INTO)) neat_type__tostr_into##n; \
-static inline void neat_func__tostr_into##n (Neat_Mut_String_Ref dst, neat_type__tostr_into##n *obj) \
+typedef typeof(NEAT_ARG1(ADD_TOSTR_INTO)) neat_type_tostr_into##n; \
+static inline void neat_func_tostr_into##n (Neat_Mut_String_Ref dst, neat_type_tostr_into##n *obj) \
 { \
-    _Static_assert(neat_has_type(NEAT_ARG2(ADD_TOSTR_INTO), typeof(void(*)(Neat_Mut_String_Ref, neat_type__tostr_into##n*))), "tostr_into functions must have type void (T*)"); \
+    _Static_assert(neat_has_type(NEAT_ARG2(ADD_TOSTR_INTO), typeof(void(*)(Neat_Mut_String_Ref, neat_type_tostr_into##n*))), "tostr_into functions must have type void (T*)"); \
     if(dst.len != NULL) *dst.len = 0; \
     return NEAT_ARG2(ADD_TOSTR_INTO)(dst, obj); \
 }
