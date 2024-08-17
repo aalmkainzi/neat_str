@@ -172,7 +172,7 @@ Used as a general purpose string buffer, it's defined like this:
 ```C
 typedef struct String_Buffer
 {
-    unsigned int cap; /* including the nul */
+    unsigned int cap;
     unsigned int len;
     unsigned char *chars;
 } String_Buffer;
