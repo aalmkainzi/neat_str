@@ -268,6 +268,17 @@ void test_insert()
     assert(str_equal(sb, "hello, world"));
 }
 
+void test_sstr()
+{
+    NEAT_DECL_SSTRING(64);
+    
+    SString(64) sstr = {0};
+    SString_Ref sstr_ref = sstr_ref(&sstr);
+    
+    str_copy(sstr_ref, "hello world");
+    assert(str_equal(sstr_ref, "hello world") && str_equal(sstr.chars, "hello world"));
+}
+
 int main()
 {
     test_tostr();
@@ -280,4 +291,5 @@ int main()
     test_misc();
     test_sprint();
     test_insert();
+    test_sstr();
 }
