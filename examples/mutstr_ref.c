@@ -1,4 +1,5 @@
-#include "../include/neat_str.h"
+#define NEAT_STR_IMPL
+#include "../neat_str.h"
 
 void replace_dash(Mut_String_Ref str)
 {

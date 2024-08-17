@@ -1,4 +1,5 @@
-#include "../include/neat_str.h"
+#define NEAT_STR_IMPL
+#include "../neat_str.h"
 
 NEAT_DECL_SSTRING(127); // not necessary as of C23
 
