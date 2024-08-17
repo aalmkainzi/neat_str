@@ -3,6 +3,7 @@ A library to make dealing with strings more intuitive in C.
 
 ## Quick Examples
 ```C
+#define NEAT_STR_IMPL
 #include "neat_str.h"
 
 int main()
@@ -351,23 +352,6 @@ You can choose to prefix the entire lib like this:
 #include "neat_str.h"
 ```
 this will prefix all macro definitions with `neat_` and all types with `Neat_`
-
-## Building and Including
-for Windows using Visual Studio:
-```
-premake5.exe vs2022
-## then open the .sln file with Visual Studio and build
-```
-for Windows using MinGW
-```
-premake5.exe gmake2
-make
-```
-for Linux:
-```
-./premake5 gmake2
-make
-```
 After which you'll find static and dynamic versions of the library inside `./bin`.
 
 then include the headers in `./include` to your project.
