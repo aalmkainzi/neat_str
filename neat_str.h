@@ -210,7 +210,7 @@ typedef struct Neat_String_View
 typedef struct Neat_String_View_Array
 {
     unsigned int cap;
-    unsigned int nb;
+    unsigned int len;
     Neat_String_View *strs;
 } Neat_String_View_Array;
 
@@ -501,7 +501,7 @@ neat_strv(any_str),
 (                                                                                              \
 neat_static_assertx(!neat_is_array_of(NEAT_ARG1(__VA_ARGS__), Neat_String_View), "strv_arr accepts variadic arguments of strings, not String_View[], call strv_arr_carr instead"), \
 (Neat_String_View_Array) {                                                                     \
-    .nb   = NEAT_CARR_LEN(((Neat_String_View[]){NEAT_FOREACH(NEAT_STRV_COMMA, __VA_ARGS__)})), \
+    .len   = NEAT_CARR_LEN(((Neat_String_View[]){NEAT_FOREACH(NEAT_STRV_COMMA, __VA_ARGS__)})), \
     .cap  = NEAT_CARR_LEN(((Neat_String_View[]){NEAT_FOREACH(NEAT_STRV_COMMA, __VA_ARGS__)})), \
     .strs = (Neat_String_View[]){NEAT_FOREACH(NEAT_STRV_COMMA, __VA_ARGS__)}                   \
 }                                                                                              \
@@ -1953,7 +1953,7 @@ Neat_String_View_Array neat_strv_arr_from_carr(Neat_String_View *carr, unsigned 
 {
     return (Neat_String_View_Array){
         .cap  = nb,
-        .nb   = nb,
+        .len   = nb,
         .strs = carr
     };
 }
@@ -1971,7 +1971,7 @@ NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array
         {
             return (Neat_String_View_Array){
                 .cap  = 0,
-                .nb   = 0,
+                .len   = 0,
                 .strs = NULL
             };
         }
@@ -1980,7 +1980,7 @@ NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array
             *entire_str = str;
             return (Neat_String_View_Array){
                 .cap  = (unsigned int) alloced_size,
-                .nb   = 1,
+                .len   = 1,
                 .strs = entire_str
             };
         }
@@ -1994,7 +1994,7 @@ NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array
         {
             return (Neat_String_View_Array){
                 .cap  = 0,
-                .nb   = 0,
+                .len   = 0,
                 .strs = NULL
             };
         }
@@ -2002,11 +2002,11 @@ NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array
         {
             Neat_String_View_Array ret = {
                 .cap  = (unsigned int) alloced_size,
-                .nb   = str.len,
+                .len   = str.len,
                 .strs = strs
             };
             
-            for(unsigned int i = 0 ; i < ret.nb ; i++)
+            for(unsigned int i = 0 ; i < ret.len ; i++)
             {
                 ret.strs[i] = neat_strv_strv3(str, i, i + 1);
             }
@@ -2045,7 +2045,7 @@ NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array
             
             return (Neat_String_View_Array){
                 .cap  = 0,
-                .nb   = 0,
+                .len   = 0,
                 .strs = NULL
             };
         }
@@ -2053,7 +2053,7 @@ NEAT_NODISCARD("str_split returns new String_View_Array") Neat_String_View_Array
         {
             Neat_String_View_Array ret = {
                 .cap = (unsigned int) alloced_size,
-                .nb  = nb_delim + 1,
+                .len  = nb_delim + 1,
                 .strs = strs
             };
             
@@ -2073,10 +2073,10 @@ NEAT_NODISCARD("str_join_new returns new DString, discarding will cause memory l
 {
     Neat_DString ret = neat_dstr_new(16, allocator);
     
-    if(strs.nb > 0)
+    if(strs.len > 0)
         neat_dstr_append_strv(&ret, strs.strs[0]);
     
-    for(unsigned int i = 1 ; i < strs.nb ; i++)
+    for(unsigned int i = 1 ; i < strs.len ; i++)
     {
         neat_dstr_append_strv(&ret, delim);
         neat_dstr_append_strv(&ret, strs.strs[i]);
@@ -2096,11 +2096,11 @@ unsigned int neat_strv_arr_join(Neat_Mut_String_Ref dst, Neat_String_View_Array 
     
     Neat_Mut_String_Ref dst2 = neat_mutstr_ref_to_strbuf_ptr(&dst_as_buf);
     
-    if(strs.nb > 0)
+    if(strs.len > 0)
     {
         chars_copied += neat_mutstr_ref_concat(dst2, strs.strs[0]);
     }
-    for(unsigned int i = 1 ; i < strs.nb ; i++)
+    for(unsigned int i = 1 ; i < strs.len ; i++)
     {
         chars_copied += neat_mutstr_ref_concat(dst2, delim);
         chars_copied += neat_mutstr_ref_concat(dst2, strs.strs[i]);
