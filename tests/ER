@@ -1,0 +1,81 @@
+In file included from tests.c:5:
+../neat_str.h: In function ‘neat_tostr_func_1’:
+../neat_str.h:903:5: error: static assertion failed: "tostr function must have type void(DString*, T*)"
+  903 |     _Static_assert(neat_has_type(NEAT_ARG2(ADD_TOSTR), void(*)(Neat_DString*, neat_tostr_type_##n*)), "tostr function must have type void(DString*, T*)"); \
+      |     ^~~~~~~~~~~~~~
+../neat_str.h:1164:1: note: in expansion of macro ‘NEAT_DECL_TOSTR_FUNC’
+ 1164 | NEAT_DECL_TOSTR_FUNC(1)
+      | ^~~~~~~~~~~~~~~~~~~~
+../neat_str.h:905:33: warning: passing argument 1 of ‘foo_to_str’ from incompatible pointer type [-Wincompatible-pointer-types]
+  905 |     return NEAT_ARG2(ADD_TOSTR)(&ret, obj); \
+      |                                 ^~~~
+      |                                 |
+      |                                 Neat_DString *
+../neat_str.h:1164:1: note: in expansion of macro ‘NEAT_DECL_TOSTR_FUNC’
+ 1164 | NEAT_DECL_TOSTR_FUNC(1)
+      | ^~~~~~~~~~~~~~~~~~~~
+tests.c:12:33: note: expected ‘struct FOO *’ but argument is of type ‘Neat_DString *’
+   12 | DString foo_to_str( struct FOO *f )
+      |                     ~~~~~~~~~~~~^
+In file included from tests.c:5:
+tests.c:28:31: error: too many arguments to function ‘foo_to_str’
+   28 | #define ADD_TOSTR struct FOO, foo_to_str
+      |                               ^~~~~~~~~~
+../neat_str.h:149:35: note: in definition of macro ‘NEAT_ARG2_’
+  149 | #define NEAT_ARG2_( _1, _2, ... ) _2
+      |                                   ^~
+../neat_str.h:905:12: note: in expansion of macro ‘NEAT_ARG2’
+  905 |     return NEAT_ARG2(ADD_TOSTR)(&ret, obj); \
+      |            ^~~~~~~~~
+../neat_str.h:905:22: note: in expansion of macro ‘ADD_TOSTR’
+  905 |     return NEAT_ARG2(ADD_TOSTR)(&ret, obj); \
+      |                      ^~~~~~~~~
+../neat_str.h:1164:1: note: in expansion of macro ‘NEAT_DECL_TOSTR_FUNC’
+ 1164 | NEAT_DECL_TOSTR_FUNC(1)
+      | ^~~~~~~~~~~~~~~~~~~~
+tests.c:12:9: note: declared here
+   12 | DString foo_to_str( struct FOO *f )
+      |         ^~~~~~~~~~
+In file included from tests.c:5:
+tests.c:28:31: warning: ‘return’ with a value, in function returning void [-Wreturn-type]
+   28 | #define ADD_TOSTR struct FOO, foo_to_str
+../neat_str.h:149:35: note: in definition of macro ‘NEAT_ARG2_’
+  149 | #define NEAT_ARG2_( _1, _2, ... ) _2
+      |                                   ^~
+../neat_str.h:905:12: note: in expansion of macro ‘NEAT_ARG2’
+  905 |     return NEAT_ARG2(ADD_TOSTR)(&ret, obj); \
+      |            ^~~~~~~~~
+../neat_str.h:905:22: note: in expansion of macro ‘ADD_TOSTR’
+  905 |     return NEAT_ARG2(ADD_TOSTR)(&ret, obj); \
+      |                      ^~~~~~~~~
+../neat_str.h:1164:1: note: in expansion of macro ‘NEAT_DECL_TOSTR_FUNC’
+ 1164 | NEAT_DECL_TOSTR_FUNC(1)
+      | ^~~~~~~~~~~~~~~~~~~~
+../neat_str.h:901:20: note: declared here
+  901 | static inline void neat_tostr_func_##n (neat_tostr_type_##n *obj, Neat_Allocator allocator) \
+      |                    ^~~~~~~~~~~~~~~~
+../neat_str.h:1164:1: note: in expansion of macro ‘NEAT_DECL_TOSTR_FUNC’
+ 1164 | NEAT_DECL_TOSTR_FUNC(1)
+      | ^~~~~~~~~~~~~~~~~~~~
+tests.c: In function ‘test_tostr’:
+../neat_str.h:860:1: error: too few arguments to function ‘neat_tostr_func_1’
+  860 | _Generic((ty){0}, \
+      | ^~~~~~~~
+../neat_str.h:874:1: note: in expansion of macro ‘neat_get_tostr_func’
+  874 | neat_get_tostr_func(typeof(*xp))(xp)
+      | ^~~~~~~~~~~~~~~~~~~
+../neat_str.h:871:1: note: in expansion of macro ‘neat_tostr_p’
+  871 | neat_tostr_p(neat_as_pointer(x))
+      | ^~~~~~~~~~~~
+../neat_str.h:1148:18: note: in expansion of macro ‘neat_tostr’
+ 1148 | #define tostr(x) neat_tostr(x)
+      |                  ^~~~~~~~~~
+tests.c:37:21: note: in expansion of macro ‘tostr’
+   37 |     DString a_str = tostr(a);
+      |                     ^~~~~
+../neat_str.h:901:20: note: declared here
+  901 | static inline void neat_tostr_func_##n (neat_tostr_type_##n *obj, Neat_Allocator allocator) \
+      |                    ^~~~~~~~~~~~~~~~
+../neat_str.h:1164:1: note: in expansion of macro ‘NEAT_DECL_TOSTR_FUNC’
+ 1164 | NEAT_DECL_TOSTR_FUNC(1)
+      | ^~~~~~~~~~~~~~~~~~~~

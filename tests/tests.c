@@ -1,4 +1,6 @@
 #include <assert.h>
+#define _GNU_SOURCE
+#include <string.h>
 #define NEAT_STR_IMPL
 #include "../neat_str.h"
 
@@ -82,6 +84,7 @@ void test_str_find()
     assert(str_equal(str_find(str, str), str));
     assert((str_find(str, "world").chars - str.chars) == 6);
     assert(str_find(str, "world").len == 5);
+    assert(str_find(str, "F").chars == NULL);
 }
 
 void test_str_replace()
@@ -279,6 +282,18 @@ void test_sstr()
     assert(str_equal(sstr_ref, "hello world") && str_equal(sstr.chars, "hello world"));
 }
 
+void tests_memmem()
+{
+    unsigned char h[] = "hello world";
+    unsigned char w[] = "world";
+    String_View found = neat_strv_memmem(strv(h), strv(w));
+    assert(found.len == strlen((char*) w) && found.chars == h + 6);
+    
+    unsigned char S[] = "-_-_-_-__-_-_";
+    String_View found2 = neat_strv_memmem(strv(S), strv("-__"));
+    assert(found2.len == strlen((char*) S) && found2.chars == S + 6);
+}
+
 int main()
 {
     test_tostr();
@@ -292,4 +307,6 @@ int main()
     test_sprint();
     test_insert();
     test_sstr();
+    tests_memmem();
+    str_cap(3);
 }
