@@ -1486,12 +1486,6 @@ bool neat_strv_ends_with(Neat_String_View hay, Neat_String_View needle)
     return (needle.len <= hay.len) && (memcmp(hay.chars + hay.len - needle.len, needle.chars, needle.len) == 0);
 }
 
-// TODO toupper/tolower need to ignore non-ascii chars
-// check if the current char is only 1 byte before calling tolower
-// this can be done by making a generic 'neat_foreach_utf8(any_str, callback)'
-// typedef bool(*callback)(UTF8_Char_Ref);
-// return false to stop foreach
-
 void neat_chars_tolower(unsigned char *chars, unsigned int len)
 {
     for(unsigned int i = 0 ; i < len ; i++)
