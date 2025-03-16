@@ -352,6 +352,3 @@ You can choose to prefix the entire lib like this:
 #include "neat_str.h"
 ```
 this will prefix all macro definitions with `neat_` and all types with `Neat_`
-After which you'll find static and dynamic versions of the library inside `./bin`.
-
-then include the headers in `./include` to your project.
