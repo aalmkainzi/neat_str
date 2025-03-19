@@ -93,8 +93,8 @@ static const unsigned long long neat_ten_pows_ull[] = {
     10000000000000000000ull,
 };
 
-// Neat_String_View neat_strv_fmutstr_ref2(Neat_Fixed_Mut_String_Ref str, unsigned int begin);
-// Neat_String_View neat_strv_fmutstr_ref3(Neat_Fixed_Mut_String_Ref str, unsigned int begin, unsigned int end);
+// Neat_String_View neat_strv_fmutstr_ref2(Fixed_Mut_String_Ref str, unsigned int begin);
+// Neat_String_View neat_strv_fmutstr_ref3(Fixed_Mut_String_Ref str, unsigned int begin, unsigned int end);
 
 unsigned int neat_numstr_len(long long num)
 {
@@ -1970,20 +1970,10 @@ Neat_String_View neat_strv_mutstr_ref3(Neat_Mut_String_Ref str, unsigned int beg
 {
     switch(str.ty)
     {
-        case NEAT_DSTR_TY:
-            return neat_strv_dstr_ptr3(str.str.dstr, begin, end);
-        case NEAT_FMUTSTR_REF_TY:
-            return neat_strv_fmutstr_ref3(str.str.fmutstr_ref, begin, end);
-        case NEAT_BUF_TY:
-        {
-            unsigned int len = strlen((char*)(str.str.carr.ptr));
-            Neat_Fixed_Mut_String_Ref as_fixed = {
-                .chars = str.str.carr.ptr,
-                .len = &len,
-                .cap = str.str.carr.cap
-            };
-            return neat_strv_fmutstr_ref3(as_fixed, begin, end);
-        }
+        case NEAT_DSTR_TY     : return neat_strv_dstr_ptr3(str.str.dstr, begin, end);
+        case NEAT_STRBUF_TY   : return neat_strv_strbuf_ptr3(str.str.strbuf, begin, end);
+        case NEAT_SSTR_REF_TY : return neat_strv_sstr_ref3(str.str.sstr_ref, begin, end);
+        case NEAT_BUF_TY      : return neat_strv_fmutstr_ref3(neat_buf_as_fmutstr_ref(str.str.carr, &(unsigned int){0}), begin, end);
     }
 }
 
@@ -2001,25 +1991,6 @@ Neat_String_View neat_strv_strbuf3(Neat_String_Buffer str, unsigned int begin, u
 {
     return neat_strv_strbuf_ptr3(&str, begin, end);
 }
-
-// Neat_DString neat_tostr_all_into_new_dstr(Neat_Allocator allocator, unsigned int nb, ...)
-// {
-//     Neat_DString ret = neat_dstr_new(nb * 16, allocator);
-//     
-//     va_list args;
-//     va_start(args, nb);
-//     
-//     for(unsigned int i = 0 ; i < nb ; i++)
-//     {
-//         Neat_DString current = va_arg(args, Neat_DString);
-//         neat_dstr_append_strv(&ret, (Neat_String_View){.chars = current.chars, .len = current.len});
-//         neat_dstr_deinit_(&current);
-//     }
-//     
-//     va_end(args);
-//     
-//     return ret;
-// }
 
 Neat_String_Error neat_dstr_fread_line_(Neat_DString *dstr, FILE *stream)
 {
@@ -2048,7 +2019,7 @@ Neat_String_Error neat_dstr_append_fread_line_(Neat_DString *dstr, FILE *stream)
     return NEAT_OK;
 }
 
-Neat_String_Error neat_fmutstr_ref_fread_line(Neat_Fixed_Mut_String_Ref dst, FILE *stream)
+Neat_String_Error neat_fmutstr_ref_fread_line(Fixed_Mut_String_Ref dst, FILE *stream)
 {
     if(dst.cap == 0)
     {
@@ -2078,31 +2049,21 @@ Neat_String_Error neat_mutstr_ref_fread_line(Neat_Mut_String_Ref dst, FILE *stre
 {
     switch(dst.ty)
     {
-        case NEAT_DSTR_TY:
-            return neat_dstr_fread_line_(dst.str.dstr, stream);
-        case NEAT_FMUTSTR_REF_TY:
-            return neat_fmutstr_ref_fread_line(dst.str.fmutstr_ref, stream);
-        case NEAT_BUF_TY:
-        {
-            unsigned int len = (unsigned int) strlen((char*) dst.str.carr.ptr);
-            Neat_Fixed_Mut_String_Ref as_fixed = {
-                .chars = dst.str.carr.ptr,
-                .len = &len,
-                .cap = dst.str.carr.cap
-            };
-            return neat_fmutstr_ref_fread_line(as_fixed, stream);
-        }
+        case NEAT_DSTR_TY     : return neat_dstr_fread_line_(dst.str.dstr, stream);
+        case NEAT_STRBUF_TY   : return neat_fmutstr_ref_fread_line(neat_strbuf_as_fmutstr_ref(dst.str.strbuf), stream);
+        case NEAT_SSTR_REF_TY : return neat_fmutstr_ref_fread_line(neat_sstr_ref_as_fmutstr_ref(dst.str.sstr_ref), stream);
+        case NEAT_BUF_TY      : return neat_fmutstr_ref_fread_line(neat_buf_as_fmutstr_ref(dst.str.carr, &(unsigned int){0}), stream);
     };
 }
 
-Neat_String_Error neat_fmutstr_ref_append_fread_line(Neat_Fixed_Mut_String_Ref dst, FILE *stream)
+Neat_String_Error neat_fmutstr_ref_append_fread_line(Fixed_Mut_String_Ref dst, FILE *stream)
 {
     if(dst.cap == 0)
         return false;
     
     unsigned int concated_len = 0;
     
-    Neat_Fixed_Mut_String_Ref right = {
+    Fixed_Mut_String_Ref right = {
         .cap = dst.cap - *dst.len,
         .len = &concated_len
     };
@@ -2122,20 +2083,10 @@ Neat_String_Error neat_mutstr_ref_append_fread_line(Neat_Mut_String_Ref dst, FIL
 {
     switch(dst.ty)
     {
-        case NEAT_DSTR_TY:
-            return neat_dstr_append_fread_line_(dst.str.dstr, stream);
-        case NEAT_FMUTSTR_REF_TY:
-            return neat_fmutstr_ref_append_fread_line(dst.str.fmutstr_ref, stream);
-        case NEAT_BUF_TY:
-        {
-            unsigned int len = (unsigned int) strlen((char*) dst.str.carr.ptr);
-            Neat_Fixed_Mut_String_Ref as_fixed = {
-                .chars = dst.str.carr.ptr,
-                .len = &len,
-                .cap = dst.str.carr.cap
-            };
-            return neat_fmutstr_ref_append_fread_line(as_fixed, stream);
-        }
+        case NEAT_DSTR_TY     : return neat_dstr_append_fread_line_(dst.str.dstr, stream);
+        case NEAT_STRBUF_TY   : return neat_fmutstr_ref_append_fread_line(neat_strbuf_as_fmutstr_ref(dst.str.strbuf), stream);
+        case NEAT_SSTR_REF_TY : return neat_fmutstr_ref_append_fread_line(neat_sstr_ref_as_fmutstr_ref(dst.str.sstr_ref), stream);
+        case NEAT_BUF_TY      : return neat_fmutstr_ref_append_fread_line(neat_buf_as_fmutstr_ref(dst.str.carr, &(unsigned int){0}), stream);
     };
 }
 
@@ -2172,7 +2123,7 @@ long       : neat_long_min_into_fmutstr_ref,  \
 long long  : neat_llong_min_into_fmutstr_ref  \
 )
 
-Neat_String_Error neat_schar_min_into_fmutstr_ref(Neat_Fixed_Mut_String_Ref dst)
+Neat_String_Error neat_schar_min_into_fmutstr_ref(Fixed_Mut_String_Ref dst)
 {
     if(SCHAR_MIN == -128)
     {
@@ -2188,7 +2139,7 @@ Neat_String_Error neat_schar_min_into_fmutstr_ref(Neat_Fixed_Mut_String_Ref dst)
     }
 }
 
-Neat_String_Error neat_short_min_into_fmutstr_ref(Neat_Fixed_Mut_String_Ref dst)
+Neat_String_Error neat_short_min_into_fmutstr_ref(Fixed_Mut_String_Ref dst)
 {
     if(SHRT_MIN == -32768)
     {
@@ -2204,7 +2155,7 @@ Neat_String_Error neat_short_min_into_fmutstr_ref(Neat_Fixed_Mut_String_Ref dst)
     }
 }
 
-Neat_String_Error neat_int_min_into_fmutstr_ref(Neat_Fixed_Mut_String_Ref dst)
+Neat_String_Error neat_int_min_into_fmutstr_ref(Fixed_Mut_String_Ref dst)
 {
     if(INT_MIN == -2147483648)
     {
@@ -2220,7 +2171,7 @@ Neat_String_Error neat_int_min_into_fmutstr_ref(Neat_Fixed_Mut_String_Ref dst)
     }
 }
 
-Neat_String_Error neat_long_min_into_fmutstr_ref(Neat_Fixed_Mut_String_Ref dst)
+Neat_String_Error neat_long_min_into_fmutstr_ref(Fixed_Mut_String_Ref dst)
 {
     if(LONG_MIN == INT_MIN)
     {
@@ -2240,7 +2191,7 @@ Neat_String_Error neat_long_min_into_fmutstr_ref(Neat_Fixed_Mut_String_Ref dst)
     }
 }
 
-Neat_String_Error neat_llong_min_into_fmutstr_ref(Neat_Fixed_Mut_String_Ref dst)
+Neat_String_Error neat_llong_min_into_fmutstr_ref(Fixed_Mut_String_Ref dst)
 {
     if(LLONG_MIN == LONG_MIN)
     {
@@ -2300,7 +2251,7 @@ do { \
     if(err != NEAT_OK) \
         return err; \
         \
-        Neat_Fixed_Mut_String_Ref as_fixed = { \
+        Fixed_Mut_String_Ref as_fixed = { \
             .chars = dstr->chars, \
             .len = &dstr->len \
         }; \
@@ -2317,20 +2268,22 @@ do { \
             neat_sinteger_tostr_dstr(dst.str.dstr); \
             return err; \
         } \
-        case NEAT_FMUTSTR_REF_TY: \
+        case NEAT_STRBUF_TY: \
         { \
-            neat_sintger_tostr_fmutstr_ref(dst.str.fmutstr_ref); \
+            Fixed_Mut_String_Ref strbuf_as_fixed = neat_strbuf_as_fmutstr_ref(dst.str.strbuf); \
+            neat_sintger_tostr_fmutstr_ref(strbuf_as_fixed); \
+            return err; \
+        } \
+        case NEAT_SSTR_REF_TY: \
+        { \
+            Fixed_Mut_String_Ref sstr_ref_as_fixed = neat_sstr_ref_as_fmutstr_ref(dst.str.sstr_ref); \
+            neat_sintger_tostr_fmutstr_ref(sstr_ref_as_fixed); \
             return err; \
         } \
         case NEAT_BUF_TY: \
         { \
-            unsigned int len = (unsigned int) strlen((char*) dst.str.carr.ptr); \
-            Neat_Fixed_Mut_String_Ref as_fixed = { \
-                .chars = dst.str.carr.ptr, \
-                .len = &len, \
-                .cap = dst.str.carr.cap \
-            }; \
-            neat_sintger_tostr_fmutstr_ref(as_fixed); \
+            Fixed_Mut_String_Ref buf_as_fixed = neat_buf_as_fmutstr_ref(dst.str.carr, &(unsigned int){0}); \
+            neat_sintger_tostr_fmutstr_ref(buf_as_fixed); \
             return err; \
         } \
     } \
@@ -2344,7 +2297,7 @@ do { \
     if(err != NEAT_OK) \
         return err; \
         \
-        Neat_Fixed_Mut_String_Ref as_fixed = { \
+        Fixed_Mut_String_Ref as_fixed = { \
             .chars = dstr->chars, \
             .len = &dstr->len \
         }; \
@@ -2379,20 +2332,22 @@ do { \
             neat_uinteger_tostr_dstr(dst.str.dstr); \
             return err; \
         } \
-        case NEAT_FMUTSTR_REF_TY: \
+        case NEAT_STRBUF_TY: \
         { \
-            neat_uintger_tostr_fmutstr_ref(dst.str.fmutstr_ref); \
+            Fixed_Mut_String_Ref strbuf_as_fixed = neat_strbuf_as_fmutstr_ref(dst.str.strbuf); \
+            neat_uintger_tostr_fmutstr_ref(strbuf_as_fixed); \
+            return err; \
+        } \
+        case NEAT_SSTR_REF_TY: \
+        { \
+            Fixed_Mut_String_Ref sstr_ref_as_fixed = neat_sstr_ref_as_fmutstr_ref(dst.str.sstr_ref); \
+            neat_uintger_tostr_fmutstr_ref(sstr_ref_as_fixed); \
             return err; \
         } \
         case NEAT_BUF_TY: \
         { \
-            unsigned int len = (unsigned int) strlen((char*) dst.str.carr.ptr); \
-            Neat_Fixed_Mut_String_Ref as_fixed = { \
-                .chars = dst.str.carr.ptr, \
-                .len = &len, \
-                .cap = dst.str.carr.cap \
-            }; \
-            neat_uintger_tostr_fmutstr_ref(as_fixed); \
+            Fixed_Mut_String_Ref buf_as_fixed = neat_buf_as_fmutstr_ref(dst.str.carr, &(unsigned int){0}); \
+            neat_uintger_tostr_fmutstr_ref(buf_as_fixed); \
             return err; \
         } \
     } \
