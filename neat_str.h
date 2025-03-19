@@ -1,11 +1,3 @@
-/*
-plan:
-Mut_String_Ref enum should include all mutable string types, no Fixed_Mut_String_Ref bullshit
-make neat_str.c
-put Neat_Fixed_Mut_String_Ref there
-use it for easier impl (maybe not even)
-*/
-
 #ifndef NEAT_STR_H
 #define NEAT_STR_H
 
@@ -190,6 +182,14 @@ NEAT_CAT(NEAT_IF_EMPTY_, __VA_OPT__(0))(then)
 
 #define NEAT_IF_NEMPTY(then, ...) __VA_OPT__(then)
 
+#define NEAT_TYPEOF_ARG(arg) \
+,typeof(arg)
+
+#define NEAT_TYPEOF_ARGS(...) \
+__VA_OPT__( \
+NEAT_ARG1(__VA_ARGS__) NEAT_FOREACH(NEAT_TYPEOF_ARG, __VA_ARGS__) \
+)
+
 // TODO remove allocator, instead user passes it at each call.
 // Dynamic String
 typedef struct Neat_DString
@@ -269,26 +269,16 @@ typedef struct Neat_Mut_String_Ref
 } Neat_Mut_String_Ref;
 
 typedef enum Neat_String_Error : uint8_t {
-  NEAT_OK,
-  NEAT_DST_TOO_SMALL,
-  NEAT_ALLOC_ERR,
-  NEAT_INDEX_OUT_OF_BOUNDS,
-  NEAT_BAD_RANGE,
-  NEAT_NOT_FOUND,
-  NEAT_UTF8_ERR,
-  NEAT_ALIASING_NOT_SUPPORTED,
+    NEAT_OK,
+    NEAT_DST_TOO_SMALL,
+    NEAT_ALLOC_ERR,
+    NEAT_INDEX_OUT_OF_BOUNDS,
+    NEAT_BAD_RANGE,
+    NEAT_NOT_FOUND,
+    NEAT_UTF8_ERR,
+    NEAT_ALIASING_NOT_SUPPORTED,
+    NEAT_INCORRECT_TYPE
 } Neat_String_Error;
-
-const char *neat_string_error_str[] = {
-    [NEAT_OK]                     = "NEAT_OK",
-    [NEAT_DST_TOO_SMALL]          = "NEAT_DST_TOO_SMALL",
-    [NEAT_ALLOC_ERR]              = "NEAT_ALLOC_ERR",
-    [NEAT_INDEX_OUT_OF_BOUNDS]    = "NEAT_INDEX_OUT_OF_BOUNDS",
-    [NEAT_BAD_RANGE]              = "NEAT_BAD_RANGE",
-    [NEAT_NOT_FOUND]              = "NEAT_NOT_FOUND",
-    [NEAT_UTF8_ERR]               = "NEAT_UTF8_ERR",
-    [NEAT_ALIASING_NOT_SUPPORTED] = "NEAT_ALIASING_NOT_SUPPORTED",
-};
 
 // in C23 structs can be defined multiple times with the same tag and members,
 // in which NEAT_DECL_SSTRING is useless, but older standards require it.
@@ -687,25 +677,50 @@ _Generic(any_str,                                      \
 NEAT_CAT(neat_dstr0, __VA_OPT__(1))(__VA_ARGS__)
 
 #define neat_dstr0() \
-neat_dstr_new(16, neat_get_default_allocator())
+neat_dstr_new(16, neat_get_default_allocator(), NULL)
 
-#define neat_dstr01(cap_or_allocator, ...)                                        \
-__VA_OPT__(neat_dstr2(cap_or_allocator, __VA_ARGS__))                             \
+#define neat_dstr01(cap_or_err, ...)                                        \
+__VA_OPT__(neat_dstr2(cap_or_err, __VA_ARGS__))                             \
 NEAT_IF_EMPTY(                                                                    \
-_Generic(cap_or_allocator,                                                        \
-    Neat_Allocator: neat_dstr_new(                                                \
-                        16,                                                       \
-                        neat_gurantee(cap_or_allocator, Neat_Allocator)           \
-                    ),                                                            \
-    default       : neat_dstr_new(                                                \
-                        neat_gurantee_not(cap_or_allocator, Neat_Allocator, int), \
-                        neat_get_default_allocator()                              \
-                    )                                                             \
+_Generic(cap_or_err,                                                       \
+    Neat_String_Error*: \
+        neat_dstr_new( \
+            16, \
+            neat_get_default_allocator(), \
+            neat_gurantee(cap_or_err, Neat_String_Error*) \
+        ), \
+    default: \
+        neat_dstr_new(                                                \
+            neat_gurantee_not(cap_or_err, Neat_String_Error*, int), \
+            neat_get_default_allocator(),                              \
+            NULL \
+        )                                                             \
 ), __VA_ARGS__                                                                    \
 )
 
-#define neat_dstr2(cap, allocator) \
-neat_dstr_new(cap, allocator)
+#define neat_dstr2(cap, allocator_or_err, ...) \
+__VA_OPT__(neat_dstr3(cap, allocator_or_err, __VA_ARGS__)) \
+NEAT_IF_EMPTY( \
+    _Generic(allocator_or_err, \
+        Neat_Allocator: \
+            neat_dstr_new( \
+                cap, \
+                neat_gurantee(allocator_or_err, Neat_Allocator), \
+                NULL \
+            ), \
+        Neat_String_Error*: \
+            neat_dstr_new( \
+                cap, \
+                neat_get_default_allocator(), \
+                neat_gurantee(allocator_or_err, Neat_String_Error*) \
+            ) \
+    ), __VA_ARGS__ \
+)
+
+#define neat_dstr3(cap, allocator, err) \
+neat_dstr_new(cap, allocator, err)
+
+//neat_dstr_new(cap, allocator)
 
 #define neat_dstr_deinit(dstr) \
 neat_dstr_deinit_(dstr)

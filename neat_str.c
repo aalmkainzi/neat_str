@@ -1,5 +1,16 @@
 #include "neat_str.h"
 
+const char *neat_string_error_str[] = {
+    [NEAT_OK]                     = "OK",
+    [NEAT_DST_TOO_SMALL]          = "DST_TOO_SMALL",
+    [NEAT_ALLOC_ERR]              = "ALLOC_ERR",
+    [NEAT_INDEX_OUT_OF_BOUNDS]    = "INDEX_OUT_OF_BOUNDS",
+    [NEAT_BAD_RANGE]              = "BAD_RANGE",
+    [NEAT_NOT_FOUND]              = "NOT_FOUND",
+    [NEAT_UTF8_ERR]               = "UTF8_ERR",
+    [NEAT_ALIASING_NOT_SUPPORTED] = "ALIASING_NOT_SUPPORTED",
+};
+
 typedef struct Fixed_Mut_String_Ref
 {
     unsigned char *chars;
@@ -532,6 +543,7 @@ char *neat_mutstr_ref_as_cstr(const Neat_Mut_String_Ref str)
         case NEAT_STRBUF_TY   : return (char*) str.str.strbuf->chars;
         case NEAT_SSTR_REF_TY : return (char*) str.str.sstr_ref.sstr->chars;
         case NEAT_BUF_TY      : return (char*) str.str.carr.ptr;
+        default               : unreachable();
     };
 }
 
@@ -623,6 +635,7 @@ unsigned int neat_mutstr_ref_cap(Neat_Mut_String_Ref str)
         case NEAT_STRBUF_TY   : return str.str.strbuf->cap;
         case NEAT_SSTR_REF_TY : return str.str.sstr_ref.cap;
         case NEAT_BUF_TY      : return str.str.carr.cap;
+        default               : unreachable();
     };
 }
 
@@ -676,6 +689,7 @@ Neat_String_Error neat_mutstr_ref_insert(Neat_Mut_String_Ref dst, Neat_String_Vi
         case NEAT_STRBUF_TY   : return neat_strbuf_insert(dst.str.strbuf, src, idx);
         case NEAT_SSTR_REF_TY : return neat_sstr_ref_insert(dst.str.sstr_ref, src, idx);
         case NEAT_BUF_TY      : return neat_buf_insert(dst.str.carr, src, idx);
+        default               : unreachable();
     };
 }
 
@@ -759,6 +773,7 @@ Neat_String_Error neat_mutstr_ref_copy(Neat_Mut_String_Ref dst, Neat_String_View
         case NEAT_STRBUF_TY   : return neat_strbuf_copy(dst.str.strbuf, src);
         case NEAT_SSTR_REF_TY : return neat_sstr_ref_copy(dst.str.sstr_ref, src);
         case NEAT_BUF_TY      : return neat_buf_copy(dst.str.carr, src);
+        default               : unreachable();
     };
 }
 
@@ -814,6 +829,7 @@ Neat_String_Error neat_mutstr_ref_putc(Neat_Mut_String_Ref dst, unsigned char c)
         case NEAT_STRBUF_TY   : return neat_strbuf_putc(dst.str.strbuf, c);
         case NEAT_SSTR_REF_TY : return neat_sstr_ref_putc(dst.str.sstr_ref, c);
         case NEAT_BUF_TY      : return neat_buf_putc(dst.str.carr, c);
+        default               : unreachable();
     }
 }
 
@@ -863,6 +879,7 @@ Neat_String_Error neat_mutstr_ref_concat(Neat_Mut_String_Ref dst, Neat_String_Vi
         case NEAT_STRBUF_TY   : return neat_strbuf_concat(dst.str.strbuf, src);
         case NEAT_SSTR_REF_TY : return neat_sstr_ref_concat(dst.str.sstr_ref, src);
         case NEAT_BUF_TY      : return neat_buf_concat(dst.str.carr, src);
+        default               : unreachable();
     };
 }
 
@@ -919,6 +936,7 @@ Neat_String_Error neat_mutstr_ref_delete_range(Neat_Mut_String_Ref str, unsigned
         case NEAT_STRBUF_TY   : return neat_strbuf_delete_range(str.str.strbuf, begin, end);
         case NEAT_SSTR_REF_TY : return neat_sstr_ref_delete_range(str.str.sstr_ref, begin, end);
         case NEAT_BUF_TY      : return neat_buf_delete_range(str.str.carr, begin, end);
+        default               : unreachable();
     };
 }
 
@@ -1100,6 +1118,7 @@ Neat_String_Error neat_strv_arr_join(Neat_Mut_String_Ref dst, Neat_String_View_A
         case NEAT_STRBUF_TY   : return neat_strv_arr_join_into_strbuf(dst.str.strbuf, strs, delim);
         case NEAT_SSTR_REF_TY : return neat_strv_arr_join_into_sstr_ref(dst.str.sstr_ref, strs, delim);
         case NEAT_BUF_TY      : return neat_strv_arr_join_into_buf(dst.str.carr, strs, delim);
+        default               : unreachable();
     };
 }
 
@@ -1203,6 +1222,7 @@ Neat_String_Error neat_mustr_ref_replace_range(Neat_Mut_String_Ref str, unsigned
         case NEAT_STRBUF_TY   : return neat_strbuf_replace_range(str.str.strbuf, begin, end, replacement);
         case NEAT_SSTR_REF_TY : return neat_sstr_ref_replace_range(str.str.sstr_ref, begin, end, replacement);
         case NEAT_BUF_TY      : return neat_buf_replace_range(str.str.carr, begin, end, replacement);
+        default               : unreachable();
     };
 }
 
@@ -1215,7 +1235,6 @@ Neat_String_Error neat_fmutstr_ref_replace(Fixed_Mut_String_Ref str, Neat_String
     }
     
     Neat_String_Error err = NEAT_OK;
-    unsigned int len = *str.len;
     
     if(target.len == 0)
     {
@@ -1319,12 +1338,9 @@ Neat_String_Error neat_dstr_replace(Neat_DString *dstr, Neat_String_View target,
     }
     
     Neat_String_Error err = NEAT_OK;
-    unsigned int len = dstr->len;
     
     if(target.len == 0)
     {
-        unsigned int total_inserted = 0;
-        unsigned int inserted = 1;
         for(unsigned int i = 0 ; i <= dstr->len && err == NEAT_OK ; i += replacement.len + 1)
         {
             err = neat_dstr_insert_strv(dstr, replacement, i);
@@ -1429,14 +1445,13 @@ Neat_String_Error neat_mutstr_ref_replace(Neat_Mut_String_Ref str, Neat_String_V
         case NEAT_STRBUF_TY   : return neat_strbuf_replace(str.str.strbuf, target, replacement);
         case NEAT_SSTR_REF_TY : return neat_sstr_ref_replace(str.str.sstr_ref, target, replacement);
         case NEAT_BUF_TY      : return neat_buf_replace(str.str.carr, target, replacement);
+        default               : unreachable();
     };
 }
 
 Neat_String_Error neat_dstr_replace_first(Neat_DString *dstr, Neat_String_View target, Neat_String_View replacement)
 {
     Neat_String_Error err = NEAT_NOT_FOUND;
-    
-    unsigned int len = 0;
     
     Neat_String_View match = neat_strv_memmem(neat_strv_dstr_ptr2(dstr, 0), target);
     if(match.chars != NULL)
@@ -1458,8 +1473,6 @@ Neat_String_Error neat_dstr_replace_first(Neat_DString *dstr, Neat_String_View t
 Neat_String_Error neat_fmutstr_ref_replace_first(Fixed_Mut_String_Ref str, Neat_String_View target, Neat_String_View replacement)
 {
     Neat_String_Error err = NEAT_NOT_FOUND;
-    
-    unsigned int len = 0;
     
     Neat_String_View match = neat_strv_memmem(neat_strv_fmutstr_ref2(str, 0), target);
     if(match.chars != NULL)
@@ -1513,6 +1526,7 @@ Neat_String_Error neat_mutstr_ref_replace_first(Neat_Mut_String_Ref str, Neat_St
         case NEAT_STRBUF_TY   : return neat_strbuf_replace_first(str.str.strbuf, target, replacement);
         case NEAT_SSTR_REF_TY : return neat_sstr_ref_replace_first(str.str.sstr_ref, target, replacement);
         case NEAT_BUF_TY      : return neat_buf_replace_first(str.str.carr, target, replacement);
+        default               : unreachable();
     };
 }
 
@@ -1827,6 +1841,7 @@ Neat_String_View neat_strv_mutstr_ref2(Neat_Mut_String_Ref str, unsigned int beg
         case NEAT_STRBUF_TY   : return neat_strv_strbuf_ptr2(str.str.strbuf, begin);
         case NEAT_SSTR_REF_TY : return neat_strv_sstr_ref2(str.str.sstr_ref, begin);
         case NEAT_BUF_TY      : return neat_strv_fmutstr_ref2(neat_buf_as_fmutstr_ref(str.str.carr, &(unsigned int){0}), begin);
+        default               : unreachable();
     }
 }
 
@@ -1974,6 +1989,7 @@ Neat_String_View neat_strv_mutstr_ref3(Neat_Mut_String_Ref str, unsigned int beg
         case NEAT_STRBUF_TY   : return neat_strv_strbuf_ptr3(str.str.strbuf, begin, end);
         case NEAT_SSTR_REF_TY : return neat_strv_sstr_ref3(str.str.sstr_ref, begin, end);
         case NEAT_BUF_TY      : return neat_strv_fmutstr_ref3(neat_buf_as_fmutstr_ref(str.str.carr, &(unsigned int){0}), begin, end);
+        default               : unreachable();
     }
 }
 
@@ -2006,7 +2022,6 @@ Neat_String_Error neat_dstr_fread_line_(Neat_DString *dstr, FILE *stream)
 Neat_String_Error neat_dstr_append_fread_line_(Neat_DString *dstr, FILE *stream)
 {
     // TODO optimize this
-    unsigned int prev_len = dstr->len;
     int c = 0;
     while(c != '\n' && (c=fgetc(stream)) != EOF)
     {
@@ -2053,6 +2068,7 @@ Neat_String_Error neat_mutstr_ref_fread_line(Neat_Mut_String_Ref dst, FILE *stre
         case NEAT_STRBUF_TY   : return neat_fmutstr_ref_fread_line(neat_strbuf_as_fmutstr_ref(dst.str.strbuf), stream);
         case NEAT_SSTR_REF_TY : return neat_fmutstr_ref_fread_line(neat_sstr_ref_as_fmutstr_ref(dst.str.sstr_ref), stream);
         case NEAT_BUF_TY      : return neat_fmutstr_ref_fread_line(neat_buf_as_fmutstr_ref(dst.str.carr, &(unsigned int){0}), stream);
+        default               : unreachable();
     };
 }
 
@@ -2087,6 +2103,7 @@ Neat_String_Error neat_mutstr_ref_append_fread_line(Neat_Mut_String_Ref dst, FIL
         case NEAT_STRBUF_TY   : return neat_fmutstr_ref_append_fread_line(neat_strbuf_as_fmutstr_ref(dst.str.strbuf), stream);
         case NEAT_SSTR_REF_TY : return neat_fmutstr_ref_append_fread_line(neat_sstr_ref_as_fmutstr_ref(dst.str.sstr_ref), stream);
         case NEAT_BUF_TY      : return neat_fmutstr_ref_append_fread_line(neat_buf_as_fmutstr_ref(dst.str.carr, &(unsigned int){0}), stream);
+        default               : unreachable();
     };
 }
 
@@ -2215,32 +2232,32 @@ Neat_String_Error neat_llong_min_into_fmutstr_ref(Fixed_Mut_String_Ref dst)
 do { \
     if(*fmutstr.len <= 1) \
         return NEAT_DST_TOO_SMALL; \
-        if(obj == neat_sinteger_min(typeof(obj))) \
+    if(obj == neat_sinteger_min(typeof(obj))) \
+    { \
+        return neat_min_tostr(typeof(obj))(fmutstr); \
+    } \
+    typeof(obj) num = obj; \
+    \
+    bool isneg = num < 0; \
+    if(isneg) \
+    { \
+        num *= -1; \
+        if(fmutstr.cap > 1) \
         { \
-            return neat_min_tostr(typeof(obj))(fmutstr); \
+            fmutstr.chars[0] = '-'; \
         } \
-        typeof(obj) num = obj; \
-        \
-        bool isneg = num < 0; \
-        if(isneg) \
-        { \
-            num *= -1; \
-            if(fmutstr.cap > 1) \
-            { \
-                fmutstr.chars[0] = '-'; \
-            } \
-        } \
-        unsigned int numstr_len = neat_numstr_len(num); \
-        unsigned int chars_to_copy = neat_uint_min(fmutstr.cap - (1 + isneg), numstr_len); \
-        num /= neat_ten_pows[numstr_len - chars_to_copy]; \
-        for (unsigned int i = 0; i < chars_to_copy ; i++) \
-        { \
-            unsigned int rem = num % 10; \
-            num = num / 10; \
-            fmutstr.chars[isneg + chars_to_copy - (i + 1)] = rem + '0'; \
-        } \
-        \
-        *fmutstr.len = chars_to_copy; \
+    } \
+    unsigned int numstr_len = neat_numstr_len(num); \
+    unsigned int chars_to_copy = neat_uint_min(fmutstr.cap - (1 + isneg), numstr_len); \
+    num /= neat_ten_pows[numstr_len - chars_to_copy]; \
+    for (unsigned int i = 0; i < chars_to_copy ; i++) \
+    { \
+        unsigned int rem = num % 10; \
+        num = num / 10; \
+        fmutstr.chars[isneg + chars_to_copy - (i + 1)] = rem + '0'; \
+    } \
+    \
+    *fmutstr.len = chars_to_copy; \
 } while(0)
 
 // TODO: optimize this
@@ -2250,12 +2267,12 @@ do { \
     err = neat_dstr_ensure_cap_(dstr, numlen + 1); \
     if(err != NEAT_OK) \
         return err; \
-        \
-        Fixed_Mut_String_Ref as_fixed = { \
-            .chars = dstr->chars, \
-            .len = &dstr->len \
-        }; \
-        neat_sintger_tostr_fmutstr_ref(as_fixed); \
+    \
+    Fixed_Mut_String_Ref as_fixed = { \
+        .chars = dstr->chars, \
+        .len = &dstr->len \
+    }; \
+    neat_sintger_tostr_fmutstr_ref(as_fixed); \
 } while(0)
 
 #define neat_sinteger_tostr() \
@@ -2286,6 +2303,7 @@ do { \
             neat_sintger_tostr_fmutstr_ref(buf_as_fixed); \
             return err; \
         } \
+        default: unreachable(); \
     } \
 } while(0)
 
@@ -2296,30 +2314,30 @@ do { \
     err = neat_dstr_ensure_cap_(dstr, numlen + 1); \
     if(err != NEAT_OK) \
         return err; \
-        \
-        Fixed_Mut_String_Ref as_fixed = { \
-            .chars = dstr->chars, \
-            .len = &dstr->len \
-        }; \
-        neat_uintger_tostr_fmutstr_ref(as_fixed); \
+    \
+    Fixed_Mut_String_Ref as_fixed = { \
+        .chars = dstr->chars, \
+        .len = &dstr->len \
+    }; \
+    neat_uintger_tostr_fmutstr_ref(as_fixed); \
 } while(0)
 
 #define neat_uintger_tostr_fmutstr_ref(fmutstr) \
 do { \
     if(fmutstr.cap <= 1) \
         return NEAT_DST_TOO_SMALL; \
-        typeof(obj) num = obj; \
-        unsigned int numstr_len = neat_numstr_len_ull(num); \
-        unsigned int chars_to_copy = neat_uint_min(fmutstr.cap - 1, numstr_len); \
-        num /= neat_ten_pows[numstr_len - chars_to_copy]; \
-        for (unsigned int i = 0; i < chars_to_copy ; i++) \
-        { \
-            unsigned int rem = num % 10; \
-            num = num / 10; \
-            fmutstr.chars[chars_to_copy - (i + 1)] = rem + '0'; \
-        } \
-        \
-        *fmutstr.len = chars_to_copy; \
+    typeof(obj) num = obj; \
+    unsigned int numstr_len = neat_numstr_len_ull(num); \
+    unsigned int chars_to_copy = neat_uint_min(fmutstr.cap - 1, numstr_len); \
+    num /= neat_ten_pows[numstr_len - chars_to_copy]; \
+    for (unsigned int i = 0; i < chars_to_copy ; i++) \
+    { \
+        unsigned int rem = num % 10; \
+        num = num / 10; \
+        fmutstr.chars[chars_to_copy - (i + 1)] = rem + '0'; \
+    } \
+    \
+    *fmutstr.len = chars_to_copy; \
 } while(0)
 
 #define neat_uinteger_tostr() \
@@ -2350,6 +2368,7 @@ do { \
             neat_uintger_tostr_fmutstr_ref(buf_as_fixed); \
             return err; \
         } \
+        default: unreachable(); \
     } \
 } while(0)
 
