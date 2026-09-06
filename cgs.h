@@ -124,12 +124,19 @@ macro(unsigned char*      , ucstr , arg)           \
 macro(const char*         , ccstr , arg)           \
 macro(const unsigned char*, cstr  , arg)           \
 macro(CGS_ZStrView        , zstrv , arg)           \
-macro(CGS_CZStrView       , czstrv, arg)
+macro(CGS_CZStrView       , czstrv, arg)           \
+macro(CGS_DStr            , dstr  , arg)           \
+macro(CGS_StrBuf          , strbuf, arg)
 
 #define CGS__T_MUTABLE_STRINGS(macro, arg) \
 CGS__T_APPENDABLE_STRINGS(macro, arg)      \
 macro(char*         , cstr , arg)          \
 macro(unsigned char*, ucstr, arg)          \
+
+#define CGS__T_ALL_STRING_TYPES(macro, arg) \
+CGS__T_NULL_TERMINATED_STRIGNS(macro, arg)  \
+macro(CGS_StrView, arg)                     \
+macro(CGS_CStrView, arg)
 
 struct CGS_Allocator;
 
