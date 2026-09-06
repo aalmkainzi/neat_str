@@ -11,6 +11,126 @@
     #define CGS_API
 #endif
 
+#if __STDC_VERSION__ >= 202311L
+    #define CGS__NODISCARD(...) [[nodiscard(__VA_ARGS__)]]
+#elif defined(__GNUC__)
+    #define CGS__NODISCARD(...) __attribute__((warn_unused_result))
+#else
+    #define CGS__NODISCARD(...)
+#endif
+
+#ifndef __clang__
+    #define cgs__static_assertx(exp, msg) ((void)_Generic((char (*)[!!(exp) + 1])0, char (*)[2]: (msg)))
+#else
+    #define cgs__static_assertx(exp, msg) \
+        ((void)sizeof(struct {            \
+            _Static_assert(exp, msg);     \
+            int dummy;                    \
+        }))
+#endif
+
+#define CGS__PRIMITIVE_CAT(a, ...) a##__VA_ARGS__
+#define CGS__CAT(a, ...) CGS__PRIMITIVE_CAT(a, __VA_ARGS__)
+
+// IF_DEF and ARG_n stuff
+#define CGS__COMMA()              ,
+#define CGS__ARG1_( _1, ... )     _1
+#define CGS__ARG1( ... )          CGS__ARG1_( __VA_ARGS__ )
+#define CGS__ARG2_( _1, _2, ... ) _2
+#define CGS__ARG2( ... )          CGS__ARG2_( __VA_ARGS__ )
+#define CGS__INCL( ... )          __VA_ARGS__
+#define CGS__OMIT( ... )
+#define CGS__OMIT1(a, ...)        __VA_ARGS__
+#define CGS__IF_DEF( macro )      CGS__ARG2( CGS__COMMA macro () CGS__INCL, CGS__OMIT, )
+// IF_DEF and ARG_n stuff end
+
+// FOREACH stuff
+#define CGS__PARENS ()
+
+#define CGS__EXPAND(...)  CGS__EXPAND4(CGS__EXPAND4(CGS__EXPAND4(CGS__EXPAND4(__VA_ARGS__))))
+#define CGS__EXPAND4(...) CGS__EXPAND3(CGS__EXPAND3(CGS__EXPAND3(CGS__EXPAND3(__VA_ARGS__))))
+#define CGS__EXPAND3(...) CGS__EXPAND2(CGS__EXPAND2(CGS__EXPAND2(CGS__EXPAND2(__VA_ARGS__))))
+#define CGS__EXPAND2(...) CGS__EXPAND1(CGS__EXPAND1(CGS__EXPAND1(CGS__EXPAND1(__VA_ARGS__))))
+#define CGS__EXPAND1(...) __VA_ARGS__
+
+#define CGS__FOREACH(macro, ...) __VA_OPT__(CGS__EXPAND(CGS__FOREACH_HELPER(macro, __VA_ARGS__)))
+#define CGS__FOREACH_HELPER(macro, a1, ...) macro(a1) __VA_OPT__(CGS__FOREACH_REPEAT CGS__PARENS(macro, __VA_ARGS__))
+#define CGS__FOREACH_REPEAT() CGS__FOREACH_HELPER
+// FOREACH stuff end
+
+#define CGS__VA_OR(otherwise, ...) \
+__VA_ARGS__ CGS__IF_EMPTY(otherwise, __VA_ARGS__)
+
+#define CGS__IF_EMPTY(then, ...) \
+CGS__CAT(CGS__IF_EMPTY_, __VA_OPT__(0))(then)
+
+#define CGS__IF_EMPTY_(then) then
+#define CGS__IF_EMPTY_0(then)
+
+// macro overloading, from https://github.com/stclib/STC/blob/main/include/stc/common.h
+#define CGS__MACRO_OVERLOAD(name, ...) \
+CGS__JOIN(name ## _,CGS__NUMARGS(__VA_ARGS__))(__VA_ARGS__)
+#define CGS__JOIN0(a, b) a ## b
+#define CGS__JOIN(a, b) CGS__JOIN0(a, b)
+#define CGS__NUMARGS(...) CGS__APPLY_ARG_N((__VA_ARGS__, CGS__RSEQ_N))
+#define CGS__APPLY_ARG_N(args) CGS__ARG_N args
+#define CGS__RSEQ_N 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1,
+#define CGS__ARG_N(_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15,_16,_17,_18,_19,_20,N,...) N
+
+#define cgs__has_type(exp, t) \
+_Generic((exp), t: true, default: false)
+
+#define cgs__is_array_of(exp, ty) \
+cgs__has_type((__typeof__(exp)*){0}, __typeof__(ty)(*)[sizeof(exp)/sizeof(ty)])
+
+#define cgs__coerce_fallback(exp, ty, fallback) \
+_Generic(exp, \
+    ty: (exp), \
+    default: (fallback) \
+)
+
+#define cgs__coerce(exp, t) \
+cgs__coerce_fallback(exp, t, (t){0})
+
+#define cgs__coerce4(exp, t1, t2, t3, t4) \
+_Generic(exp, t1: exp, t2: exp, t3: exp, t4: exp, default: (t1){})
+
+#define cgs__coerce_cstr(exp) \
+cgs__coerce4(exp, char*, const char*, unsigned char*, const unsigned char*)
+
+#define cgs__coerce_not(exp, not_ty, fallback_ty) \
+_Generic(exp, \
+    not_ty: (fallback_ty){0}, \
+    default: (exp) \
+)
+
+#define CGS__CARR_LEN(carr) (sizeof(carr) / sizeof((carr)[0]))
+
+#define CGS__T_APPENDABLE_STRINGS(macro, arg)  \
+macro(CGS_DStr*    , dstr_ptr  , arg)        \
+macro(CGS_StrBuf*  , strbuf_ptr, arg)        \
+macro(CGS_MutStrRef, mutstr_ref, arg)
+
+#define CGS__T_STRING_VIEWS(macro, arg) \
+macro(CGS_StrView  , strv  , arg)       \
+macro(CGS_CStrView , cstrv , arg)       \
+macro(CGS_ZStrView , zstrv , arg)       \
+macro(CGS_CZStrView, czstrv, arg)
+
+#define CGS__T_NULL_TERMINATED_STRIGNS(macro, arg) \
+CGS__T_APPENDABLE_STRINGS(macro, arg)              \
+macro(char*               , cstr  , arg)           \
+macro(unsigned char*      , ucstr , arg)           \
+macro(const char*         , ccstr , arg)           \
+macro(const unsigned char*, cstr  , arg)           \
+macro(CGS_ZStrView        , zstrv , arg)           \
+macro(CGS_CZStrView       , czstrv, arg)
+
+#define CGS__T_MUTABLE_STRINGS(macro, arg) \
+CGS__T_APPENDABLE_STRINGS(macro, arg)      \
+macro(char*         , cstr , arg)          \
+macro(unsigned char*, ucstr, arg)          \
+
 struct CGS_Allocator;
 
 typedef struct CGS_Allocation
@@ -59,91 +179,6 @@ cgs__allocator_invoke_dealloc((allocator), (ptr), 1, (n))
 
 #define cgs_realloc_bytes(allocator, ptr, old_n, new_n, actual) \
 cgs__allocator_invoke_realloc((allocator), (ptr), _Alignof(max_align_t), 1, (old_n), (new_n))
-
-#if __STDC_VERSION__ >= 202311L
-    #define CGS__NODISCARD(...) [[nodiscard(__VA_ARGS__)]]
-#elif defined(__GNUC__)
-    #define CGS__NODISCARD(...) __attribute__((warn_unused_result))
-#else
-    #define CGS__NODISCARD(...)
-#endif
-
-#ifndef __clang__
-    #define cgs__static_assertx(exp, msg) ((void)_Generic((char (*)[!!(exp) + 1])0, char (*)[2]: (msg)))
-#else
-    #define cgs__static_assertx(exp, msg) \
-        ((void)sizeof(struct {            \
-            _Static_assert(exp, msg);     \
-            int dummy;                    \
-        }))
-#endif
-
-#define CGS__PRIMITIVE_CAT(a, ...) a##__VA_ARGS__
-#define CGS__CAT(a, ...) CGS__PRIMITIVE_CAT(a, __VA_ARGS__)
-
-#define cgs__has_type(exp, t) \
-_Generic((exp), t: true, default: false)
-
-#define cgs__is_array_of(exp, ty) \
-cgs__has_type((__typeof__(exp)*){0}, __typeof__(ty)(*)[sizeof(exp)/sizeof(ty)])
-
-#define cgs__coerce(exp, t) \
-cgs__coerce_fallback(exp, t, (t){0})
-
-#define cgs__coerce4(exp, t1, t2, t3, t4) \
-_Generic(exp, t1: exp, t2: exp, t3: exp, t4: exp, default: (t1){})
-
-#define cgs__coerce_cstr(exp) \
-cgs__coerce4(exp, char*, const char*, unsigned char*, const unsigned char*)
-
-#define cgs__coerce_fallback(exp, ty, fallback) \
-_Generic(exp, \
-    ty: (exp), \
-    default: (fallback) \
-)
-
-#define cgs__coerce_not(exp, not_ty, fallback_ty) \
-_Generic(exp, \
-    not_ty: (fallback_ty){0}, \
-    default: (exp) \
-)
-
-#define CGS__CARR_LEN(carr) (sizeof(carr) / sizeof((carr)[0]))
-
-// IF_DEF and ARG_n stuff
-#define CGS__COMMA()              ,
-#define CGS__ARG1_( _1, ... )     _1
-#define CGS__ARG1( ... )          CGS__ARG1_( __VA_ARGS__ )
-#define CGS__ARG2_( _1, _2, ... ) _2
-#define CGS__ARG2( ... )          CGS__ARG2_( __VA_ARGS__ )
-#define CGS__INCL( ... )          __VA_ARGS__
-#define CGS__OMIT( ... )
-#define CGS__OMIT1(a, ...)        __VA_ARGS__
-#define CGS__IF_DEF( macro )      CGS__ARG2( CGS__COMMA macro () CGS__INCL, CGS__OMIT, )
-// IF_DEF and ARG_n stuff end
-
-// FOREACH stuff
-#define CGS__PARENS ()
-
-#define CGS__EXPAND(...)  CGS__EXPAND4(CGS__EXPAND4(CGS__EXPAND4(CGS__EXPAND4(__VA_ARGS__))))
-#define CGS__EXPAND4(...) CGS__EXPAND3(CGS__EXPAND3(CGS__EXPAND3(CGS__EXPAND3(__VA_ARGS__))))
-#define CGS__EXPAND3(...) CGS__EXPAND2(CGS__EXPAND2(CGS__EXPAND2(CGS__EXPAND2(__VA_ARGS__))))
-#define CGS__EXPAND2(...) CGS__EXPAND1(CGS__EXPAND1(CGS__EXPAND1(CGS__EXPAND1(__VA_ARGS__))))
-#define CGS__EXPAND1(...) __VA_ARGS__
-
-#define CGS__FOREACH(macro, ...) __VA_OPT__(CGS__EXPAND(CGS__FOREACH_HELPER(macro, __VA_ARGS__)))
-#define CGS__FOREACH_HELPER(macro, a1, ...) macro(a1) __VA_OPT__(CGS__FOREACH_REPEAT CGS__PARENS(macro, __VA_ARGS__))
-#define CGS__FOREACH_REPEAT() CGS__FOREACH_HELPER
-// FOREACH stuff end
-
-#define CGS__VA_OR(otherwise, ...) \
-__VA_ARGS__ CGS__IF_EMPTY(otherwise, __VA_ARGS__)
-
-#define CGS__IF_EMPTY(then, ...) \
-CGS__CAT(CGS__IF_EMPTY_, __VA_OPT__(0))(then)
-
-#define CGS__IF_EMPTY_(then) then
-#define CGS__IF_EMPTY_0(then)
 
 // Dynamic string
 typedef struct CGS_DStr
@@ -304,11 +339,25 @@ typedef struct CGS__FixedMutStrRef
     unsigned int cap;
 } CGS__FixedMutStrRef;
 
-typedef struct CGS__const_StrView
+typedef struct CGS_CStrView
 {
     const char *chars;
     unsigned int len;
-} CGS__const_StrView;
+} CGS_CStrView;
+
+typedef struct CGS_ZStrView
+{
+    char *chars;
+    unsigned int len;
+} CGS_ZStrView;
+
+typedef struct CGS_CZStrView
+{
+    const char *chars;
+    unsigned int len;
+} CGS_CZStrView;
+
+typedef CGS_CZStrView CGS_ZCStrView;
 
 typedef struct CGS_ArrayFmt
 {
@@ -387,16 +436,37 @@ CGS__DeclResult(int);
 CGS__DeclResult(CGS_StrView);
 
 #define cgs__fmutstr_ref(s, ...) \
+CGS__MACRO_OVERLOAD(cgs__fmutstr_ref, s __VA_OPT__(,) __VA_ARGS__)
+
+#define cgs__fmutstr_ref_1_generic_assoc(T, name, arg) \
+__typeof__(T)*: cgs__##name##_as_fmutstr_ref(cgs__coerce(arg, T)),
+
+#define cgs__fmutstr_ref_1(s) \
 _Generic(&(__typeof__(s)){0}, \
-    CGS_DStr**                              : cgs__dstr_ptr_as_fmutstr_ref(cgs__coerce(s, CGS_DStr*)), \
-    CGS_Buffer*                             : cgs__buf_as_fmutstr_ref(cgs__coerce(s, CGS_Buffer), CGS__VA_OR(&(unsigned int){0}, __VA_ARGS__)), \
-    CGS_StrBuf**                            : cgs__strbuf_ptr_as_fmutstr_ref(cgs__coerce(s, CGS_StrBuf*)), \
-    CGS_MutStrRef*                          : cgs__mutstr_ref_as_fmutstr_ref(cgs__coerce(s, CGS_MutStrRef), CGS__VA_OR(&(unsigned int){0}, __VA_ARGS__)), \
-    char**                                  : cgs__buf_as_fmutstr_ref(cgs__buf_from_cstr(cgs__coerce(s, char*)), CGS__VA_OR(&(unsigned int){0}, __VA_ARGS__)), \
-    unsigned char**                         : cgs__buf_as_fmutstr_ref(cgs__buf_from_ucstr(cgs__coerce(s, unsigned char*)), CGS__VA_OR(&(unsigned int){0}, __VA_ARGS__)), \
-    char(*)[sizeof(__typeof__(s))]          : cgs__buf_as_fmutstr_ref(cgs__buf_from_carr(cgs__coerce(s, char*), sizeof(__typeof__(s))), CGS__VA_OR(&(unsigned int){0}, __VA_ARGS__)), \
-    unsigned char(*)[sizeof(__typeof__(s))] : cgs__buf_as_fmutstr_ref(cgs__buf_from_ucarr(cgs__coerce(s, unsigned char*), sizeof(__typeof__(s))), CGS__VA_OR(&(unsigned int){0}, __VA_ARGS__)) \
+    CGS__T_MUTABLE_STRINGS(cgs__fmutstr_ref_1_generic_assoc, s) \
+    CGS_Buffer*                             : cgs__buf_as_fmutstr_ref(cgs__coerce(s, CGS_Buffer), &(unsigned int){0}), \
+    char(*)[sizeof(__typeof__(s))]          : cgs__buf_as_fmutstr_ref(cgs__buf_from_carr(cgs__coerce(s, char*), sizeof(__typeof__(s))), &(unsigned int){0}), \
+    unsigned char(*)[sizeof(__typeof__(s))] : cgs__buf_as_fmutstr_ref(cgs__buf_from_ucarr(cgs__coerce(s, unsigned char*), sizeof(__typeof__(s))), &(unsigned int){0}) \
 )
+
+#define cgs__fmutstr_ref_2(s, lenp) \
+_Generic(&(__typeof__(s)){0}, \
+    char**                                  : cgs__buf_as_fmutstr_ref(cgs__buf_from_cstr(cgs__coerce(s, char*)), lenp), \
+    unsigned char**                         : cgs__buf_as_fmutstr_ref(cgs__buf_from_ucstr(cgs__coerce(s, unsigned char*)), lenp), \
+    char(*)[sizeof(__typeof__(s))]          : cgs__buf_as_fmutstr_ref(cgs__buf_from_carr(cgs__coerce(s, char*), sizeof(__typeof__(s))), lenp), \
+    unsigned char(*)[sizeof(__typeof__(s))] : cgs__buf_as_fmutstr_ref(cgs__buf_from_ucarr(cgs__coerce(s, unsigned char*), sizeof(__typeof__(s))), lenp), \
+    CGS_Buffer*                             : cgs__buf_as_fmutstr_ref(cgs__coerce(s, CGS_Buffer), lenp), \
+    CGS_MutStrRef*                          : cgs__mutstr_ref_as_fmutstr_ref2(cgs__coerce(s, CGS_MutStrRef), lenp) \
+)
+
+#define cgs__mutstr_ref_as_fmutstr_ref(s) \
+cgs__mutstr_ref_as_fmutstr_ref2(s, &(unsigned int){0})
+
+#define cgs__cstr_as_fmutstr_ref(s) \
+cgs__buf_as_fmutstr_ref(cgs__buf_from_cstr(s), &(unsigned int){0})
+
+#define cgs__ucstr_as_fmutstr_ref(s) \
+cgs__buf_as_fmutstr_ref(cgs__buf_from_ucstr(s), &(unsigned int){0})
 
 #define cgs__fmutstr_ref_zero_len(s, ...) \
 _Generic(&(__typeof__(s)){0}, \
@@ -860,6 +930,11 @@ _Generic(anystr,                                  \
     const CGS_StrBuf*    : cgs__strv_strbuf_ptr3  \
 )(anystr, begin, end)
 
+#define cgs_cstrv(...) \
+cgs__strv_to_cstrv(cgs_strv(__VA_ARGS__))
+
+#define cgs_zstrv() \
+
 #define cgs_dstr_init(...) \
 CGS__CAT(cgs__dstr_init0, __VA_OPT__(1))(__VA_ARGS__)
 
@@ -930,8 +1005,8 @@ cgs__as_ptr(a),
 (CGS_Error(*)(CGS_Writer*, const void*, CGS_StrView))cgs__get_tostr_p_func(__typeof__(a)),
 
 #define cgs__fmt_helper(fmt_func, writer, fmt, ...) \
-    __VA_OPT__(fmt_func(writer, (CGS__const_StrView){.chars = (fmt), .len = strlen(fmt)}, 0 CGS__FOREACH(cgs__arg_count_each, __VA_ARGS__), (void*[]){CGS__FOREACH(cgs__as_ptr_elm, __VA_ARGS__)}, (CGS_Error(*[])(CGS_Writer*,const void*, CGS_StrView)){CGS__FOREACH(cgs__tostr_p_func_elm, __VA_ARGS__)})) \
-    CGS__IF_EMPTY((fmt_func(cgs_writer_ptr(writer), (CGS__const_StrView){.chars = (fmt), .len = strlen(fmt)}, 0, NULL, NULL)), __VA_ARGS__)
+    __VA_OPT__(fmt_func(writer, (CGS_CStrView){.chars = (fmt), .len = strlen(fmt)}, 0 CGS__FOREACH(cgs__arg_count_each, __VA_ARGS__), (void*[]){CGS__FOREACH(cgs__as_ptr_elm, __VA_ARGS__)}, (CGS_Error(*[])(CGS_Writer*,const void*, CGS_StrView)){CGS__FOREACH(cgs__tostr_p_func_elm, __VA_ARGS__)})) \
+    CGS__IF_EMPTY((fmt_func(cgs_writer_ptr(writer), (CGS_CStrView){.chars = (fmt), .len = strlen(fmt)}, 0, NULL, NULL)), __VA_ARGS__)
 
 #define cgs_appendf(writer_dst, fmt, ...) \
 cgs__fmt_helper(cgs__append_fmt, cgs_writer_ptr(writer_dst), fmt, __VA_ARGS__)
@@ -1453,7 +1528,7 @@ CGS_API CGS_MutStrRef cgs__mutstr_ref_as_mutstr_ref(CGS_MutStrRef str);
 CGS_API CGS__FixedMutStrRef cgs__buf_as_fmutstr_ref(CGS_Buffer buf, unsigned int *len_ptr);
 CGS_API CGS__FixedMutStrRef cgs__buf_as_fmutstr_ref_zero_len(CGS_Buffer buf, unsigned int *len_ptr);
 CGS_API CGS__FixedMutStrRef cgs__strbuf_ptr_as_fmutstr_ref(CGS_StrBuf *strbuf);
-CGS_API CGS__FixedMutStrRef cgs__mutstr_ref_as_fmutstr_ref(CGS_MutStrRef mutstr_ref, unsigned int *len_ptr);
+CGS_API CGS__FixedMutStrRef cgs__mutstr_ref_as_fmutstr_ref2(CGS_MutStrRef mutstr_ref, unsigned int *len_ptr);
 CGS_API CGS__FixedMutStrRef cgs__mutstr_ref_as_fmutstr_ref_zero_len(CGS_MutStrRef mutstr_ref, unsigned int *len_ptr);
 CGS_API CGS__FixedMutStrRef cgs__dstr_ptr_as_fmutstr_ref(CGS_DStr *dstr);
 
@@ -1551,10 +1626,10 @@ CGS_API CGS_Error cgs__fmutstr_ref_append_fread_until(CGS__FixedMutStrRef dst, F
 CGS_API unsigned int cgs__fprint_strv(FILE *stream, CGS_StrView str);
 CGS_API unsigned int cgs__fprintln_strv(FILE *stream, CGS_StrView str);
 
-CGS_API CGS_Error cgs__append_fmt(CGS_Writer *dst, CGS__const_StrView fmt, size_t nargs, void **args, CGS_Error(*tostr_p_funcs[])(CGS_Writer*, const void*, CGS_StrView));
-CGS_API CGS_Error cgs__appendln_fmt_(CGS_Writer *dst, CGS__const_StrView fmt, size_t nargs, void **args, CGS_Error(*tostr_p_funcs[])(CGS_Writer*, const void*, CGS_StrView));
-CGS_API CGS_DStr cgs__asprintf(CGS_Writer *dst, CGS__const_StrView fmt, size_t nargs, void **args, CGS_Error(*tostr_p_funcs[])(CGS_Writer*, const void*, CGS_StrView));
-CGS_API CGS_DStr cgs__asprintf_with_allocator(CGS_Writer *dst, CGS__const_StrView fmt, size_t nargs, void **args, CGS_Error(*tostr_p_funcs[])(CGS_Writer*, const void*, CGS_StrView));
+CGS_API CGS_Error cgs__append_fmt(CGS_Writer *dst, CGS_CStrView fmt, size_t nargs, void **args, CGS_Error(*tostr_p_funcs[])(CGS_Writer*, const void*, CGS_StrView));
+CGS_API CGS_Error cgs__appendln_fmt_(CGS_Writer *dst, CGS_CStrView fmt, size_t nargs, void **args, CGS_Error(*tostr_p_funcs[])(CGS_Writer*, const void*, CGS_StrView));
+CGS_API CGS_DStr cgs__asprintf(CGS_Writer *dst, CGS_CStrView fmt, size_t nargs, void **args, CGS_Error(*tostr_p_funcs[])(CGS_Writer*, const void*, CGS_StrView));
+CGS_API CGS_DStr cgs__asprintf_with_allocator(CGS_Writer *dst, CGS_CStrView fmt, size_t nargs, void **args, CGS_Error(*tostr_p_funcs[])(CGS_Writer*, const void*, CGS_StrView));
 
 CGS_API CGS_Error cgs__bool_tostr(CGS_Writer *dst, bool obj, CGS_StrView fmt_arg);
 CGS_API CGS_Error cgs__cstr_tostr(CGS_Writer *dst, const char *obj, CGS_StrView fmt_arg);
@@ -1693,7 +1768,7 @@ static inline CGS_Error cgs__invoke_writer_ln(CGS_Writer *dst, CGS_StrView str)
     return err;
 }
 
-static inline CGS_Error cgs__invoke_writer_c(CGS_Writer *dst, const CGS__const_StrView str)
+static inline CGS_Error cgs__invoke_writer_c(CGS_Writer *dst, const CGS_CStrView str)
 {
     return dst->append(dst, (CGS_StrView){.chars = (char*)str.chars, .len = str.len});
 }
@@ -1741,6 +1816,11 @@ static inline CGS_Error cgs__cstr_append(CGS_Writer *dst, CGS_StrView str)
         return (CGS_Error){CGS_DST_TOO_SMALL};
     else
         return (CGS_Error){CGS_OK};
+}
+
+static inline CGS_CStrView cgs__strv_to_cstrv(CGS_StrView sv)
+{
+    return (CGS_CStrView){.chars = sv.chars, .len = sv.len};
 }
 
 #endif // CGS__H_INCLUDED
