@@ -1412,8 +1412,6 @@ void test_writer_counter(void)
     }
 }
 
-#define ASSERT_STR_EQ(s1,s2) ASSERT_TRUE(cgs_equal(s1, s2))
-
 typedef struct Point { int x, y; } Point;
 
 CGS_Error point_tostr(CGS_Writer *dst, Point p, CGS_StrView opt)
@@ -1960,6 +1958,7 @@ void test_file_io_edge_cases();
 void test_appender_edge_cases();
 void test_str_join_edge_cases();
 void test_spn_cspn_tok();
+void test_zstrv();
 
 int main() {
     printf("========================================\n");
@@ -1998,6 +1997,7 @@ int main() {
     test_spn_cspn_tok();
     test_repeatfmt();
     test_fmt_spec();
+    test_zstrv();
     
     printf("\n========================================\n");
     printf("Test Results: %d/%d passed\n", passed_count, test_count);

@@ -45,6 +45,9 @@ do { \
     } \
 } while(0)
 
+#define ASSERT_STR_EQ(a, b) \
+ASSERT_TRUE(cgs_equal(a, b))
+
 #define ASSERT_NULL(ptr) \
 do { \
     test_count++; \

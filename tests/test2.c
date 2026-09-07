@@ -1230,3 +1230,314 @@ void test_str_join_edge_cases() {
         ASSERT_EQ(err.ec, CGS_DST_TOO_SMALL);
     }
 }
+
+void test_zstrv()
+{
+    /* ════════════════════════════════════════════════════════════
+     * Construction
+     * ════════════════════════════════════════════════════════════ */
+    
+    TEST("cgs_zstrv: from a string literal, default begin=0");
+    {
+        CGS_ZStrView z = cgs_zstrv("hello");
+        ASSERT_TRUE(cgs_len(z) == 5);
+        ASSERT_TRUE(cgs_equal(z, "hello"));
+    }
+    
+    TEST("cgs_zstrv: explicit begin=0 matches the default");
+    {
+        CGS_ZStrView a = cgs_zstrv("hello");
+        CGS_ZStrView b = cgs_zstrv("hello", 0);
+        ASSERT_TRUE(cgs_equal(a, b));
+    }
+    
+    TEST("cgs_zstrv: begin offset yields a suffix");
+    {
+        CGS_ZStrView z = cgs_zstrv("hello, world", 7);
+        ASSERT_TRUE(cgs_equal(z, "world"));
+        ASSERT_TRUE(cgs_len(z) == 5);
+    }
+    
+    TEST("cgs_zstrv: begin=1 drops the first char");
+    {
+        CGS_ZStrView z = cgs_zstrv("abcdef", 1);
+        ASSERT_TRUE(cgs_equal(z, "bcdef"));
+    }
+    
+    TEST("cgs_zstrv: begin == len yields an empty view");
+    {
+        CGS_ZStrView z = cgs_zstrv("abc", 3);
+        ASSERT_TRUE(cgs_len(z) == 0);
+        ASSERT_TRUE(cgs_equal(z, ""));
+    }
+    
+    TEST("cgs_zstrv: from an empty string");
+    {
+        CGS_ZStrView z = cgs_zstrv("");
+        ASSERT_TRUE(cgs_len(z) == 0);
+        ASSERT_TRUE(cgs_equal(z, ""));
+    }
+    
+    /* ── construction from the other string types ─────────────── */
+    
+    TEST("cgs_zstrv: from char[]");
+    {
+        char arr[] = "buffer text";
+        CGS_ZStrView z = cgs_zstrv(arr);
+        ASSERT_TRUE(cgs_equal(z, "buffer text"));
+    }
+    
+    TEST("cgs_zstrv: from char[] with begin offset");
+    {
+        char arr[] = "buffer text";
+        CGS_ZStrView z = cgs_zstrv(arr, 7);
+        ASSERT_TRUE(cgs_equal(z, "text"));
+    }
+    
+    TEST("cgs_zstrv: from unsigned char[]");
+    {
+        unsigned char arr[] = "unsigned buf";
+        CGS_ZStrView z = cgs_zstrv(arr);
+        ASSERT_TRUE(cgs_equal(z, "unsigned buf"));
+    }
+    
+    TEST("cgs_zstrv: from char*");
+    {
+        char *p = "pointer text";
+        CGS_ZStrView z = cgs_zstrv(p, 8);
+        ASSERT_TRUE(cgs_equal(z, "text"));
+    }
+    
+    TEST("cgs_zstrv: from DStr");
+    {
+        CGS_DStr d = cgs_dstr_init_from("dynamic string");
+        CGS_ZStrView z = cgs_zstrv(d, 8);
+        ASSERT_TRUE(cgs_equal(z, "string"));
+        cgs_dstr_deinit(&d);
+    }
+    
+    TEST("cgs_zstrv: from DStr*");
+    {
+        CGS_DStr d = cgs_dstr_init_from("dynamic string");
+        CGS_ZStrView z = cgs_zstrv(&d, 0);
+        ASSERT_TRUE(cgs_equal(z, "dynamic string"));
+        cgs_dstr_deinit(&d);
+    }
+    
+    TEST("cgs_zstrv: from StrBuf*");
+    {
+        char mem[64] = {0};
+        CGS_StrBuf sb = cgs_strbuf_init_from_buf(mem);
+        cgs_copy(&sb, "strbuf content");
+        CGS_ZStrView z = cgs_zstrv(&sb, 7);
+        ASSERT_TRUE(cgs_equal(z, "content"));
+    }
+    
+    TEST("cgs_zstrv: from MutStrRef");
+    {
+        CGS_DStr d = cgs_dstr_init_from("ref content");
+        CGS_MutStrRef mr = cgs_mutstr_ref(&d);
+        CGS_ZStrView z = cgs_zstrv(mr, 4);
+        ASSERT_TRUE(cgs_equal(z, "content"));
+        cgs_dstr_deinit(&d);
+    }
+    
+    TEST("cgs_zstrv: from another ZStrView (still null terminated)");
+    {
+        CGS_ZStrView a = cgs_zstrv("hello, world");
+        CGS_ZStrView b = cgs_zstrv(a, 7);
+        ASSERT_TRUE(cgs_equal(b, "world"));
+    }
+    
+    /* ════════════════════════════════════════════════════════════
+     * Null termination guarantee
+     * ════════════════════════════════════════════════════════════ */
+    
+    TEST("cgs_zstrv: chars are null terminated at len");
+    {
+        CGS_ZStrView z = cgs_zstrv("hello");
+        ASSERT_TRUE(cgs_chars(z)[cgs_len(z)] == '\0');
+    }
+    
+    TEST("cgs_zstrv: offset view is still null terminated");
+    {
+        CGS_ZStrView z = cgs_zstrv("hello, world", 7);
+        ASSERT_TRUE(cgs_chars(z)[cgs_len(z)] == '\0');
+    }
+    
+    TEST("cgs_zstrv: usable directly as a C string");
+    {
+        CGS_ZStrView z = cgs_zstrv("hello, world", 7);
+        ASSERT_TRUE(strcmp(cgs_chars(z), "world") == 0);
+    }
+    
+    TEST("cgs_zstrv: empty view is null terminated");
+    {
+        CGS_ZStrView z = cgs_zstrv("abc", 3);
+        ASSERT_TRUE(cgs_chars(z)[0] == '\0');
+    }
+    
+    /* ════════════════════════════════════════════════════════════
+     * Works as anystr_t in read-only APIs
+     * ════════════════════════════════════════════════════════════ */
+    
+    TEST("cgs_zstrv: cgs_len / cgs_equal accept a ZStrView");
+    {
+        CGS_ZStrView z = cgs_zstrv("compare me");
+        ASSERT_TRUE(cgs_len(z) == 10);
+        ASSERT_TRUE(cgs_equal(z, "compare me"));
+        ASSERT_TRUE(cgs_equal("compare me", z));
+    }
+    
+    TEST("cgs_zstrv: cgs_equal between two ZStrViews");
+    {
+        CGS_ZStrView a = cgs_zstrv("xyz");
+        CGS_ZStrView b = cgs_zstrv("wwxyz", 2);
+        ASSERT_TRUE(cgs_equal(a, b));
+    }
+    
+    TEST("cgs_zstrv: cgs_equal against a StrView");
+    {
+        CGS_ZStrView z = cgs_zstrv("hello");
+        ASSERT_TRUE(cgs_equal(z, cgs_strv("hello")));
+    }
+    
+    TEST("cgs_zstrv: cgs_find with ZStrView as haystack");
+    {
+        CGS_ZStrView z = cgs_zstrv("hello world");
+        CGS_StrView f = cgs_find(z, "world");
+        ASSERT_TRUE(cgs_equal(f, "world"));
+    }
+    
+    TEST("cgs_zstrv: cgs_find with ZStrView as needle");
+    {
+        CGS_ZStrView needle = cgs_zstrv("wor");
+        CGS_StrView f = cgs_find("hello world", needle);
+        ASSERT_TRUE(cgs_equal(f, "wor"));
+    }
+    
+    TEST("cgs_zstrv: cgs_count with ZStrView");
+    {
+        CGS_ZStrView z = cgs_zstrv("aaabccdddd");
+        ASSERT_TRUE(cgs_count(z, "a") == 3);
+        ASSERT_TRUE(cgs_count(z, "d") == 4);
+    }
+    
+    TEST("cgs_zstrv: cgs_starts_with / cgs_ends_with");
+    {
+        CGS_ZStrView z = cgs_zstrv("hello world");
+        ASSERT_TRUE(cgs_starts_with(z, "hello"));
+        ASSERT_TRUE(cgs_ends_with(z, "world"));
+        ASSERT_TRUE(!cgs_starts_with(z, "world"));
+    }
+    
+    TEST("cgs_zstrv: cgs_starts_with using a ZStrView as the needle");
+    {
+        CGS_ZStrView needle = cgs_zstrv("hel");
+        ASSERT_TRUE(cgs_starts_with("hello", needle));
+    }
+    
+    TEST("cgs_zstrv: cgs_spn / cgs_cspn accept a ZStrView");
+    {
+        CGS_ZStrView z = cgs_zstrv("abc123");
+        ASSERT_TRUE(cgs_equal(cgs_spn(z, "abc"), "abc"));
+        ASSERT_TRUE(cgs_equal(cgs_cspn(z, "0123456789"), "abc"));
+    }
+    
+    TEST("cgs_zstrv: cgs_trim_view accepts a ZStrView");
+    {
+        CGS_ZStrView z = cgs_zstrv("  padded  ");
+        ASSERT_TRUE(cgs_equal(cgs_trim_view(z), "padded"));
+    }
+    
+    /* ── as a source for mutating / producing APIs ────────────── */
+    
+    TEST("cgs_zstrv: cgs_copy from a ZStrView source");
+    {
+        char mem[64] = {0};
+        CGS_StrBuf sb = cgs_strbuf_init_from_buf(mem);
+        CGS_ZStrView z = cgs_zstrv("hello, world", 7);
+        cgs_copy(&sb, z);
+        ASSERT_TRUE(cgs_equal(sb, "world"));
+    }
+    
+    TEST("cgs_zstrv: cgs_append from a ZStrView source");
+    {
+        char mem[64] = {0};
+        CGS_StrBuf sb = cgs_strbuf_init_from_buf(mem);
+        cgs_copy(&sb, "say: ");
+        cgs_append(&sb, cgs_zstrv("hello, world", 7));
+        ASSERT_TRUE(cgs_equal(sb, "say: world"));
+    }
+    
+    TEST("cgs_zstrv: cgs_dstr_init_from a ZStrView");
+    {
+        CGS_DStr d = cgs_dstr_init_from(cgs_zstrv("hello, world", 7));
+        ASSERT_TRUE(cgs_equal(d, "world"));
+        cgs_dstr_deinit(&d);
+    }
+    
+    TEST("cgs_zstrv: cgs_split with a ZStrView source");
+    {
+        CGS_ZStrView z = cgs_zstrv("a,b,c");
+        CGS_StrViewArray arr = cgs_split(z, ",");
+        ASSERT_TRUE(arr.len == 3);
+        ASSERT_TRUE(cgs_equal(arr.strs[1], "b"));
+        free(arr.strs);
+    }
+    
+    TEST("cgs_zstrv: cgs_replace with ZStrView target and replacement");
+    {
+        char mem[64] = {0};
+        CGS_StrBuf sb = cgs_strbuf_init_from_buf(mem);
+        cgs_copy(&sb, "a-b-c");
+        CGS_Result(int) r = cgs_replace(&sb, cgs_zstrv("-"), cgs_zstrv("+"));
+        ASSERT_TRUE(r.val == 2);
+        ASSERT_TRUE(cgs_equal(sb, "a+b+c"));
+    }
+    
+    /* ════════════════════════════════════════════════════════════
+     * Formatting
+     * ════════════════════════════════════════════════════════════ */
+    
+    TEST("cgs_zstrv: printable via cgs_fmt");
+    {
+        char buf[64];
+        cgs_fmt(buf, "%?", cgs_zstrv("hello, world", 7));
+        ASSERT_STR_EQ(buf, "world");
+    }
+    
+    TEST("cgs_zstrv: usable as a fmt arg alongside other types");
+    {
+        char buf[64];
+        cgs_fmt(buf, "%? = %?", cgs_zstrv("answer"), 42);
+        ASSERT_STR_EQ(buf, "answer = 42");
+    }
+    
+    TEST("cgs_zstrv: length via unsigned int* counting writer");
+    {
+        unsigned int n = 0;
+        cgs_appendf(&n, "%?", cgs_zstrv("hello, world", 7));
+        ASSERT_TRUE(n == 5);
+    }
+    
+    /* ════════════════════════════════════════════════════════════
+     * Aliasing / independence
+     * ════════════════════════════════════════════════════════════ */
+    
+    TEST("cgs_zstrv: view points into the original buffer");
+    {
+        char arr[] = "hello, world";
+        CGS_ZStrView z = cgs_zstrv(arr, 7);
+        ASSERT_TRUE(cgs_chars(z) == arr + 7);
+    }
+    
+    TEST("cgs_zstrv: view reflects later mutation of the source buffer");
+    {
+        char arr[] = "hello, world";
+        CGS_ZStrView z = cgs_zstrv(arr, 7);
+        ASSERT_TRUE(cgs_equal(z, "world"));
+        arr[7] = 'W';
+        ASSERT_TRUE(cgs_equal(z, "World"));
+    }
+}
