@@ -75,7 +75,7 @@ static CGS_Allocator cgs__default_allocator = {
     .realloc = cgs__default_allocator_realloc,
 };
 
-static const CGS_CStrView cgs__error_to_string[] = {
+static const CGS_StrView cgs__error_to_string[] = {
 #define CGS__ERROR_TO_STRV(e) [CGS_##e] = {.len = sizeof(#e) - 1, .chars = #e},
 
     CGS__ERROR_NAMES(CGS__ERROR_TO_STRV)
@@ -106,7 +106,7 @@ static const unsigned long long cgs__ten_pows_ull[] = {
     10000000000000000000ull,
 };
 
-static const CGS_CStrView cgs__uc_to_string[256] = {
+static const CGS_StrView cgs__uc_to_string[256] = {
     {.chars = "0", .len = 1},   {.chars = "1", .len = 1},   {.chars = "2", .len = 1},   {.chars = "3", .len = 1},   {.chars = "4", .len = 1},
     {.chars = "5", .len = 1},   {.chars = "6", .len = 1},   {.chars = "7", .len = 1},   {.chars = "8", .len = 1},   {.chars = "9", .len = 1},
     {.chars = "10", .len = 2},  {.chars = "11", .len = 2},  {.chars = "12", .len = 2},  {.chars = "13", .len = 2},  {.chars = "14", .len = 2},
@@ -161,7 +161,7 @@ static const CGS_CStrView cgs__uc_to_string[256] = {
     {.chars = "255", .len = 3},
 };
 
-static const CGS_CStrView cgs__sc_to_string[] = {
+static const CGS_StrView cgs__sc_to_string[] = {
     {.chars = "0", .len = 1},    {.chars = "1", .len = 1},    {.chars = "2", .len = 1},    {.chars = "3", .len = 1},
     {.chars = "4", .len = 1},    {.chars = "5", .len = 1},    {.chars = "6", .len = 1},    {.chars = "7", .len = 1},
     {.chars = "8", .len = 1},    {.chars = "9", .len = 1},    {.chars = "10", .len = 2},   {.chars = "11", .len = 2},
@@ -709,7 +709,7 @@ CGS_API char *cgs__dstr_ptr_as_cstr(const CGS_DStr *str)
 
 CGS_API char *cgs__strv_as_cstr(CGS_StrView str)
 {
-    return str.chars;
+    return (char*) str.chars;
 }
 
 CGS_API char *cgs__strbuf_as_cstr(const CGS_StrBuf str)
@@ -755,6 +755,11 @@ CGS_API CGS_Error cgs__mutstr_ref_commit_appender(CGS_MutStrRef owner, CGS_MutSt
     };
 
     return (CGS_Error) {CGS_OK};
+}
+
+CGS_API unsigned int cgs__strv_cap(CGS_StrView sv)
+{
+    return sv.len;
 }
 
 CGS_API unsigned int cgs__dstr_cap(const CGS_DStr str)
@@ -1819,9 +1824,9 @@ CGS_API bool cgs__strv_ends_with(CGS_StrView hay, CGS_StrView needle)
     return (needle.len <= hay.len) && (memcmp(hay.chars + hay.len - needle.len, needle.chars, needle.len) == 0);
 }
 
-CGS_API CGS_Error cgs__map_chars(CGS_StrView str, bool (*map)(char *c, void *arg), void *arg)
+CGS_API CGS_Error cgs__map_chars(CGS__FixedMutStrRef str, bool (*map)(char *c, void *arg), void *arg)
 {
-    for (unsigned int i = 0; i < str.len; i++)
+    for (unsigned int i = 0; i < *str.len; i++)
     {
         if (!map(str.chars + i, arg))
             return (CGS_Error) {CGS_CALLBACK_EXIT};
@@ -1843,12 +1848,12 @@ CGS_PRIVATE bool cgs__map_toupper(char *c, void *arg)
     return true;
 }
 
-CGS_API void cgs__chars_tolower(CGS_StrView str)
+CGS_API void cgs__chars_tolower(CGS__FixedMutStrRef str)
 {
     cgs__map_chars(str, cgs__map_tolower, NULL);
 }
 
-CGS_API void cgs__chars_toupper(CGS_StrView str)
+CGS_API void cgs__chars_toupper(CGS__FixedMutStrRef str)
 {
     cgs__map_chars(str, cgs__map_toupper, NULL);
 }
@@ -2030,6 +2035,11 @@ CGS_API CGS_StrView cgs__strv_strv1(CGS_StrView str)
     return str;
 }
 
+CGS_API CGS_StrView cgs__strv_zstrv1(CGS_ZStrView str)
+{
+    return *(CGS_StrView*)&str;
+}
+
 CGS_API CGS_StrView cgs__strv_strbuf1(const CGS_StrBuf str)
 {
     return (CGS_StrView) {
@@ -2122,6 +2132,12 @@ CGS_API CGS_StrView cgs__strv_strv2(CGS_StrView str, unsigned int begin)
         .len   = str.len - begin,
         .chars = str.chars + begin,
     };
+}
+
+CGS_API CGS_StrView cgs__strv_zstrv2(CGS_ZStrView str, unsigned int begin)
+{
+    CGS_StrView strv = *(CGS_StrView*)&str;
+    return cgs__strv_strv2(strv, begin);
 }
 
 CGS_API CGS_StrView cgs__strv_strbuf_ptr2(const CGS_StrBuf *str, unsigned int begin)
@@ -2288,9 +2304,119 @@ CGS_API CGS_StrView cgs__strv_strv3(CGS_StrView str, unsigned int begin, unsigne
     return (CGS_StrView) {.len = end - begin, .chars = str.chars + begin};
 }
 
+CGS_API CGS_StrView cgs__strv_zstrv3(CGS_ZStrView str, unsigned int begin, unsigned int end)
+{
+    CGS_StrView strv = *(CGS_StrView*)&str;
+    return cgs__strv_strv3(strv, begin, end);
+}
+
 CGS_API CGS_StrView cgs__strv_strbuf3(CGS_StrBuf str, unsigned int begin, unsigned int end)
 {
     return cgs__strv_strbuf_ptr3(&str, begin, end);
+}
+
+CGS_PRIVATE CGS_ZStrView cgs__strv_to_zstrv(CGS_StrView sv)
+{
+    return *(CGS_ZStrView*)&sv;
+}
+
+CGS_API CGS_ZStrView cgs__zstrv_cstr1(const char *str)
+{
+    return cgs__strv_to_zstrv(cgs__strv_cstr1(str));
+}
+CGS_API CGS_ZStrView cgs__zstrv_ucstr1(const unsigned char *str)
+{
+    return cgs__strv_to_zstrv(cgs__strv_ucstr1(str));
+}
+CGS_API CGS_ZStrView cgs__zstrv_dstr1(CGS_DStr str)
+{
+    return cgs__strv_to_zstrv(cgs__strv_dstr1(str));
+}
+CGS_API CGS_ZStrView cgs__zstrv_dstr_ptr1(const CGS_DStr *str)
+{
+    return cgs__strv_to_zstrv(cgs__strv_dstr_ptr1(str));
+}
+CGS_API CGS_ZStrView cgs__zstrv_strv1(CGS_ZStrView str)
+{
+    return cgs__strv_to_zstrv(cgs__strv_zstrv1(str));
+}
+CGS_API CGS_ZStrView cgs__zstrv_strbuf1(CGS_StrBuf str)
+{
+    return cgs__strv_to_zstrv(cgs__strv_strbuf1(str));
+}
+CGS_API CGS_ZStrView cgs__zstrv_strbuf_ptr1(const CGS_StrBuf *str)
+{
+    return cgs__strv_to_zstrv(cgs__strv_strbuf_ptr1(str));
+}
+CGS_API CGS_ZStrView cgs__zstrv_mutstr_ref1(CGS_MutStrRef str)
+{
+    return cgs__strv_to_zstrv(cgs__strv_mutstr_ref1(str));
+}
+
+CGS_API CGS_ZStrView cgs__zstrv_cstr2(const char *str, unsigned int begin)
+{
+    return cgs__strv_to_zstrv(cgs__strv_cstr2(str, begin));
+}
+CGS_API CGS_ZStrView cgs__zstrv_ucstr2(const unsigned char *str, unsigned int begin)
+{
+    return cgs__strv_to_zstrv(cgs__strv_ucstr2(str, begin));
+}
+CGS_API CGS_ZStrView cgs__zstrv_dstr2(CGS_DStr str, unsigned int begin)
+{
+    return cgs__strv_to_zstrv(cgs__strv_dstr2(str, begin));
+}
+CGS_API CGS_ZStrView cgs__zstrv_dstr_ptr2(const CGS_DStr *str, unsigned int begin)
+{
+    return cgs__strv_to_zstrv(cgs__strv_dstr_ptr2(str, begin));
+}
+CGS_API CGS_ZStrView cgs__zstrv_strv2(CGS_ZStrView str, unsigned int begin)
+{
+    return cgs__strv_to_zstrv(cgs__strv_zstrv2(str, begin));
+}
+CGS_API CGS_ZStrView cgs__zstrv_strbuf2(CGS_StrBuf str, unsigned int begin)
+{
+    return cgs__strv_to_zstrv(cgs__strv_strbuf2(str, begin));
+}
+CGS_API CGS_ZStrView cgs__zstrv_strbuf_ptr2(const CGS_StrBuf *str, unsigned int begin)
+{
+    return cgs__strv_to_zstrv(cgs__strv_strbuf_ptr2(str, begin));
+}
+CGS_API CGS_ZStrView cgs__zstrv_mutstr_ref2(CGS_MutStrRef str, unsigned int begin)
+{
+    return cgs__strv_to_zstrv(cgs__strv_mutstr_ref2(str, begin));
+}
+
+CGS_API CGS_ZStrView cgs__zstrv_cstr3(const char *str, unsigned int begin, unsigned int end)
+{
+    return cgs__strv_to_zstrv(cgs__strv_cstr3(str, begin, end));
+}
+CGS_API CGS_ZStrView cgs__zstrv_ucstr3(const unsigned char *str, unsigned int begin, unsigned int end)
+{
+    return cgs__strv_to_zstrv(cgs__strv_ucstr3(str, begin, end));
+}
+CGS_API CGS_ZStrView cgs__zstrv_dstr3(CGS_DStr str, unsigned int begin, unsigned int end)
+{
+    return cgs__strv_to_zstrv(cgs__strv_dstr3(str, begin, end));
+}
+CGS_API CGS_ZStrView cgs__zstrv_dstr_ptr3(const CGS_DStr *str, unsigned int begin, unsigned int end)
+{
+    return cgs__strv_to_zstrv(cgs__strv_dstr_ptr3(str, begin, end));
+}
+CGS_API CGS_ZStrView cgs__zstrv_strv3(CGS_ZStrView str, unsigned int begin, unsigned int end)
+{
+    return cgs__strv_to_zstrv(cgs__strv_zstrv3(str, begin, end));
+}
+CGS_API CGS_ZStrView cgs__zstrv_strbuf3(CGS_StrBuf str, unsigned int begin, unsigned int end)
+{
+    return cgs__strv_to_zstrv(cgs__strv_strbuf3(str, begin, end));
+}
+CGS_API CGS_ZStrView cgs__zstrv_strbuf_ptr3(const CGS_StrBuf *str, unsigned int begin, unsigned int end)
+{
+    return cgs__strv_to_zstrv(cgs__strv_strbuf_ptr3(str, begin, end));
+}
+CGS_API CGS_ZStrView cgs__zstrv_mutstr_ref3(CGS_MutStrRef str, unsigned int begin, unsigned int end)
+{
+    return cgs__strv_to_zstrv(cgs__strv_mutstr_ref3(str, begin, end));
 }
 
 CGS_API CGS_Error cgs__dstr_fread_until(CGS_DStr *dstr, FILE *stream, int delim)
@@ -2463,9 +2589,9 @@ CGS_API CGS_Error cgs__file_append(CGS_Writer *dst, CGS_StrView str)
     return (CGS_Error) {CGS_OK};
 }
 
-CGS_PRIVATE CGS_Error cgs__parse_optional_paren_grouping(CGS_CStrView *fmt_walk);
+CGS_PRIVATE CGS_Error cgs__parse_optional_paren_grouping(CGS_StrView *fmt_walk);
 
-CGS_PRIVATE CGS_Error cgs__parse_optional_square_grouping(CGS_CStrView *fmt_walk)
+CGS_PRIVATE CGS_Error cgs__parse_optional_square_grouping(CGS_StrView *fmt_walk)
 {
     while (fmt_walk->len != 0 && fmt_walk->chars[0] != ']')
     {
@@ -2507,7 +2633,7 @@ CGS_PRIVATE CGS_Error cgs__parse_optional_square_grouping(CGS_CStrView *fmt_walk
     return (CGS_Error) {CGS_OK};
 }
 
-CGS_PRIVATE CGS_Error cgs__parse_optional_paren_grouping(CGS_CStrView *fmt_walk)
+CGS_PRIVATE CGS_Error cgs__parse_optional_paren_grouping(CGS_StrView *fmt_walk)
 {
     while (fmt_walk->len != 0 && fmt_walk->chars[0] != ')')
     {
@@ -2549,7 +2675,7 @@ CGS_PRIVATE CGS_Error cgs__parse_optional_paren_grouping(CGS_CStrView *fmt_walk)
     return (CGS_Error) {CGS_OK};
 }
 
-CGS_PRIVATE CGS_Error cgs__parse_optional_format_string(CGS_CStrView *fmt_walk, CGS_StrView *fmt_arg)
+CGS_PRIVATE CGS_Error cgs__parse_optional_format_string(CGS_StrView *fmt_walk, CGS_StrView *fmt_arg)
 {
     assert(fmt_walk->chars[0] == '(');
     fmt_walk->chars += 1;
@@ -2564,7 +2690,7 @@ CGS_PRIVATE CGS_Error cgs__parse_optional_format_string(CGS_CStrView *fmt_walk, 
 }
 
 CGS_API CGS_Error cgs__append_fmt(
-    CGS_Writer *dst, CGS_CStrView fmt, size_t nargs, void **args,
+    CGS_Writer *dst, CGS_StrView fmt, size_t nargs, void **args,
     CGS_Error (*tostr_p_funcs[])(CGS_Writer *, const void *, CGS_StrView fmt_arg)
 )
 {
@@ -2578,7 +2704,7 @@ CGS_API CGS_Error cgs__append_fmt(
         SPECIFY_INDEX
     } index_mode = UNKNOWN_INDEXING; // SPECIFY_INDEX is "%index" (e.g. "%0" is the first arg). AUTO_INDEX requires "%?", cannot mix
 
-    CGS_CStrView fmt_walk = fmt;
+    CGS_StrView fmt_walk = fmt;
 
     size_t how_many_formatted = 0;
     CGS_Error err             = {CGS_OK};
@@ -2711,7 +2837,7 @@ CGS_API CGS_Error cgs__append_fmt(
 }
 
 CGS_API CGS_Error cgs__appendln_fmt_(
-    CGS_Writer *dst, CGS_CStrView fmt, size_t nargs, void **args,
+    CGS_Writer *dst, CGS_StrView fmt, size_t nargs, void **args,
     CGS_Error (*tostr_p_funcs[])(CGS_Writer *, const void *, CGS_StrView fmt_arg)
 )
 {
@@ -2723,7 +2849,7 @@ CGS_API CGS_Error cgs__appendln_fmt_(
 }
 
 CGS_API CGS_DStr cgs__asprintf(
-    CGS_Writer *dst, CGS_CStrView fmt, size_t nargs, void **args,
+    CGS_Writer *dst, CGS_StrView fmt, size_t nargs, void **args,
     CGS_Error (*tostr_p_funcs[])(CGS_Writer *, const void *, CGS_StrView fmt_arg)
 )
 {
@@ -2732,7 +2858,7 @@ CGS_API CGS_DStr cgs__asprintf(
 }
 
 CGS_API CGS_DStr cgs__asprintf_with_allocator(
-    CGS_Writer *dst, CGS_CStrView fmt, size_t nargs, void **args,
+    CGS_Writer *dst, CGS_StrView fmt, size_t nargs, void **args,
     CGS_Error (*tostr_p_funcs[])(CGS_Writer *, const void *, CGS_StrView fmt_arg)
 )
 {
@@ -3111,7 +3237,7 @@ CGS_API CGS_Error cgs__align_fmt_tostr(CGS_Writer *dst, CGS__AlignFmt obj, CGS_S
 
     if (len < obj.width)
     {
-        const CGS_CStrView fill_strv = {&obj.fill_char, .len = 1};
+        const CGS_StrView fill_strv = {&obj.fill_char, .len = 1};
         unsigned int diff                  = obj.width - len;
         CGS_Error err                      = {CGS_OK};
 
