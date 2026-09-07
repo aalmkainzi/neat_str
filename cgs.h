@@ -792,10 +792,9 @@ cgs_strv(anystr),
 // if char[] is passed, it uses the size of the array as capacity
 // if char* is passed, the capacity is length+1
 #define cgs_strbuf_init_from_cstr(cstr, ...) \
-__VA_OPT__(cgs__strbuf_init_from_cstr_2(cstr, __VA_ARGS__)) \
-CGS__IF_EMPTY(cgs__strbuf_init_from_cstr_(cstr), __VA_ARGS__)
+CGS__MACRO_OVERLOAD(cgs__strbuf_init_from_cstr, cstr __VA_OPT__(,) __VA_ARGS__)
 
-#define cgs__strbuf_init_from_cstr_(cstr) \
+#define cgs__strbuf_init_from_cstr_1(cstr) \
 _Generic(&(__typeof__(cstr)){0},          \
     char(*)[sizeof(__typeof__(cstr))]         : cgs__strbuf_from_cstr_cap((const char*)(cstr), sizeof(__typeof__(cstr))), \
     unsigned char(*)[sizeof(__typeof__(cstr))]: cgs__strbuf_from_cstr_cap((const char*)(cstr), sizeof(__typeof__(cstr))), \
@@ -809,35 +808,31 @@ cgs__strbuf_from_cstr_cap(_Generic((cstr), char*:(char*)(cstr), unsigned char*:(
 // Does not call strlen on the buf
 // Sets the first byte to '\0'
 #define cgs_strbuf_init_from_buf(buf, ...) \
-__VA_OPT__( cgs__strbuf_init_from_buf_2(buf, __VA_ARGS__) ) \
-CGS__IF_EMPTY(cgs__strbuf_init_from_buf_(buf), __VA_ARGS__)
+CGS__MACRO_OVERLOAD(cgs__strbuf_init_from_buf, buf __VA_OPT__(,) __VA_ARGS__)
 
 #define cgs__carr_to_buf(carr) \
 _Generic(&(__typeof__(carr)){0}, \
-char(*)[sizeof(__typeof__(carr))]: (CGS_Buffer){.ptr = (char*) (carr), .cap = sizeof(carr)}, \
-unsigned char(*)[sizeof(__typeof__(carr))]: (CGS_Buffer){.ptr = (char*) (carr), .cap = sizeof(carr)}, \
-CGS_Buffer*: (carr) \
+    char(*)[sizeof(__typeof__(carr))]: (CGS_Buffer){.ptr = (char*) (carr), .cap = sizeof(carr)}, \
+    unsigned char(*)[sizeof(__typeof__(carr))]: (CGS_Buffer){.ptr = (char*) (carr), .cap = sizeof(carr)}, \
+    CGS_Buffer*: (carr) \
 )
 
-#define cgs__strbuf_init_from_buf_(buf) \
+#define cgs__strbuf_init_from_buf_1(buf) \
 cgs__strbuf_from_buf(cgs__carr_to_buf(buf))
 
 #define cgs__strbuf_init_from_buf_2(buf, cap_) \
 cgs__strbuf_from_buf((CGS_Buffer){.ptr = (char*) _Generic(buf,char*:(buf),unsigned char*:(buf),void*:(buf)), .cap = (cap_)})
 
 #define cgs__cstr_to_buf(carr, ...) \
-( \
-CGS__IF_EMPTY( \
-    _Generic((__typeof__(carr)*){0}, \
-        char(*)[sizeof(__typeof__(carr))]: (CGS_Buffer){.ptr = (char*) (carr), .cap = sizeof(carr)}, \
-        unsigned char(*)[sizeof(__typeof__(carr))]: (CGS_Buffer){.ptr = (char*) (carr), .cap = sizeof(carr)} \
-    ), \
-    __VA_ARGS__ \
-) \
-__VA_OPT__(cgs__cstr_to_buf2((carr), __VA_ARGS__)) \
+CGS__MACRO_OVERLOAD(cgs__cstr_to_buf, carr __VA_OPT__(,) __VA_ARGS__)
+
+#define cgs__cstr_to_buf_1(carr) \
+_Generic((__typeof__(carr)*){0}, \
+    char(*)[sizeof(__typeof__(carr))]: (CGS_Buffer){.ptr = (char*) (carr), .cap = sizeof(carr)}, \
+    unsigned char(*)[sizeof(__typeof__(carr))]: (CGS_Buffer){.ptr = (char*) (carr), .cap = sizeof(carr)} \
 )
 
-#define cgs__cstr_to_buf2(carr_or_ptr, cap_) \
+#define cgs__cstr_to_buf_2(carr_or_ptr, cap_) \
 ((void)_Generic(carr_or_ptr, \
     char(*)[sizeof(__typeof__(carr_or_ptr))]: 0, \
     unsigned char(*)[sizeof(__typeof__(carr_or_ptr))]: 0, \

@@ -58,6 +58,7 @@ void test_tostr_edge_cases() {
         ASSERT_EQ(cgs_tostr_len(cgs_nfmt(255, 'X')), 2);
         
         int arr[] = {1, 2, 3};
+        
         ASSERT_EQ(cgs_tostr_len(cgs_arrfmt(arr, 3)), strlen("{1, 2, 3}"));
     }
     
