@@ -166,7 +166,7 @@ cgs_nfmt_t(integer_T, fmt_char)    cgs_nfmt(integer_T value, int fmt_char); // a
 cgs_nfmt_t(float/double, fmt_char) cgs_nfmt(float/double value, int fmt_char, int precision = (fmt_char == 'a' ? -1 : 6)); // a number format object that has a tostr
 CGS_ArrayFmt                       cgs_arrfmt(T *array, size_t len); // an array format object that has a tostr, prints in this format `{1, 2, 3}`
 CGS_ArrayFmt                       cgs_arrfmt(T *array, size_t len, anystr_t open, anystr_t close, anystr_t delim, anystr_t trailing_delim = "");
-CGS__AlignFmt                      cgs_alignfmt(T obj, align_mode, int width, char fill_char = ' '); // an align format object that has a tostr, align_mode must be one of CGS_ALIGN_CENTER, CGS_ALIGN_LEFT, CGS_ALIGN_RIGHT
+CGS__AlignFmt                      cgs_alignfmt(T obj, align_mode, int width, char fill_char = ' '); // an align format object that has a tostr, align_mode must be one of CENTER, LEFT, RIGHT
 ```
 
 ## CGS_DStr
