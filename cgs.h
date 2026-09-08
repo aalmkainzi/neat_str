@@ -141,7 +141,7 @@ _Generic(anystr, \
     default: anystr \
 )
 
-typedef struct CGS__INCOMPAT {char c;} CGS__INCOMPAT; // used in generic association to not match with 
+typedef struct CGS__INCOMPAT {char c;} CGS__INCOMPAT; // used in generic association to not match with
 
 struct CGS_Allocator;
 
@@ -532,26 +532,26 @@ _Generic(anystr, \
 )(cgs__strv_type_erasure(anystr))
 
 #define cgs_equal(anystr1, anystr2) \
-cgs__strv_equal(cgs_strv(anystr1), cgs_strv(anystr2))
+cgs__strv_equal(cgs__strv_1(anystr1), cgs__strv_1(anystr2))
 
 #define cgs_dup(anystr_src, ...) \
-cgs__dstr_init_from(cgs_strv(anystr_src), CGS__VA_OR(cgs_get_default_allocator(), __VA_ARGS__))
+cgs__dstr_init_from(cgs__strv_1(anystr_src), CGS__VA_OR(cgs_get_default_allocator(), __VA_ARGS__))
 
 #define cgs_copy(mutstr_dst, anystr_src) \
 _Generic(mutstr_dst, \
-    CGS_MutStrRef : cgs__mutstr_ref_copy(cgs__coerce(mutstr_dst, CGS_MutStrRef), cgs_strv(anystr_src)), \
-    CGS_DStr*     : cgs__dstr_copy(cgs__coerce(mutstr_dst, CGS_DStr*), cgs_strv(anystr_src)), \
-    default       : cgs__fmutstr_ref_copy(cgs__fmutstr_ref_zero_len(cgs__coerce_not(mutstr_dst, CGS_MutStrRef, CGS_StrBuf*)), cgs_strv(anystr_src)) \
+    CGS_MutStrRef : cgs__mutstr_ref_copy(cgs__coerce(mutstr_dst, CGS_MutStrRef), cgs__strv_1(anystr_src)), \
+    CGS_DStr*     : cgs__dstr_copy(cgs__coerce(mutstr_dst, CGS_DStr*), cgs__strv_1(anystr_src)), \
+    default       : cgs__fmutstr_ref_copy(cgs__fmutstr_ref_zero_len(cgs__coerce_not(mutstr_dst, CGS_MutStrRef, CGS_StrBuf*)), cgs__strv_1(anystr_src)) \
 )
 
 #define cgs_putc(writer_dst, c) \
 cgs__invoke_writer(cgs_writer_ptr(writer_dst), (CGS_StrView){.chars = &(char){c}, .len = 1})
 
 #define cgs_append(writer_dst, anystr_src) \
-cgs__invoke_writer(cgs_writer_ptr(writer_dst), cgs_strv(anystr_src))
+cgs__invoke_writer(cgs_writer_ptr(writer_dst), cgs__strv_1(anystr_src))
 
 #define cgs_appendln(writer_dst, anystr_src) \
-cgs__invoke_writer_ln(cgs_writer_ptr(writer_dst), cgs_strv(anystr_src))
+cgs__invoke_writer_ln(cgs_writer_ptr(writer_dst), cgs__strv_1(anystr_src))
 
 #define cgs_fwrite(stream, anystr_src) \
 cgs_append(_Generic(stream,FILE*:stream), anystr_src)
@@ -567,28 +567,28 @@ cgs_fwriteln(stdout, anystr_src)
 
 #define cgs_insert(mutstr_dst, anystr_src, idx) \
 _Generic(mutstr_dst, \
-    CGS_MutStrRef : cgs__mutstr_ref_insert(cgs__coerce(mutstr_dst, CGS_MutStrRef), cgs_strv(anystr_src), idx), \
-    CGS_DStr*     : cgs__dstr_insert(cgs__coerce(mutstr_dst, CGS_DStr*), cgs_strv(anystr_src), idx), \
-    default       : cgs__fmutstr_ref_insert(cgs__fmutstr_ref(cgs__coerce_not(mutstr_dst, CGS_MutStrRef, CGS_StrBuf*)), cgs_strv(anystr_src), idx) \
+    CGS_MutStrRef : cgs__mutstr_ref_insert(cgs__coerce(mutstr_dst, CGS_MutStrRef), cgs__strv_1(anystr_src), idx), \
+    CGS_DStr*     : cgs__dstr_insert(cgs__coerce(mutstr_dst, CGS_DStr*), cgs__strv_1(anystr_src), idx), \
+    default       : cgs__fmutstr_ref_insert(cgs__fmutstr_ref(cgs__coerce_not(mutstr_dst, CGS_MutStrRef, CGS_StrBuf*)), cgs__strv_1(anystr_src), idx) \
 )
 
 #define cgs_prepend(mutstr_dst, anystr_src) \
 cgs_insert(mutstr_dst, anystr_src, 0)
 
 #define cgs_find(anystr_hay, anystr_needle) \
-cgs__strv_find(cgs_strv(anystr_hay), cgs_strv(anystr_needle))
+cgs__strv_find(cgs__strv_1(anystr_hay), cgs__strv_1(anystr_needle))
 
 #define cgs_count(anystr_hay, anystr_needle) \
-cgs__strv_count(cgs_strv(anystr_hay), cgs_strv(anystr_needle))
+cgs__strv_count(cgs__strv_1(anystr_hay), cgs__strv_1(anystr_needle))
 
 #define cgs_spn(anystr, anystr_charset) \
-cgs__strv_spn(cgs_strv(anystr), cgs_strv(anystr_charset))
+cgs__strv_spn(cgs__strv_1(anystr), cgs__strv_1(anystr_charset))
 
 #define cgs_cspn(anystr, anystr_charset) \
-cgs__strv_cspn(cgs_strv(anystr), cgs_strv(anystr_charset))
+cgs__strv_cspn(cgs__strv_1(anystr), cgs__strv_1(anystr_charset))
 
 #define cgs_trim_view(anystr) \
-cgs__trim_view(cgs_strv(anystr))
+cgs__trim_view(cgs__strv_1(anystr))
 
 #define cgs_trim(mutstr) \
 cgs__trim(cgs__fmutstr_ref(mutstr))
@@ -597,10 +597,10 @@ cgs__trim(cgs__fmutstr_ref(mutstr))
 cgs__fmutstr_ref_clear(cgs__fmutstr_ref_zero_len(mutstr)) \
 
 #define cgs_starts_with(anystr_hay, anystr_needle) \
-cgs__strv_starts_with(cgs_strv(anystr_hay), cgs_strv(anystr_needle))
+cgs__strv_starts_with(cgs__strv_1(anystr_hay), cgs__strv_1(anystr_needle))
 
 #define cgs_ends_with(anystr_hay, anystr_needle) \
-cgs__strv_ends_with(cgs_strv(anystr_hay), cgs_strv(anystr_needle))
+cgs__strv_ends_with(cgs__strv_1(anystr_hay), cgs__strv_1(anystr_needle))
 
 #define cgs_map_chars(mutstr, map_func, ...) \
 cgs__map_chars(cgs__fmutstr_ref(mutstr), map_func, CGS__VA_OR(NULL, __VA_ARGS__))
@@ -613,49 +613,49 @@ cgs__chars_toupper(cgs__fmutstr_ref(mutstr))
 
 #define cgs_replace(mutstr_dst, anystr_target, anystr_replacement) \
 _Generic(mutstr_dst, \
-    CGS_MutStrRef : cgs__mutstr_ref_replace(cgs__coerce(mutstr_dst, CGS_MutStrRef), cgs_strv(anystr_target), cgs_strv(anystr_replacement)), \
-    CGS_DStr* : cgs__dstr_replace(cgs__coerce(mutstr_dst, CGS_DStr*), cgs_strv(anystr_target), cgs_strv(anystr_replacement)), \
-    default   : cgs__fmutstr_ref_replace(cgs__fmutstr_ref(cgs__coerce_not(mutstr_dst, CGS_MutStrRef, CGS_StrBuf*)), cgs_strv(anystr_target), cgs_strv(anystr_replacement)) \
+    CGS_MutStrRef : cgs__mutstr_ref_replace(cgs__coerce(mutstr_dst, CGS_MutStrRef), cgs__strv_1(anystr_target), cgs__strv_1(anystr_replacement)), \
+    CGS_DStr* : cgs__dstr_replace(cgs__coerce(mutstr_dst, CGS_DStr*), cgs__strv_1(anystr_target), cgs__strv_1(anystr_replacement)), \
+    default   : cgs__fmutstr_ref_replace(cgs__fmutstr_ref(cgs__coerce_not(mutstr_dst, CGS_MutStrRef, CGS_StrBuf*)), cgs__strv_1(anystr_target), cgs__strv_1(anystr_replacement)) \
 )
 
 #define cgs_replace_first(mutstr_dst, anystr_target, anystr_replacement) \
 _Generic(mutstr_dst, \
-    CGS_MutStrRef : cgs__mutstr_ref_replace_first(cgs__coerce(mutstr_dst, CGS_MutStrRef), cgs_strv(anystr_target), cgs_strv(anystr_replacement)), \
-    CGS_DStr*     : cgs__dstr_replace_first(cgs__coerce(mutstr_dst, CGS_DStr*), cgs_strv(anystr_target), cgs_strv(anystr_replacement)), \
-    default       : cgs__fmutstr_ref_replace_first(cgs__fmutstr_ref(cgs__coerce_not(mutstr_dst, CGS_MutStrRef, CGS_StrBuf*)), cgs_strv(anystr_target), cgs_strv(anystr_replacement)) \
+    CGS_MutStrRef : cgs__mutstr_ref_replace_first(cgs__coerce(mutstr_dst, CGS_MutStrRef), cgs__strv_1(anystr_target), cgs__strv_1(anystr_replacement)), \
+    CGS_DStr*     : cgs__dstr_replace_first(cgs__coerce(mutstr_dst, CGS_DStr*), cgs__strv_1(anystr_target), cgs__strv_1(anystr_replacement)), \
+    default       : cgs__fmutstr_ref_replace_first(cgs__fmutstr_ref(cgs__coerce_not(mutstr_dst, CGS_MutStrRef, CGS_StrBuf*)), cgs__strv_1(anystr_target), cgs__strv_1(anystr_replacement)) \
 )
 
 #define cgs_replace_range(mutstr_dst, begin, end, anystr_replacement) \
 _Generic(mutstr_dst, \
-    CGS_MutStrRef : cgs__mutstr_ref_replace_range(cgs__coerce(mutstr_dst, CGS_MutStrRef), begin, end, cgs_strv(anystr_replacement)), \
-    CGS_DStr*     : cgs__dstr_replace_range(cgs__coerce(mutstr_dst, CGS_DStr*), begin, end, cgs_strv(anystr_replacement)), \
-    default       : cgs__fmutstr_ref_replace_range(cgs__fmutstr_ref(cgs__coerce_not(mutstr_dst, CGS_MutStrRef, CGS_StrBuf*)), begin, end, cgs_strv(anystr_replacement)) \
+    CGS_MutStrRef : cgs__mutstr_ref_replace_range(cgs__coerce(mutstr_dst, CGS_MutStrRef), begin, end, cgs__strv_1(anystr_replacement)), \
+    CGS_DStr*     : cgs__dstr_replace_range(cgs__coerce(mutstr_dst, CGS_DStr*), begin, end, cgs__strv_1(anystr_replacement)), \
+    default       : cgs__fmutstr_ref_replace_range(cgs__fmutstr_ref(cgs__coerce_not(mutstr_dst, CGS_MutStrRef, CGS_StrBuf*)), begin, end, cgs__strv_1(anystr_replacement)) \
 )
 
 #define cgs_split(anystr, anystr_delim, ...) \
-cgs__strv_split(cgs_strv(anystr), cgs_strv(anystr_delim), CGS__VA_OR(cgs_get_default_allocator(), __VA_ARGS__))
+cgs__strv_split(cgs__strv_1(anystr), cgs__strv_1(anystr_delim), CGS__VA_OR(cgs_get_default_allocator(), __VA_ARGS__))
 
 #define cgs_split_iter(anystr, anystr_delim, callback, ...) \
-cgs__strv_split_iter(cgs_strv(anystr), cgs_strv(anystr_delim), callback, CGS__VA_OR(NULL, __VA_ARGS__))
+cgs__strv_split_iter(cgs__strv_1(anystr), cgs__strv_1(anystr_delim), callback, CGS__VA_OR(NULL, __VA_ARGS__))
 
 #define cgs_join(mutstr_dst, strv_arr, anystr_delim) \
 _Generic(mutstr_dst, \
-    CGS_MutStrRef : cgs__strv_arr_join(cgs__coerce(mutstr_dst, CGS_MutStrRef), strv_arr, cgs_strv(anystr_delim)), \
-    CGS_DStr*     : cgs__strv_arr_join_into_dstr(cgs__coerce(mutstr_dst, CGS_DStr*), strv_arr, cgs_strv(anystr_delim)), \
-    default       : cgs__strv_arr_join_into_fmutstr_ref(cgs__fmutstr_ref_zero_len(cgs__coerce_not(mutstr_dst, CGS_MutStrRef, CGS_StrBuf*)), strv_arr, cgs_strv(anystr_delim)) \
+    CGS_MutStrRef : cgs__strv_arr_join(cgs__coerce(mutstr_dst, CGS_MutStrRef), strv_arr, cgs__strv_1(anystr_delim)), \
+    CGS_DStr*     : cgs__strv_arr_join_into_dstr(cgs__coerce(mutstr_dst, CGS_DStr*), strv_arr, cgs__strv_1(anystr_delim)), \
+    default       : cgs__strv_arr_join_into_fmutstr_ref(cgs__fmutstr_ref_zero_len(cgs__coerce_not(mutstr_dst, CGS_MutStrRef, CGS_StrBuf*)), strv_arr, cgs__strv_1(anystr_delim)) \
 )
 
 #define cgs_next_tok(strv_ptr, delim) \
-cgs__next_tok(strv_ptr, cgs_strv(delim))
+cgs__next_tok(strv_ptr, cgs__strv_1(delim))
 
 #define cgs_next_tok_any(strv_ptr, delim_set) \
-cgs__next_tok_any(strv_ptr, cgs_strv(delim_set))
+cgs__next_tok_any(strv_ptr, cgs__strv_1(delim_set))
 
 #define cgs_skip(anystr_src, delim) \
-cgs__skip(cgs_strv(anystr_src), cgs_strv(delim))
+cgs__skip(cgs__strv_1(anystr_src), cgs__strv_1(delim))
 
 #define cgs_skip_any(anystr_src, delim_set) \
-cgs__skip_any(cgs_strv(anystr_src), cgs_strv(delim_set))
+cgs__skip_any(cgs__strv_1(anystr_src), cgs__strv_1(delim_set))
 
 #define cgs_del(mutstr_dst, begin, end) \
 cgs__fmutstr_ref_delete_range(cgs__fmutstr_ref(mutstr_dst), begin, end)
@@ -776,7 +776,7 @@ CGS__IF_EMPTY( \
 cgs__strv_arr_from(strv_carr, CGS__VA_OR((cgs__static_assertx(cgs__is_array_of((strv_carr), CGS_StrView), "Must pass StrView[N] or StrView* with length argument"), CGS__CARR_LEN(strv_carr)), __VA_ARGS__))
 
 #define CGS__STRV_COMMA(anystr) \
-cgs_strv(anystr),
+cgs__strv_1(anystr),
 
 #define cgs_strv_arr(...)                                                                  \
 (                                                                                          \
@@ -874,22 +874,22 @@ CGS__MACRO_OVERLOAD(cgs__strv, anystr __VA_OPT__(,) __VA_ARGS__)
 #define cgs__strv_generic_assoc(T, name, arg) \
 T: cgs__strv_##name##arg,
 
-#define cgs__strv_1(anystr)                       \
-_Generic(anystr,                                  \
+#define cgs__strv_1(anystr)                        \
+_Generic(anystr,                                   \
     CGS__T_ALL_STRINGS(cgs__strv_generic_assoc, 1) \
-    CGS__INCOMPAT: 0                              \
+    CGS__INCOMPAT: 0                               \
 )(cgs__strv_type_erasure(anystr))
 
-#define cgs__strv_2(anystr, begin, ...)           \
-_Generic(anystr,                                  \
+#define cgs__strv_2(anystr, begin, ...)            \
+_Generic(anystr,                                   \
     CGS__T_ALL_STRINGS(cgs__strv_generic_assoc, 2) \
-    CGS__INCOMPAT: 0                              \
+    CGS__INCOMPAT: 0                               \
 )(cgs__strv_type_erasure(anystr), begin)
 
-#define cgs__strv_3(anystr, begin, end)           \
-_Generic(anystr,                                  \
+#define cgs__strv_3(anystr, begin, end)            \
+_Generic(anystr,                                   \
     CGS__T_ALL_STRINGS(cgs__strv_generic_assoc, 3) \
-    CGS__INCOMPAT: 0                              \
+    CGS__INCOMPAT: 0                               \
 )(cgs__strv_type_erasure(anystr), begin, end)
 
 #define cgs_zstrv(nstr, ...) \
@@ -924,7 +924,7 @@ cgs__dstr_init((cap), cgs_get_default_allocator())
 cgs__dstr_init((cap), (allocator))
 
 #define cgs_dstr_init_from(anystr_src, ...) \
-cgs__dstr_init_from(cgs_strv(anystr_src), CGS__VA_OR(cgs_get_default_allocator(), __VA_ARGS__))
+cgs__dstr_init_from(cgs__strv_1(anystr_src), CGS__VA_OR(cgs_get_default_allocator(), __VA_ARGS__))
 
 #define cgs_dstr_deinit(dstr) \
 cgs__dstr_deinit(dstr)
@@ -1201,9 +1201,9 @@ __VA_OPT__(cgs__arrfmt_2) \
     .nb = (nb_), \
     .elm_size = sizeof((array_)[0]), \
     .elm_tostr = cgs__get_tostr_p_func(__typeof__((array_)[0])), \
-    .open = cgs_strv(open_), \
-    .close = cgs_strv(close_), \
-    .separator = cgs_strv(seperator_), \
+    .open = cgs__strv_1(open_), \
+    .close = cgs__strv_1(close_), \
+    .separator = cgs__strv_1(seperator_), \
     .trailing_separator = cgs_strv(CGS__VA_OR("", __VA_ARGS__)) \
 })
 

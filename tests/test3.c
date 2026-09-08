@@ -1960,6 +1960,8 @@ void test_appender_edge_cases();
 void test_str_join_edge_cases();
 void test_spn_cspn_tok();
 void test_zstrv();
+void test_chain_writer();
+void test_custom_writer();
 
 int main() {
     printf("========================================\n");
@@ -1999,6 +2001,8 @@ int main() {
     test_repeatfmt();
     test_fmt_spec();
     test_zstrv();
+    test_chain_writer();
+    test_custom_writer();
     
     printf("\n========================================\n");
     printf("Test Results: %d/%d passed\n", passed_count, test_count);

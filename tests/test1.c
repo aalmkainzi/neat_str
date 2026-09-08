@@ -2141,3 +2141,407 @@ void test_str_putc_edge_cases() {
         ASSERT_TRUE(strcmp(buf, "hello world") == 0);
     }
 }
+
+/* ── ASSUMPTIONS (adjust if the real API differs) ─────────────────
+ * 1. CGS_Writer holds a write callback; here it's spelled
+ *      CGS_Error (*write)(CGS_Writer *self, CGS_StrView data)
+ *    and is set via a designated initializer on .base.
+ * 2. Because CGS_CustomWriter has CGS_Writer as its FIRST member, a
+ *    custom writer recovers its ctx by casting self back:
+ *      CGS_CustomWriter *cw = (CGS_CustomWriter *)self;
+ * 3. writer_t args take a pointer: &chain, &custom, &dstr, &counter.
+ * ---------------------------------------------------------------- */
+
+/* ── a custom writer that counts bytes and records the last chunk ── */
+
+typedef struct CountCtx
+{
+    unsigned int total;
+    unsigned int calls;
+    char         last[64];
+} CountCtx;
+
+static CGS_Error count_write(CGS_Writer *self, CGS_StrView data)
+{
+    CGS_CustomWriter *cw  = (CGS_CustomWriter *)self;
+    CountCtx         *ctx = cw->ctx;
+
+    ctx->total += data.len;
+    ctx->calls += 1;
+
+    unsigned int n = data.len < sizeof(ctx->last) - 1 ? data.len : sizeof(ctx->last) - 1;
+    memcpy(ctx->last, data.chars, n);
+    ctx->last[n] = '\0';
+
+    return (CGS_Error){CGS_OK};
+}
+
+/* ── a custom writer that uppercases into a fixed buffer ────────── */
+
+typedef struct UpperCtx
+{
+    char         buf[128];
+    unsigned int len;
+} UpperCtx;
+
+static CGS_Error upper_write(CGS_Writer *self, CGS_StrView data)
+{
+    CGS_CustomWriter *cw  = (CGS_CustomWriter *)self;
+    UpperCtx         *ctx = cw->ctx;
+
+    for (unsigned int i = 0; i < data.len; i++)
+    {
+        if (ctx->len + 1 >= sizeof(ctx->buf))
+            return (CGS_Error){CGS_DST_TOO_SMALL};
+        char c = data.chars[i];
+        ctx->buf[ctx->len++] = (c >= 'a' && c <= 'z') ? (char)(c - 'a' + 'A') : c;
+    }
+    ctx->buf[ctx->len] = '\0';
+    return (CGS_Error){CGS_OK};
+}
+
+/* ── a custom writer that always fails ──────────────────────────── */
+
+static CGS_Error failing_write(CGS_Writer *self, CGS_StrView data)
+{
+    (void)self; (void)data;
+    return (CGS_Error){CGS_IO_ERROR};
+}
+
+
+void test_custom_writer(void)
+{
+    /* ════════════════════════════════════════════════════════════
+     * CGS_CustomWriter
+     * ════════════════════════════════════════════════════════════ */
+
+    TEST("CGS_CustomWriter: cgs_append routes through the callback");
+    {
+        CountCtx ctx = {0};
+        CGS_CustomWriter cw = { .base = { .append = count_write }, .ctx = &ctx };
+
+        cgs_append(&cw, "hello");
+
+        ASSERT_TRUE(ctx.total == 5);
+        ASSERT_TRUE(ctx.calls >= 1);
+        ASSERT_STR_EQ(ctx.last, "hello");
+    }
+
+    TEST("CGS_CustomWriter: multiple appends accumulate in ctx");
+    {
+        CountCtx ctx = {0};
+        CGS_CustomWriter cw = { .base = { .append = count_write }, .ctx = &ctx };
+
+        cgs_append(&cw, "abc");
+        cgs_append(&cw, "de");
+
+        ASSERT_TRUE(ctx.total == 5);
+        ASSERT_STR_EQ(ctx.last, "de");
+    }
+
+    TEST("CGS_CustomWriter: cgs_putc reaches the callback");
+    {
+        CountCtx ctx = {0};
+        CGS_CustomWriter cw = { .base = { .append = count_write }, .ctx = &ctx };
+
+        cgs_putc(&cw, 'x');
+
+        ASSERT_TRUE(ctx.total == 1);
+        ASSERT_STR_EQ(ctx.last, "x");
+    }
+
+    TEST("CGS_CustomWriter: cgs_appendf routes formatted output");
+    {
+        CountCtx ctx = {0};
+        CGS_CustomWriter cw = { .base = { .append = count_write }, .ctx = &ctx };
+
+        cgs_appendf(&cw, "%? + %? = %?", 1, 2, 3);
+
+        /* "1 + 2 = 3" is 9 chars total, however many chunks it arrives in */
+        ASSERT_TRUE(ctx.total == 9);
+    }
+
+    TEST("CGS_CustomWriter: cgs_append_tostr_many routes all args");
+    {
+        CountCtx ctx = {0};
+        CGS_CustomWriter cw = { .base = { .append = count_write }, .ctx = &ctx };
+
+        cgs_append_tostr_many(&cw, "ab", 42, "!");
+
+        /* "ab" + "42" + "!" = 5 chars */
+        ASSERT_TRUE(ctx.total == 5);
+    }
+
+    TEST("CGS_CustomWriter: transforming writer uppercases appended text");
+    {
+        UpperCtx ctx = {0};
+        CGS_CustomWriter cw = { .base = { .append = upper_write }, .ctx = &ctx };
+
+        cgs_append(&cw, "hello, world");
+
+        ASSERT_STR_EQ(ctx.buf, "HELLO, WORLD");
+        ASSERT_TRUE(ctx.len == 12);
+    }
+
+    TEST("CGS_CustomWriter: transforming writer works with cgs_appendf");
+    {
+        UpperCtx ctx = {0};
+        CGS_CustomWriter cw = { .base = { .append = upper_write }, .ctx = &ctx };
+
+        cgs_appendf(&cw, "value is %?", "forty two");
+
+        ASSERT_STR_EQ(ctx.buf, "VALUE IS FORTY TWO");
+    }
+
+    TEST("CGS_CustomWriter: empty append does not corrupt ctx");
+    {
+        UpperCtx ctx = {0};
+        CGS_CustomWriter cw = { .base = { .append = upper_write }, .ctx = &ctx };
+
+        cgs_append(&cw, "");
+
+        ASSERT_TRUE(ctx.len == 0);
+        ASSERT_STR_EQ(ctx.buf, "");
+    }
+
+    TEST("CGS_CustomWriter: two writers with separate ctx stay independent");
+    {
+        CountCtx c1 = {0}, c2 = {0};
+        CGS_CustomWriter w1 = { .base = { .append = count_write }, .ctx = &c1 };
+        CGS_CustomWriter w2 = { .base = { .append = count_write }, .ctx = &c2 };
+
+        cgs_append(&w1, "aaa");
+        cgs_append(&w2, "bb");
+
+        ASSERT_TRUE(c1.total == 3);
+        ASSERT_TRUE(c2.total == 2);
+    }
+
+    TEST("CGS_CustomWriter: error from the callback propagates to the caller");
+    {
+        CGS_CustomWriter cw = { .base = { .append = failing_write }, .ctx = NULL };
+
+        CGS_Error e = cgs_append(&cw, "anything");
+        ASSERT_TRUE(e.ec == CGS_IO_ERROR);
+    }
+
+    TEST("CGS_CustomWriter: NULL ctx is fine when the callback ignores it");
+    {
+        CGS_CustomWriter cw = { .base = { .append = failing_write }, .ctx = NULL };
+
+        CGS_Error e = cgs_putc(&cw, 'z');
+        ASSERT_TRUE(e.ec == CGS_IO_ERROR);
+    }
+}
+
+
+void test_chain_writer(void)
+{
+    /* ════════════════════════════════════════════════════════════
+     * CGS_ChainWriter — cgs_writer(a, b) writes to both
+     * ════════════════════════════════════════════════════════════ */
+
+    TEST("CGS_ChainWriter: append reaches both StrBuf destinations");
+    {
+        char m1[64] = {0}, m2[64] = {0};
+        CGS_StrBuf a = cgs_strbuf_init_from_buf(m1);
+        CGS_StrBuf b = cgs_strbuf_init_from_buf(m2);
+
+        CGS_ChainWriter chain = cgs_writer(&a, &b);
+        cgs_append(&chain, "hello");
+
+        ASSERT_TRUE(cgs_equal(a, "hello"));
+        ASSERT_TRUE(cgs_equal(b, "hello"));
+    }
+
+    TEST("CGS_ChainWriter: multiple appends accumulate in both");
+    {
+        char m1[64] = {0}, m2[64] = {0};
+        CGS_StrBuf a = cgs_strbuf_init_from_buf(m1);
+        CGS_StrBuf b = cgs_strbuf_init_from_buf(m2);
+
+        CGS_ChainWriter chain = cgs_writer(&a, &b);
+        cgs_append(&chain, "abc");
+        cgs_append(&chain, "def");
+
+        ASSERT_TRUE(cgs_equal(a, "abcdef"));
+        ASSERT_TRUE(cgs_equal(b, "abcdef"));
+    }
+
+    TEST("CGS_ChainWriter: cgs_putc reaches both");
+    {
+        char m1[16] = {0}, m2[16] = {0};
+        CGS_StrBuf a = cgs_strbuf_init_from_buf(m1);
+        CGS_StrBuf b = cgs_strbuf_init_from_buf(m2);
+
+        CGS_ChainWriter chain = cgs_writer(&a, &b);
+        cgs_putc(&chain, 'x');
+        cgs_putc(&chain, 'y');
+
+        ASSERT_TRUE(cgs_equal(a, "xy"));
+        ASSERT_TRUE(cgs_equal(b, "xy"));
+    }
+
+    TEST("CGS_ChainWriter: cgs_appendf reaches both");
+    {
+        char m1[64] = {0}, m2[64] = {0};
+        CGS_StrBuf a = cgs_strbuf_init_from_buf(m1);
+        CGS_StrBuf b = cgs_strbuf_init_from_buf(m2);
+
+        CGS_ChainWriter chain = cgs_writer(&a, &b);
+        cgs_appendf(&chain, "%? + %? = %?", 1, 2, 3);
+
+        ASSERT_TRUE(cgs_equal(a, "1 + 2 = 3"));
+        ASSERT_TRUE(cgs_equal(b, "1 + 2 = 3"));
+    }
+
+    TEST("CGS_ChainWriter: mixed destination types (DStr and StrBuf)");
+    {
+        CGS_DStr d = cgs_dstr_init();
+        char m[64] = {0};
+        CGS_StrBuf sb = cgs_strbuf_init_from_buf(m);
+
+        CGS_ChainWriter chain = cgs_writer(&d, &sb);
+        cgs_append(&chain, "mixed");
+
+        ASSERT_TRUE(cgs_equal(d, "mixed"));
+        ASSERT_TRUE(cgs_equal(sb, "mixed"));
+        cgs_dstr_deinit(&d);
+    }
+
+    TEST("CGS_ChainWriter: chain a real sink with a counting writer");
+    {
+        CGS_DStr d = cgs_dstr_init();
+        unsigned int n = 0;
+
+        CGS_ChainWriter chain = cgs_writer(&d, &n);
+        cgs_append(&chain, "hello");
+
+        ASSERT_TRUE(cgs_equal(d, "hello"));
+        ASSERT_TRUE(n == 5);
+        cgs_dstr_deinit(&d);
+    }
+
+    TEST("CGS_ChainWriter: two counting writers both increment");
+    {
+        unsigned int n1 = 0, n2 = 0;
+
+        CGS_ChainWriter chain = cgs_writer(&n1, &n2);
+        cgs_appendf(&chain, "%?", "abcdef");
+
+        ASSERT_TRUE(n1 == 6);
+        ASSERT_TRUE(n2 == 6);
+    }
+
+    TEST("CGS_ChainWriter: chained with a CustomWriter destination");
+    {
+        CountCtx ctx = {0};
+        CGS_CustomWriter cw = { .base = { .append = count_write }, .ctx = &ctx };
+        CGS_DStr d = cgs_dstr_init();
+
+        CGS_ChainWriter chain = cgs_writer(&d, &cw);
+        cgs_append(&chain, "tapped");
+
+        ASSERT_TRUE(cgs_equal(d, "tapped"));
+        ASSERT_TRUE(ctx.total == 6);
+        cgs_dstr_deinit(&d);
+    }
+
+    TEST("CGS_ChainWriter: two CustomWriters both receive the data");
+    {
+        UpperCtx u = {0};
+        CountCtx c = {0};
+        CGS_CustomWriter wu = { .base = { .append = upper_write }, .ctx = &u };
+        CGS_CustomWriter wc = { .base = { .append = count_write }, .ctx = &c };
+
+        CGS_ChainWriter chain = cgs_writer(&wu, &wc);
+        cgs_append(&chain, "abc");
+
+        ASSERT_STR_EQ(u.buf, "ABC");
+        ASSERT_TRUE(c.total == 3);
+    }
+
+    TEST("CGS_ChainWriter: nested chains fan out to three sinks");
+    {
+        unsigned int n = 0;
+        CGS_DStr d1 = cgs_dstr_init();
+        CGS_DStr d2 = cgs_dstr_init();
+
+        CGS_ChainWriter inner = cgs_writer(&d1, &d2);
+        CGS_ChainWriter outer = cgs_writer(&inner, &n);
+
+        cgs_append(&outer, "fanout");
+
+        ASSERT_TRUE(cgs_equal(d1, "fanout"));
+        ASSERT_TRUE(cgs_equal(d2, "fanout"));
+        ASSERT_TRUE(n == 6);
+
+        cgs_dstr_deinit(&d1);
+        cgs_dstr_deinit(&d2);
+    }
+
+    TEST("CGS_ChainWriter: empty append leaves both destinations empty");
+    {
+        char m1[16] = {0}, m2[16] = {0};
+        CGS_StrBuf a = cgs_strbuf_init_from_buf(m1);
+        CGS_StrBuf b = cgs_strbuf_init_from_buf(m2);
+
+        CGS_ChainWriter chain = cgs_writer(&a, &b);
+        cgs_append(&chain, "");
+
+        ASSERT_TRUE(cgs_len(a) == 0);
+        ASSERT_TRUE(cgs_len(b) == 0);
+    }
+
+    TEST("CGS_ChainWriter: same content regardless of destination order");
+    {
+        char m1[64] = {0}, m2[64] = {0};
+        CGS_StrBuf a = cgs_strbuf_init_from_buf(m1);
+        CGS_StrBuf b = cgs_strbuf_init_from_buf(m2);
+
+        CGS_ChainWriter ab = cgs_writer(&a, &b);
+        cgs_append(&ab, "order");
+
+        ASSERT_TRUE(cgs_equal(a, b));
+    }
+
+    TEST("CGS_ChainWriter: error from one destination propagates");
+    {
+        /* second sink always fails → the chain call reports the error */
+        CGS_DStr d = cgs_dstr_init();
+        CGS_CustomWriter bad = { .base = { .append = failing_write }, .ctx = NULL };
+
+        CGS_ChainWriter chain = cgs_writer(&d, &bad);
+        CGS_Error e = cgs_append(&chain, "data");
+
+        ASSERT_TRUE(e.ec == CGS_IO_ERROR);
+        cgs_dstr_deinit(&d);
+    }
+
+    TEST("CGS_ChainWriter: destination too small reports DST_TOO_SMALL");
+    {
+        char big[64] = {0};
+        char tiny[4] = {0};
+        CGS_StrBuf a = cgs_strbuf_init_from_buf(big);
+        CGS_StrBuf b = cgs_strbuf_init_from_buf(tiny);
+
+        CGS_ChainWriter chain = cgs_writer(&a, &b);
+        CGS_Error e = cgs_append(&chain, "way too long for tiny");
+
+        ASSERT_TRUE(e.ec == CGS_DST_TOO_SMALL);
+    }
+
+    TEST("CGS_ChainWriter: tee a value while measuring its length");
+    {
+        /* common use: write to the real sink and count in one pass */
+        CGS_DStr out = cgs_dstr_init();
+        unsigned int len = 0;
+
+        CGS_ChainWriter tee = cgs_writer(&out, &len);
+        cgs_appendf(&tee, "%?-%?", "id", 99);
+
+        ASSERT_TRUE(cgs_equal(out, "id-99"));
+        ASSERT_TRUE(len == cgs_len(out));
+        cgs_dstr_deinit(&out);
+    }
+}
