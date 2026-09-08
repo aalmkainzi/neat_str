@@ -6,13 +6,12 @@
 #include "../cgs.h"
 
 // Test counter
-static int test_count = 0;
-static int passed_count = 0;
+extern int test_count;
+extern int passed_count;
 
 #define TEST(name) \
 do { \
     printf("Running test: %s\n", name); \
-    /*test_count++*/; \
 } while(0)
 
 #define ASSERT_EQ(a, b) \

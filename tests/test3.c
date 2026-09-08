@@ -1963,6 +1963,10 @@ void test_zstrv();
 void test_chain_writer();
 void test_custom_writer();
 
+
+int test_count;
+int passed_count;
+
 int main() {
     printf("========================================\n");
     printf("String Library Edge Case Test Suite\n");
