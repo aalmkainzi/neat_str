@@ -1189,10 +1189,10 @@ __VA_OPT__(cgs__arrfmt_2) \
     .nb = (nb_), \
     .elm_size = sizeof((array_)[0]), \
     .elm_tostr = cgs__get_tostr_p_func(__typeof__((array_)[0])), \
-    .open = cgs_strv("{"), \
-    .close = cgs_strv("}"), \
-    .separator = cgs_strv(", "), \
-    .trailing_separator = cgs_strv("") \
+    .open = cgs__strv_1("{"), \
+    .close = cgs__strv_1("}"), \
+    .separator = cgs__strv_1(", "), \
+    .trailing_separator = cgs__strv_1("") \
 })
 
 #define cgs__arrfmt_2(array_, nb_, open_, close_, seperator_, ...) \
@@ -1204,7 +1204,7 @@ __VA_OPT__(cgs__arrfmt_2) \
     .open = cgs__strv_1(open_), \
     .close = cgs__strv_1(close_), \
     .separator = cgs__strv_1(seperator_), \
-    .trailing_separator = cgs_strv(CGS__VA_OR("", __VA_ARGS__)) \
+    .trailing_separator = cgs__strv_1(CGS__VA_OR("", __VA_ARGS__)) \
 })
 
 #define cgs_alignfmt(obj_, align_mode_, width_, ...) \
