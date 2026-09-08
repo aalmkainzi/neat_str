@@ -167,7 +167,7 @@ cgs_nfmt_t(float/double, fmt_char) cgs_nfmt(float/double value, int fmt_char, in
 CGS_ArrayFmt                       cgs_arrfmt(T *array, size_t len); // an array format object that has a tostr, prints in this format `{1, 2, 3}`
 CGS_ArrayFmt                       cgs_arrfmt(T *array, size_t len, anystr_t open, anystr_t close, anystr_t delim, anystr_t trailing_delim = "");
 CGS__AlignFmt                      cgs_alignfmt(T obj, align_mode, int width, char fill_char = ' '); // an align format object that has a tostr, align_mode must be one of CENTER, LEFT, RIGHT
-CGS__RepeatFmt                     cgs_repeatfmt(T obj, unsigned int nb); // returns an object that has a tostr that prints obj nb times
+CGS__RepeatFmt                     cgs_repeatfmt(T obj, unsigned int nb); // a format object that has a tostr that prints obj nb times
 ```
 
 ## CGS_DStr
