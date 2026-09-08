@@ -25,8 +25,6 @@
             #define CGS_debug_break() __debugbreak()
         #elif defined(__clang__)
             #define CGS_debug_break() __builtin_debugtrap()
-        #elif defined(__GNUC__)
-            #define CGS_debug_break() __builtin_trap()
         #else
             #include <signal.h>
             #define CGS_debug_break() raise(SIGTRAP)
@@ -2556,9 +2554,9 @@ CGS_API CGS_Error cgs__file_append(CGS_Writer *dst, CGS_StrView str)
     return (CGS_Error) {CGS_OK};
 }
 
-CGS_PRIVATE CGS_Error cgs__parse_optional_paren_grouping(CGS_ZStrView *fmt_walk);
+CGS_PRIVATE CGS_Error cgs__parse_optional_paren_grouping(CGS_StrView *fmt_walk);
 
-CGS_PRIVATE CGS_Error cgs__parse_optional_square_grouping(CGS_ZStrView *fmt_walk)
+CGS_PRIVATE CGS_Error cgs__parse_optional_square_grouping(CGS_StrView *fmt_walk)
 {
     while (fmt_walk->len != 0 && fmt_walk->chars[0] != ']')
     {
@@ -2600,7 +2598,7 @@ CGS_PRIVATE CGS_Error cgs__parse_optional_square_grouping(CGS_ZStrView *fmt_walk
     return (CGS_Error) {CGS_OK};
 }
 
-CGS_PRIVATE CGS_Error cgs__parse_optional_paren_grouping(CGS_ZStrView *fmt_walk)
+CGS_PRIVATE CGS_Error cgs__parse_optional_paren_grouping(CGS_StrView *fmt_walk)
 {
     while (fmt_walk->len != 0 && fmt_walk->chars[0] != ')')
     {
@@ -2642,7 +2640,7 @@ CGS_PRIVATE CGS_Error cgs__parse_optional_paren_grouping(CGS_ZStrView *fmt_walk)
     return (CGS_Error) {CGS_OK};
 }
 
-CGS_PRIVATE CGS_Error cgs__parse_optional_format_string(CGS_ZStrView *fmt_walk, CGS_StrView *fmt_arg)
+CGS_PRIVATE CGS_Error cgs__parse_optional_format_string(CGS_StrView *fmt_walk, CGS_StrView *fmt_arg)
 {
     assert(fmt_walk->chars[0] == '(');
     fmt_walk->chars += 1;
@@ -2657,7 +2655,7 @@ CGS_PRIVATE CGS_Error cgs__parse_optional_format_string(CGS_ZStrView *fmt_walk, 
 }
 
 CGS_API CGS_Error cgs__append_fmt(
-    CGS_Writer *dst, CGS_ZStrView fmt, size_t nargs, void **args, CGS_Error (*tostr_p_funcs[])(CGS_Writer *, const void *, CGS_StrView fmt_arg)
+    CGS_Writer *dst, CGS_StrView fmt, size_t nargs, void **args, CGS_Error (*tostr_p_funcs[])(CGS_Writer *, const void *, CGS_StrView fmt_arg)
 )
 {
     // This should proably be:
@@ -2670,7 +2668,7 @@ CGS_API CGS_Error cgs__append_fmt(
         SPECIFY_INDEX
     } index_mode = UNKNOWN_INDEXING; // SPECIFY_INDEX is "%index" (e.g. "%0" is the first arg). AUTO_INDEX requires "%?", cannot mix
 
-    CGS_ZStrView fmt_walk = fmt;
+    CGS_StrView fmt_walk = fmt;
 
     size_t how_many_formatted = 0;
     CGS_Error err             = {CGS_OK};
@@ -2732,7 +2730,15 @@ CGS_API CGS_Error cgs__append_fmt(
                 char *end               = NULL;
                 unsigned long arg_index = strtoul(found + 2, &end, 10); // we can assume fmt is null terminated
 
+                if (end >= fmt.chars + fmt.len)
+                {
+                    CGS_debug_break();
+                    err.ec = CGS_BAD_FORMAT;
+                    break;
+                }
+
                 unsigned int end_idx = (unsigned int)(end - fmt_walk.chars);
+
                 fmt_walk.chars += end_idx;
                 fmt_walk.len -= end_idx;
 
@@ -2788,7 +2794,7 @@ CGS_API CGS_Error cgs__append_fmt(
         }
         else
         {
-            err = cgs__invoke_writer(dst, cgs__strv_zstrv1(fmt_walk));
+            err = cgs__invoke_writer(dst, fmt_walk);
             fmt_walk.chars += fmt_walk.len;
             fmt_walk.len = 0;
         }
@@ -2802,7 +2808,7 @@ CGS_API CGS_Error cgs__append_fmt(
 }
 
 CGS_API CGS_Error cgs__appendln_fmt_(
-    CGS_Writer *dst, CGS_ZStrView fmt, size_t nargs, void **args, CGS_Error (*tostr_p_funcs[])(CGS_Writer *, const void *, CGS_StrView fmt_arg)
+    CGS_Writer *dst, CGS_StrView fmt, size_t nargs, void **args, CGS_Error (*tostr_p_funcs[])(CGS_Writer *, const void *, CGS_StrView fmt_arg)
 )
 {
     CGS_Error err = cgs__append_fmt(dst, fmt, nargs, args, tostr_p_funcs);
@@ -2813,7 +2819,7 @@ CGS_API CGS_Error cgs__appendln_fmt_(
 }
 
 CGS_API CGS_DStr cgs__asprintf(
-    CGS_Writer *dst, CGS_ZStrView fmt, size_t nargs, void **args, CGS_Error (*tostr_p_funcs[])(CGS_Writer *, const void *, CGS_StrView fmt_arg)
+    CGS_Writer *dst, CGS_StrView fmt, size_t nargs, void **args, CGS_Error (*tostr_p_funcs[])(CGS_Writer *, const void *, CGS_StrView fmt_arg)
 )
 {
     cgs__append_fmt(dst, fmt, nargs, args, tostr_p_funcs);
@@ -2821,7 +2827,7 @@ CGS_API CGS_DStr cgs__asprintf(
 }
 
 CGS_API CGS_DStr cgs__asprintf_with_allocator(
-    CGS_Writer *dst, CGS_ZStrView fmt, size_t nargs, void **args, CGS_Error (*tostr_p_funcs[])(CGS_Writer *, const void *, CGS_StrView fmt_arg)
+    CGS_Writer *dst, CGS_StrView fmt, size_t nargs, void **args, CGS_Error (*tostr_p_funcs[])(CGS_Writer *, const void *, CGS_StrView fmt_arg)
 )
 {
     // shifting the pointers by 1 to skip the fmt arg

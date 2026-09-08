@@ -974,8 +974,8 @@ cgs__as_ptr(a),
 (CGS_Error(*)(CGS_Writer*, const void*, CGS_StrView))cgs__get_tostr_p_func(__typeof__(a)),
 
 #define cgs__fmt_helper(fmt_func, writer, fmt, ...) \
-    __VA_OPT__(fmt_func(writer, cgs_zstrv(fmt), 0 CGS__FOREACH(cgs__arg_count_each, __VA_ARGS__), (void*[]){CGS__FOREACH(cgs__as_ptr_elm, __VA_ARGS__)}, (CGS_Error(*[])(CGS_Writer*,const void*, CGS_StrView)){CGS__FOREACH(cgs__tostr_p_func_elm, __VA_ARGS__)})) \
-    CGS__IF_EMPTY((fmt_func(cgs_writer_ptr(writer), cgs_zstrv(fmt), 0, NULL, NULL)), __VA_ARGS__)
+    __VA_OPT__(fmt_func(writer, cgs__strv_1(fmt), 0 CGS__FOREACH(cgs__arg_count_each, __VA_ARGS__), (void*[]){CGS__FOREACH(cgs__as_ptr_elm, __VA_ARGS__)}, (CGS_Error(*[])(CGS_Writer*,const void*, CGS_StrView)){CGS__FOREACH(cgs__tostr_p_func_elm, __VA_ARGS__)})) \
+    CGS__IF_EMPTY((fmt_func(cgs_writer_ptr(writer), cgs__strv_1(fmt), 0, NULL, NULL)), __VA_ARGS__)
 
 #define cgs_appendf(writer_dst, fmt, ...) \
 cgs__fmt_helper(cgs__append_fmt, cgs_writer_ptr(writer_dst), fmt, __VA_ARGS__)
@@ -1619,10 +1619,10 @@ CGS_API CGS_Error cgs__fmutstr_ref_append_fread_until(CGS__FixedMutStrRef dst, F
 CGS_API unsigned int cgs__fprint_strv(FILE *stream, CGS_StrView str);
 CGS_API unsigned int cgs__fprintln_strv(FILE *stream, CGS_StrView str);
 
-CGS_API CGS_Error cgs__append_fmt(CGS_Writer *dst, CGS_ZStrView fmt, size_t nargs, void **args, CGS_Error(*tostr_p_funcs[])(CGS_Writer*, const void*, CGS_StrView));
-CGS_API CGS_Error cgs__appendln_fmt_(CGS_Writer *dst, CGS_ZStrView fmt, size_t nargs, void **args, CGS_Error(*tostr_p_funcs[])(CGS_Writer*, const void*, CGS_StrView));
-CGS_API CGS_DStr cgs__asprintf(CGS_Writer *dst, CGS_ZStrView fmt, size_t nargs, void **args, CGS_Error(*tostr_p_funcs[])(CGS_Writer*, const void*, CGS_StrView));
-CGS_API CGS_DStr cgs__asprintf_with_allocator(CGS_Writer *dst, CGS_ZStrView fmt, size_t nargs, void **args, CGS_Error(*tostr_p_funcs[])(CGS_Writer*, const void*, CGS_StrView));
+CGS_API CGS_Error cgs__append_fmt(CGS_Writer *dst, CGS_StrView fmt, size_t nargs, void **args, CGS_Error(*tostr_p_funcs[])(CGS_Writer*, const void*, CGS_StrView));
+CGS_API CGS_Error cgs__appendln_fmt_(CGS_Writer *dst, CGS_StrView fmt, size_t nargs, void **args, CGS_Error(*tostr_p_funcs[])(CGS_Writer*, const void*, CGS_StrView));
+CGS_API CGS_DStr cgs__asprintf(CGS_Writer *dst, CGS_StrView fmt, size_t nargs, void **args, CGS_Error(*tostr_p_funcs[])(CGS_Writer*, const void*, CGS_StrView));
+CGS_API CGS_DStr cgs__asprintf_with_allocator(CGS_Writer *dst, CGS_StrView fmt, size_t nargs, void **args, CGS_Error(*tostr_p_funcs[])(CGS_Writer*, const void*, CGS_StrView));
 
 CGS_API CGS_Error cgs__bool_tostr(CGS_Writer *dst, bool obj, CGS_StrView fmt_arg);
 CGS_API CGS_Error cgs__cstr_tostr(CGS_Writer *dst, const char *obj, CGS_StrView fmt_arg);
